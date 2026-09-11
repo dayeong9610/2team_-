@@ -1,6 +1,6 @@
 export interface GameStage {
   id: number;
-  stageId: string;
+  stageid: string;
   title: string;
   location: string;
   description: string;
@@ -16,7 +16,7 @@ export const episode01Stages: GameStage[] = [
   // =========================
   {
     id: 1,
-    stageId: "EP01_STAGE01",
+    stageid: "EP01_STAGE01",
     title: "위험 인지",
     location: "스터디 단체 채팅방",
 
@@ -47,7 +47,7 @@ export const episode01Stages: GameStage[] = [
   // =========================
   {
     id: 2,
-    stageId: "EP01_STAGE02",
+    stageid: "EP01_STAGE02",
     title: "거절",
     location: "다음 날 학교 쉬는 시간",
 
@@ -77,7 +77,7 @@ export const episode01Stages: GameStage[] = [
   // =========================
   {
     id: 3,
-    stageId: "EP01_STAGE03",
+    stageid: "EP01_STAGE03",
     title: "압박 증가",
     location: "학교 교실",
 
@@ -105,7 +105,7 @@ export const episode01Stages: GameStage[] = [
   // =========================
   {
     id: 4,
-    stageId: "EP01_STAGE04",
+    stageid: "EP01_STAGE04",
     title: "도움 요청",
     location: "며칠 뒤 수업 시간",
 
@@ -133,7 +133,7 @@ export const episode01Stages: GameStage[] = [
   // =========================
   {
     id: 5,
-    stageId: "EP01_STAGE05",
+    stageid: "EP01_STAGE05",
     title: "최종 판단",
     location: "그날 밤 스터디 단체 채팅방",
 

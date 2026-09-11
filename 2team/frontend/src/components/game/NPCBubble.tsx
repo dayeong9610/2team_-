@@ -1,16 +1,25 @@
 interface NPCBubbleProps {
-  name?: string;
   message: string;
+  name?: string;
 }
 
 export default function NPCBubble({
-  name = "친구",
-  message
+  message,
+  name = "스터디 친구",
 }: NPCBubbleProps) {
   return (
-    <div className="npc-bubble">
-      <strong>{name}</strong>
-      <p>{message}</p>
+    <div className="npc-message">
+      <div className="npc-avatar">
+        👤
+      </div>
+
+      <div>
+        <strong>{name}</strong>
+
+        <div className="npc-bubble">
+          {message}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,18 +1,18 @@
-async def evaluate_user_response(
+from app.ai.prompts import SYSTEM_PROMPT, build_user_prompt
+
+
+async def evaluate_response(
     episode_id: str,
     stage_id: str,
-    scene_context: str,
-    evaluation_criteria: str,
-    user_message: str
-):
-    # LLM 호출
+    user_message: str,
+    stage_data: dict
+) -> dict:
 
-    return {
-        "npc_response": "...",
-        "feedback": "...",
-        "scores": {
-            "risk_awareness": 0,
-            "refusal": 0,
-            "help_request": 0
-        }
-    }
+    user_prompt = build_user_prompt(
+        episode_id=episode_id,
+        stage_id=stage_id,
+        user_message=user_message,
+        stage_data=stage_data
+    )
+
+    # 여기서 실제 LLM API 호출

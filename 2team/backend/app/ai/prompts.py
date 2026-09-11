@@ -39,3 +39,46 @@ NPC 반응 및 교육 피드백 AI다.
 
 반드시 지정된 JSON 형식으로만 응답한다.
 """
+def build_user_prompt(
+    episode_id: str,
+    stage_id: str,
+    user_message: str,
+    stage_data: dict
+):
+    return f"""
+현재 에피소드:
+{episode_id}
+
+현재 단계:
+{stage_id}
+
+현재 장면:
+{stage_data.get("scene")}
+
+NPC 대사:
+{stage_data.get("npc_messages")}
+
+사용자 질문:
+{stage_data.get("question")}
+
+평가 기준:
+{stage_data.get("evaluation")}
+
+사용자 답변:
+{user_message}
+
+현재 상황 안에서 NPC 후속 반응을 작성하고
+사용자의 답변을 평가하세요.
+
+반드시 다음 JSON 형식으로 응답하세요.
+
+{{
+  "npc_response": "...",
+  "feedback": "...",
+  "scores": {{
+    "risk_awareness": 0,
+    "refusal": 0,
+    "help_request": 0
+  }}
+}}
+"""

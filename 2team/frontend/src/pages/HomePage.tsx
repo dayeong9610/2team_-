@@ -1,26 +1,26 @@
-import { useNavigate } from "react-router-dom";
-
 function HomePage() {
-
-  const navigate = useNavigate();
+  const handleStart = () => {
+    window.location.href = "/tutorial";
+  };
 
   return (
-    <div>
-
-      <h1>마냥이</h1>
+    <main className="home-page">
+      <h1>😺 마냥이</h1>
 
       <p>
         위험한 상황에서
         나를 지키는 방법을 연습해봐!
       </p>
 
-      <button
-        onClick={() => navigate("/tutorial")}
-      >
+      <p>
+        실제 상황처럼 대화하며
+        대응 능력을 키워보자.
+      </p>
+
+      <button onClick={handleStart}>
         시작하기
       </button>
-
-    </div>
+    </main>
   );
 }
 

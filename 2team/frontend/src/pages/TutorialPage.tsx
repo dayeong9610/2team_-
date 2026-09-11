@@ -1,8 +1,8 @@
-import { useNavigate } from "react-router-dom";
-
 function TutorialPage() {
 
-  const navigate = useNavigate();
+  const handleContinue = () => {
+    window.location.href = "/episodes";
+  };
 
   return (
     <div>
@@ -15,7 +15,7 @@ function TutorialPage() {
       </p>
 
       <button
-        onClick={() => navigate("/episodes")}
+        onClick={handleContinue}
       >
         계속하기
       </button>

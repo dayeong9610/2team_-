@@ -101,3 +101,27 @@ next_stage는 episode JSON에서 결정한다.
 영구 저장하지 않음:
 
 - 사용자 자유문장 원문
+## Branch 규칙
+
+각 Stage의 사용자 응답은 0~3점으로 평가한다.
+
+- 3점: high
+- 2점: medium
+- 0~1점: low
+
+Branch는 NPC 반응 및 마냥이 코칭을
+선택하기 위한 용도로 사용한다.
+
+Branch가 핵심 Scenario 흐름을 변경하지 않는다.
+
+EP01 흐름은 항상 다음과 같다.
+
+EP01_STAGE01
+→ EP01_STAGE02
+→ EP01_STAGE03
+→ EP01_STAGE04
+→ EP01_STAGE05
+→ RESULT
+
+next_stage는 AI가 결정하지 않는다.
+Scenario 데이터에서 결정한다.

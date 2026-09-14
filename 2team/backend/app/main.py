@@ -7,6 +7,9 @@ from app.api.chat import (
     router as chat_router
 )
 
+from app.api.sessions import (
+    router as session_router
+)
 
 app = FastAPI(
     title="Manyang API"
@@ -29,6 +32,11 @@ app.include_router(
     prefix="/api"
 )
 
+
+app.include_router(
+    session_router,
+    prefix="/api"
+)
 
 @app.get("/")
 def root():

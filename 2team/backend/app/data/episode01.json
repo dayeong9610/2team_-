@@ -1,0 +1,11 @@
+{
+  "episode_id": "EP01",
+  "title": "시험기간 스터디 그룹",
+  "stages": [
+    {
+      "stage_id": "EP01_STAGE01",
+      "title": "위험 인지",
+      "next_stage": "EP01_STAGE02"
+    }
+  ]
+}

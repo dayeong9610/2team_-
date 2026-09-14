@@ -1,0 +1,195 @@
+{
+  "episode_id": "EP01",
+  "title": "시험기간 스터디 그룹",
+
+  "background": {
+    "character": "고등학교 2학년 학생",
+    "situation": "중간고사를 앞두고 친한 친구의 초대로 스터디 그룹에 참여한다."
+  },
+
+  "total_stages": 5,
+
+  "stages": [
+    {
+      "stage_id": "EP01_STAGE01",
+      "stage_number": 1,
+      "title": "위험 인지",
+      "type": "risk_awareness",
+
+      "location": "스터디 단체 채팅방",
+
+      "description": "스터디 단체 채팅방에 포장지가 없는 알약 사진이 올라온다.",
+
+      "messages": [
+        {
+          "speaker": "학생1",
+          "text": "나 요즘 이거 먹고 공부하는데 잠이 하나도 안 온다."
+        },
+        {
+          "speaker": "학생1",
+          "text": "집중도 엄청 잘 됨."
+        },
+        {
+          "speaker": "친구1",
+          "text": "나도 써봄."
+        },
+        {
+          "speaker": "친구2",
+          "text": "효과 좋음."
+        }
+      ],
+
+      "question": "이 상황에서 어떤 점이 가장 신경 쓰이나요?",
+
+      "evaluation_axis": "risk_awareness",
+
+      "evaluation_criteria": [
+        "알약의 출처를 의심하는가",
+        "안전성을 확인하려 하는가",
+        "단순한 공부 비법으로 받아들이지 않는가"
+      ],
+
+      "next_stage": "EP01_STAGE02"
+    },
+
+    {
+      "stage_id": "EP01_STAGE02",
+      "stage_number": 2,
+      "title": "거절",
+      "type": "refusal",
+
+      "location": "다음 날 학교 쉬는 시간",
+
+      "description": "친구가 직접 다가와 전날 채팅방에서 본 약을 권유한다.",
+
+      "messages": [
+        {
+          "speaker": "친구",
+          "text": "어제 채팅방 봤지?"
+        },
+        {
+          "speaker": "친구",
+          "text": "시험 끝날 때까지만 먹어봐."
+        },
+        {
+          "speaker": "친구",
+          "text": "다들 하는데 뭐."
+        }
+      ],
+
+      "question": "친구에게 어떻게 답하겠습니까?",
+
+      "evaluation_axis": "refusal",
+
+      "evaluation_criteria": [
+        "명확하게 거절하는가",
+        "우물쭈물하지 않는가",
+        "친구와의 관계 때문에 수용하지 않는가"
+      ],
+
+      "next_stage": "EP01_STAGE03"
+    },
+
+    {
+      "stage_id": "EP01_STAGE03",
+      "stage_number": 3,
+      "title": "압박 증가",
+      "type": "refusal_advanced",
+
+      "location": "학교 쉬는 시간",
+
+      "description": "거절하자 친구가 서운한 반응을 보이고 주변 친구들도 상황을 듣고 있다.",
+
+      "messages": [
+        {
+          "speaker": "친구",
+          "text": "너만 안 한다고?"
+        },
+        {
+          "speaker": "친구",
+          "text": "우리 못 믿어?"
+        }
+      ],
+
+      "question": "이 상황에서 어떻게 행동하겠습니까?",
+
+      "evaluation_axis": "refusal",
+
+      "evaluation_criteria": [
+        "또래의 압력에 흔들리지 않는가",
+        "자신의 의사를 분명하게 표현하는가",
+        "기존의 거절 의사를 유지하는가"
+      ],
+
+      "next_stage": "EP01_STAGE04"
+    },
+
+    {
+      "stage_id": "EP01_STAGE04",
+      "stage_number": 4,
+      "title": "도움 요청",
+      "type": "help_request",
+
+      "location": "며칠 뒤 수업 시간",
+
+      "description": "스터디 그룹 학생 한 명이 수업 중 갑자기 심한 어지럼증을 호소한다.",
+
+      "messages": [
+        {
+          "speaker": "친구1",
+          "text": "선생님한테는 말하지 말자."
+        },
+        {
+          "speaker": "친구2",
+          "text": "괜히 우리까지 문제 된다."
+        }
+      ],
+
+      "question": "당신은 어떤 행동을 하겠습니까?",
+
+      "evaluation_axis": "help_request",
+
+      "evaluation_criteria": [
+        "도움이 필요한 상황임을 인식하는가",
+        "적절한 도움 대상을 떠올리는가",
+        "실제로 도움을 요청하려 하는가"
+      ],
+
+      "next_stage": "EP01_STAGE05"
+    },
+
+    {
+      "stage_id": "EP01_STAGE05",
+      "stage_number": 5,
+      "title": "최종 판단",
+      "type": "help_request_advanced",
+
+      "location": "그날 밤 스터디 단체 채팅방",
+
+      "description": "스터디방 방장이 낮에 있었던 일을 숨길 것을 요구한다.",
+
+      "messages": [
+        {
+          "speaker": "방장",
+          "text": "오늘 있었던 일은 비밀이다."
+        },
+        {
+          "speaker": "방장",
+          "text": "채팅 기록도 지워."
+        }
+      ],
+
+      "question": "당신은 어떻게 대응하겠습니까?",
+
+      "evaluation_axis": "help_request",
+
+      "evaluation_criteria": [
+        "상황을 숨기라는 요구에 따르지 않는가",
+        "책임 있는 행동을 하려는가",
+        "신뢰할 수 있는 어른이나 기관에 도움을 요청하려 하는가"
+      ],
+
+      "next_stage": null
+    }
+  ]
+}

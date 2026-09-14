@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>index</title>
+</head>
+<body>
+    <h1>hello FastAPI</h1>
+    {% if is_authenticated %}
+    <a href="/admins/update">회원정보 수정</a>
+    <br>
+    <a href="/admins/signout">로그아웃</a>
+    <br>
+    <form method="post" action="/admins/resign" style="display: inline;">
+        <button type="submit" onclick="return confirm('정말 회원탈퇴를 진행하시겠습니까?');">회원탈퇴</button>
+    </form>
+    {% else %}
+    <a href="/admins/signin">로그인 페이지</a>
+    <br>
+    <a href="/admins/signup">가입 페이지</a>
+    {% endif %}
+</body>
+</html>

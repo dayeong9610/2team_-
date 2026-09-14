@@ -1,10 +1,15 @@
+export interface DialogueMessage {
+  sender: string;
+  text: string;
+}
+
 export interface GameStage {
   id: number;
   stageId: string;
   title: string;
   location: string;
   description: string;
-  messages: string[];
+  messages: DialogueMessage[];
   question: string;
   evaluation: string[];
   scoreType: string;
@@ -24,10 +29,10 @@ export const episode01Stages: GameStage[] = [
       "고등학교 2학년인 당신은 중간고사를 앞두고 있습니다. 평소 친하게 지내던 친구의 스터디 그룹에 참여했습니다.",
 
     messages: [
-      "나 요즘 이거 먹고 공부하는데 잠이 하나도 안 온다.",
-      "집중도 엄청 잘 됨.",
-      "나도 써봄.",
-      "효과 좋음.",
+      { sender: "지우", text: "나 요즘 이거 먹고 공부하는데 잠이 하나도 안 온다." },
+      { sender: "지우", text: "집중도 엄청 잘 됨." },
+      { sender: "주원", text: "나도 써봄." },
+      { sender: "주원", text: "효과 좋음." },
     ],
 
     question:
@@ -55,9 +60,9 @@ export const episode01Stages: GameStage[] = [
       "다음 날, 스터디 그룹의 친구가 쉬는 시간에 당신에게 다가옵니다.",
 
     messages: [
-      "어제 채팅방 봤지?",
-      "시험 끝날 때까지만 먹어봐.",
-      "다들 하는데 뭐.",
+      { sender: "지우", text: "어제 채팅방 봤지?" },
+      { sender: "지우", text: "시험 끝날 때까지만 먹어봐." },
+      { sender: "지우", text: "다들 하는데 뭐." },
     ],
 
     question:
@@ -85,8 +90,8 @@ export const episode01Stages: GameStage[] = [
       "당신이 거절하자 친구가 약간 서운한 표정을 짓습니다. 주변 친구들도 대화를 듣고 있습니다.",
 
     messages: [
-      "너만 안 한다고?",
-      "우리 못 믿어?",
+      { sender: "지우", text: "너만 안 한다고?" },
+      { sender: "지우", text: "우리 못 믿어?" },
     ],
 
     question:
@@ -113,8 +118,8 @@ export const episode01Stages: GameStage[] = [
       "며칠 뒤, 스터디방 학생 중 한 명이 수업 시간에 갑자기 심한 어지럼증을 호소합니다.",
 
     messages: [
-      "선생님한테는 말하지 말자.",
-      "괜히 우리까지 문제 된다.",
+      { sender: "지우", text: "선생님한테는 말하지 말자." },
+      { sender: "지우", text: "괜히 우리까지 문제 된다." },
     ],
 
     question:
@@ -141,8 +146,8 @@ export const episode01Stages: GameStage[] = [
       "그날 밤, 스터디방 방장이 단체 채팅방에 메시지를 보냅니다.",
 
     messages: [
-      "오늘 있었던 일은 비밀이다.",
-      "채팅 기록도 지워.",
+      { sender: "지우", text: "오늘 있었던 일은 비밀이다." },
+      { sender: "지우", text: "채팅 기록도 지워." },
     ],
 
     question:

@@ -9,10 +9,10 @@ export const episode01Stages = [
         location: "스터디 단체 채팅방",
         description: "고등학교 2학년인 당신은 중간고사를 앞두고 있습니다. 평소 친하게 지내던 친구의 스터디 그룹에 참여했습니다.",
         messages: [
-            "나 요즘 이거 먹고 공부하는데 잠이 하나도 안 온다.",
-            "집중도 엄청 잘 됨.",
-            "나도 써봄.",
-            "효과 좋음.",
+            { sender: "지우", text: "나 요즘 이거 먹고 공부하는데 잠이 하나도 안 온다." },
+            { sender: "지우", text: "집중도 엄청 잘 됨." },
+            { sender: "주원", text: "나도 써봄." },
+            { sender: "주원", text: "효과 좋음." },
         ],
         question: "포장지가 없는 알약 사진이 올라왔습니다. 이 상황에서 어떤 점이 가장 신경 쓰이나요?",
         evaluation: [
@@ -32,9 +32,9 @@ export const episode01Stages = [
         location: "다음 날 학교 쉬는 시간",
         description: "다음 날, 스터디 그룹의 친구가 쉬는 시간에 당신에게 다가옵니다.",
         messages: [
-            "어제 채팅방 봤지?",
-            "시험 끝날 때까지만 먹어봐.",
-            "다들 하는데 뭐.",
+            { sender: "지우", text: "어제 채팅방 봤지?" },
+            { sender: "지우", text: "시험 끝날 때까지만 먹어봐." },
+            { sender: "지우", text: "다들 하는데 뭐." },
         ],
         question: "친구가 계속 알약을 권하고 있습니다. 친구에게 어떻게 답하겠습니까?",
         evaluation: [
@@ -54,8 +54,8 @@ export const episode01Stages = [
         location: "학교 교실",
         description: "당신이 거절하자 친구가 약간 서운한 표정을 짓습니다. 주변 친구들도 대화를 듣고 있습니다.",
         messages: [
-            "너만 안 한다고?",
-            "우리 못 믿어?",
+            { sender: "지우", text: "너만 안 한다고?" },
+            { sender: "지우", text: "우리 못 믿어?" },
         ],
         question: "주변 친구들이 지켜보고 있는 상황입니다. 어떻게 행동하겠습니까?",
         evaluation: [
@@ -74,8 +74,8 @@ export const episode01Stages = [
         location: "며칠 뒤 수업 시간",
         description: "며칠 뒤, 스터디방 학생 중 한 명이 수업 시간에 갑자기 심한 어지럼증을 호소합니다.",
         messages: [
-            "선생님한테는 말하지 말자.",
-            "괜히 우리까지 문제 된다.",
+            { sender: "지우", text: "선생님한테는 말하지 말자." },
+            { sender: "지우", text: "괜히 우리까지 문제 된다." },
         ],
         question: "친구들은 이 사실을 숨기려고 합니다. 당신은 어떤 행동을 하겠습니까?",
         evaluation: [
@@ -94,8 +94,8 @@ export const episode01Stages = [
         location: "그날 밤 스터디 단체 채팅방",
         description: "그날 밤, 스터디방 방장이 단체 채팅방에 메시지를 보냅니다.",
         messages: [
-            "오늘 있었던 일은 비밀이다.",
-            "채팅 기록도 지워.",
+            { sender: "지우", text: "오늘 있었던 일은 비밀이다." },
+            { sender: "지우", text: "채팅 기록도 지워." },
         ],
         question: "스터디방 방장이 사건을 숨기려고 합니다. 당신은 어떻게 대응하겠습니까?",
         evaluation: [

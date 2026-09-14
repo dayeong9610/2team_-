@@ -1,10 +1,5 @@
 import ProgressBar from '../components/common/ProgressBar';
-
-const mockResult = {
-  riskAwareness: 80,
-  refusal: 90,
-  helpRequest: 70,
-};
+import { mockResult } from '../data/mockResult';
 
 function ResultPage() {
   return (

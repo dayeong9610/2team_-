@@ -1,19 +1,41 @@
-export default function NPCBubble({ messages, name = "스터디 친구" }) {
+function groupMessages(messages) {
+  const groups = [];
+
+  messages.forEach(({ sender, text }) => {
+    const lastGroup = groups[groups.length - 1];
+
+    if (lastGroup && lastGroup.sender === sender) {
+      lastGroup.texts.push(text);
+    } else {
+      groups.push({ sender, texts: [text] });
+    }
+  });
+
+  return groups;
+}
+
+export default function NPCBubble({ messages }) {
+  const groups = groupMessages(messages);
+
   return (
-    <div className="npc-message">
-      <div className="npc-avatar">{name.charAt(0)}</div>
+    <>
+      {groups.map((group, index) => (
+        <div className="npc-message" key={index}>
+          <div className="npc-avatar">{group.sender.charAt(0)}</div>
 
-      <div className="npc-message-content">
-        <span className="npc-name">{name}</span>
+          <div className="npc-message-content">
+            <span className="npc-name">{group.sender}</span>
 
-        <div className="npc-bubble-group">
-          {messages.map((message, index) => (
-            <div className="npc-bubble" key={index}>
-              {message}
+            <div className="npc-bubble-group">
+              {group.texts.map((text, textIndex) => (
+                <div className="npc-bubble" key={textIndex}>
+                  {text}
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
-      </div>
-    </div>
+      ))}
+    </>
   );
 }

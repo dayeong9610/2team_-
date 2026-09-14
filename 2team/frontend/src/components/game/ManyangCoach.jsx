@@ -1,3 +1,5 @@
+import manyangImg from "../../assets/마냥_기본.png";
+
 const mockFeedback = {
     1: "좋아! 출처를 알 수 없는 물건은 먼저 안전성을 의심해보는 것이 중요해.",
     2: "좋아! 친구의 제안이라도 자신의 의사를 분명하게 표현하는 연습이 중요해.",
@@ -8,7 +10,7 @@ const mockFeedback = {
 export default function ManyangCoach({ stage, }) {
     return (<div className="manyang-coach">
       <div className="manyang-character">
-        😺
+        <img src={manyangImg} alt="마냥이" />
       </div>
 
       <div>

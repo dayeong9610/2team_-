@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ProgressBar from "../components/common/ProgressBar";
 import NPCBubble from "../components/game/NPCBubble";
@@ -7,6 +7,27 @@ import ManyangCoach from "../components/game/ManyangCoach";
 import FeedbackCard from "../components/game/FeedbackCard";
 
 import { episode01Stages } from "../data/episode01stages";
+import { mockResult } from "../data/mockResult";
+
+
+// 마냥이가 등장할 스테이지 조합 (2~3회, 연속 등장 없음)
+const MANYANG_APPEARANCE_SETS: number[][] = [
+  [1, 3],
+  [1, 4],
+  [1, 5],
+  [2, 4],
+  [2, 5],
+  [3, 5],
+  [1, 3, 5],
+];
+
+function pickManyangStages(): number[] {
+  const randomIndex = Math.floor(
+    Math.random() * MANYANG_APPEARANCE_SETS.length
+  );
+
+  return MANYANG_APPEARANCE_SETS[randomIndex];
+}
 
 
 export default function PlayPage() {
@@ -15,17 +36,41 @@ export default function PlayPage() {
   const [stageIndex, setStageIndex] =
     useState(0);
 
-  // 사용자가 입력한 답변
-  const [userAnswer, setUserAnswer] =
-    useState("");
+  // 스테이지별로 누적된 사용자 답변 (지난 대화 유지용)
+  const [answersByStage, setAnswersByStage] =
+    useState<Record<number, string>>({});
 
   // 답변 완료 여부
   const [answered, setAnswered] =
     useState(false);
 
+  // 입력 중인 답변 (타이핑 표시용)
+  const [draftMessage, setDraftMessage] =
+    useState("");
+
+  // 마냥이가 등장할 스테이지 (플레이 시작 시 1회만 랜덤 결정)
+  const [manyangStages] =
+    useState(pickManyangStages);
+
+  // 채팅 자동 스크롤용
+  const conversationRef =
+    useRef<HTMLDivElement>(null);
+
   // 현재 Stage
   const currentStage =
     episode01Stages[stageIndex];
+
+  // 지금까지 진행한 모든 Stage (지난 대화 누적 표시용)
+  const visibleStages =
+    episode01Stages.slice(0, stageIndex + 1);
+
+  useEffect(() => {
+    const el = conversationRef.current;
+
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [stageIndex, answered]);
 
 
   // =========================
@@ -36,9 +81,14 @@ export default function PlayPage() {
     message: string
   ) => {
 
-    setUserAnswer(message);
+    setAnswersByStage((prev) => ({
+      ...prev,
+      [currentStage.id]: message,
+    }));
 
     setAnswered(true);
+
+    setDraftMessage("");
   };
 
 
@@ -58,9 +108,9 @@ export default function PlayPage() {
         (prev) => prev + 1
       );
 
-      setUserAnswer("");
-
       setAnswered(false);
+
+      setDraftMessage("");
 
     } else {
 
@@ -74,82 +124,158 @@ export default function PlayPage() {
   return (
     <div className="play-page">
       {/* =====================
-          상단
+          상단 (제목 + 진행도, 스크롤 시 상단 고정)
       ====================== */}
 
-      <header className="game-header">
-        <span>Episode 01</span>
-        <h1>시험기간 스터디 그룹</h1>
-      </header>
+      <div className="play-topbar">
+        <div className="play-topbar-main">
+          <header className="game-header">
+            <span>Episode 01</span>
+            <h1>시험기간 스터디 그룹</h1>
+          </header>
+
+          <ProgressBar
+            currentStage={currentStage.id}
+            totalStages={episode01Stages.length}
+          />
+        </div>
+
+        <div className="mini-stats-panel">
+          <div className="mini-stat">
+            <span className="mini-stat-label">위험 인지</span>
+            <div className="mini-stat-track">
+              <div
+                className="mini-stat-fill"
+                style={{ width: `${mockResult.riskAwareness}%` }}
+              />
+            </div>
+            <span className="mini-stat-value">
+              {mockResult.riskAwareness}%
+            </span>
+          </div>
+
+          <div className="mini-stat">
+            <span className="mini-stat-label">거절 대응</span>
+            <div className="mini-stat-track">
+              <div
+                className="mini-stat-fill"
+                style={{ width: `${mockResult.refusal}%` }}
+              />
+            </div>
+            <span className="mini-stat-value">{mockResult.refusal}%</span>
+          </div>
+
+          <div className="mini-stat">
+            <span className="mini-stat-label">도움 요청</span>
+            <div className="mini-stat-track">
+              <div
+                className="mini-stat-fill"
+                style={{ width: `${mockResult.helpRequest}%` }}
+              />
+            </div>
+            <span className="mini-stat-value">{mockResult.helpRequest}%</span>
+          </div>
+        </div>
+      </div>
 
       {/* =====================
-          진행도
-      ====================== */}
-
-      <ProgressBar
-        currentStage={currentStage.id}
-        totalStages={episode01Stages.length}
-      />
-
-      {/* =====================
-          Stage 정보
+          Stage 제목
       ====================== */}
 
       <section className="stage-header">
         <span>STEP {currentStage.id}</span>
-        <h2>{currentStage.title}</h2>
-        <p>📍 {currentStage.location}</p>
+        <div className="stage-title-row">
+          <h2>{currentStage.title}</h2>
+          <span className="stage-location">📍 {currentStage.location}</span>
+        </div>
       </section>
 
       {/* =====================
-          상황 설명
+          스토리(좌측) + 채팅(중앙) 레이아웃
       ====================== */}
 
-      <section className="scene-description">
-        <p>{currentStage.description}</p>
-      </section>
+      <div
+        className={
+          currentStage.id === 5
+            ? "play-layout play-layout--vertical"
+            : "play-layout"
+        }
+      >
+        {/* ---------------------
+            스토리 사이드
+        ---------------------- */}
 
-      {/* =====================
-          NPC 대화
-      ====================== */}
+        <aside className="play-story">
+          <section className="scene-description">
+            <p>{currentStage.description}</p>
+          </section>
 
-      <section className="conversation">
-        <NPCBubble messages={currentStage.messages} />
-      </section>
+          <section className="question-area">
+            <h3>어떻게 대응하시겠습니까?</h3>
+            <p>{currentStage.question}</p>
+          </section>
+        </aside>
 
-      {/* =====================
-          질문
-      ====================== */}
+        {/* ---------------------
+            채팅
+        ---------------------- */}
 
-      <section className="question-area">
-        <h3>어떻게 대응하시겠습니까?</h3>
-        <p>{currentStage.question}</p>
-      </section>
+        <div className="play-chat">
+          <section className="chat-window">
+            <div className="conversation" ref={conversationRef}>
+              {visibleStages.map((stage) => (
+                <div className="conversation-turn" key={stage.id}>
+                  {stage.id !== 1 && (
+                    <div className="conversation-turn-label">
+                      STEP {stage.id} · {stage.title}
+                    </div>
+                  )}
 
-      {/* =====================
-          사용자 입력
-      ====================== */}
+                  <NPCBubble messages={stage.messages} />
 
-      {!answered && <UserInput onSubmit={handleAnswer} />}
+                  {answersByStage[stage.id] && (
+                    <div className="npc-message npc-message--me">
+                      <div className="npc-bubble npc-bubble--me">
+                        {answersByStage[stage.id]}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
 
-      {/* =====================
-          답변 이후
-      ====================== */}
+              {!answered && draftMessage.trim() && (
+                <div className="npc-message npc-message--me">
+                  <div className="npc-bubble npc-bubble--typing">
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                  </div>
+                </div>
+              )}
 
-      {answered && (
-        <section className="result-area">
-          <FeedbackCard
-            userAnswer={userAnswer}
-            scoreType={currentStage.scoreType}
-          />
+              {answered && manyangStages.includes(currentStage.id) && (
+                <div className="manyang-popup">
+                  <ManyangCoach stage={currentStage.id} />
+                </div>
+              )}
+            </div>
 
-          <ManyangCoach stage={currentStage.id} />
+            {!answered && (
+              <UserInput onSubmit={handleAnswer} onChange={setDraftMessage} />
+            )}
+          </section>
 
-          <button className="next-button" onClick={handleNext}>
-            {currentStage.id === 5 ? "결과 확인하기" : "다음 단계"}
-          </button>
-        </section>
-      )}
+          {answered && (
+            <section className="result-area">
+              <FeedbackCard scoreType={currentStage.scoreType} />
+
+              <button className="next-button" onClick={handleNext}>
+                {currentStage.id === 5 ? "결과 확인하기" : "다음 단계"}
+              </button>
+            </section>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

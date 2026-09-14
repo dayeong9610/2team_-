@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>회원정보 수정페이지</title>
+</head>
+<body>
+      <form method="post" action="/admins/update">
+          <label>ID</label> <input type = "text" name = "admin_id" id="admin_id" placeholder="아이디를 입력하시오." value="{{ admin.admin_id }}" required maxlength="20" readonly>
+          <br>
+          <label>비밀번호</label> <input type="password" name = "admin_pw" id = "admin_pw" placeholder="변경할 때만 입력" maxlength="20" autocomplete="new-password">
+          <br>
+          <label>비밀번호 확인</label> <input type="password" id = "admin_pw_confirm" placeholder="비밀번호를 다시 입력하시오." maxlength="20" autocomplete="new-password">
+          <br>
+          <label>이름</label> <input type = "text" name = "admin_name" id = "admin_name" value="{{ admin.admin_name }}" placeholder="이름을 입력하시오" required readonly>
+          <br>
+          <label>교원번호</label> <input type="text" name = "teacher_num" id = "teacher_num" value="{{ admin.teacher_num }}" placeholder = "교원번호를 입력하시오"  required maxlength="6" readonly>
+          <br>
+          <label>전화번호</label> <input type="text" name = "contact" id="contact" value="{{ admin.contact }}" placeholder = "변경할 때만 입력" maxlength = "13">
+          <br>
+          <button type="submit">
+            회원정보 수정하기
+          </button>
+      </form>
+</body>
+</html>

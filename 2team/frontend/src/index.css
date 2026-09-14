@@ -45,22 +45,61 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  background: #FFFFFF;
+  border: 1px solid #EFEFEF;
+  border-radius: 18px;
+  padding: 18px 16px;
 }
 
 .npc-message {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: flex-start;
 }
 
 .npc-avatar {
-  font-size: 28px;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFB199 0%, #8567C9 55%, #4F7CFF 100%);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.npc-message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 78%;
+}
+
+.npc-name {
+  margin-left: 4px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #8e8e8e;
+}
+
+.npc-bubble-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .npc-bubble {
-  padding: 14px 16px;
-  margin-top: 5px;
-  border: 1px solid #ddd;
+  width: fit-content;
+  max-width: 100%;
+  padding: 10px 14px;
+  border-radius: 20px;
+  background: #EFEFEF;
+  color: #1c1c1e;
+  font-size: 0.92rem;
+  line-height: 1.4;
 }
 
 .question-area {
@@ -114,4 +153,126 @@
 
 .manyang-character {
   font-size: 38px;
+}
+
+/* Episode list page */
+.episode-list-page {
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 40px 20px 48px;
+  background: #ECE7DB;
+  color: #23262B;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic",
+    sans-serif;
+  box-sizing: border-box;
+}
+
+.episode-list-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  margin-bottom: 28px;
+}
+
+.mascot {
+  flex-shrink: 0;
+  width: 108px;
+  transform: rotate(-4deg);
+}
+
+.mascot-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.header-text {
+  flex: 1;
+  padding-bottom: 6px;
+}
+
+.header-label {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3D7C71;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 1.35;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #23262B;
+}
+
+.episode-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.episode-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: none;
+  border-radius: 16px;
+  padding: 20px 22px;
+  background: #E3DDCC;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.episode-item:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(35, 38, 43, 0.08);
+}
+
+.episode-item:disabled {
+  cursor: default;
+}
+
+.episode-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.episode-item-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #3D7C71;
+}
+
+.episode-item-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #23262B;
+}
+
+.episode-item-desc {
+  font-size: 0.85rem;
+  color: #9C978C;
+}
+
+.episode-item-arrow {
+  font-size: 1.2rem;
+  color: #9C978C;
+  flex-shrink: 0;
+}
+
+.episode-list-footer {
+  margin: 32px 0 0;
+  text-align: center;
+  font-size: 0.78rem;
+  color: #B4AFA1;
 }

@@ -114,9 +114,7 @@ export default function PlayPage() {
       ====================== */}
 
       <section className="conversation">
-        {currentStage.messages.map((message, index) => (
-          <NPCBubble key={index} message={message} />
-        ))}
+        <NPCBubble messages={currentStage.messages} />
       </section>
 
       {/* =====================

@@ -8,7 +8,7 @@ const mockResult = {
 
 function ResultPage() {
   return (
-    <div>
+    <main className="page-container">
       <h1>Episode Complete!</h1>
 
       <p>거절 단호함: {mockResult.refusal}</p>
@@ -29,7 +29,7 @@ function ResultPage() {
         label="도움 요청"
         progress={mockResult.helpRequest}
       />
-    </div>
+  </main>
   );
 }
 

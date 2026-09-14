@@ -1,11 +1,14 @@
+
+
 function HomePage() {
   const handleStart = () => {
     window.location.href = "/tutorial";
   };
 
   return (
-    <main className="home-page">
-      <h1>😺 마냥이</h1>
+    <main className="page-container">
+      <div className="content-wrapper">
+        <h1>😺 마냥이</h1>
 
       <p>
         위험한 상황에서
@@ -20,6 +23,7 @@ function HomePage() {
       <button onClick={handleStart}>
         시작하기
       </button>
+      </div>
     </main>
   );
 }

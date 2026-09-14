@@ -72,161 +72,86 @@ export default function PlayPage() {
 
 
   return (
-    <main className="game-page">
-
+    <div className="play-page">
       {/* =====================
           상단
       ====================== */}
 
       <header className="game-header">
-
-        <span>
-          Episode 01
-        </span>
-
-        <h1>
-          시험기간 스터디 그룹
-        </h1>
-
+        <span>Episode 01</span>
+        <h1>시험기간 스터디 그룹</h1>
       </header>
-
 
       {/* =====================
           진행도
       ====================== */}
 
       <ProgressBar
-        currentStage={
-          currentStage.id
-        }
-        totalStages={
-          episode01Stages.length
-        }
+        currentStage={currentStage.id}
+        totalStages={episode01Stages.length}
       />
-
 
       {/* =====================
           Stage 정보
       ====================== */}
 
       <section className="stage-header">
-
-        <span>
-          STEP {currentStage.id}
-        </span>
-
-        <h2>
-          {currentStage.title}
-        </h2>
-
-        <p>
-          📍 {currentStage.location}
-        </p>
-
+        <span>STEP {currentStage.id}</span>
+        <h2>{currentStage.title}</h2>
+        <p>📍 {currentStage.location}</p>
       </section>
-
 
       {/* =====================
           상황 설명
       ====================== */}
 
       <section className="scene-description">
-
-        <p>
-          {currentStage.description}
-        </p>
-
+        <p>{currentStage.description}</p>
       </section>
-
 
       {/* =====================
           NPC 대화
       ====================== */}
 
       <section className="conversation">
-
-        {currentStage.messages.map(
-          (message, index) => (
-
-            <NPCBubble
-              key={index}
-              message={message}
-            />
-
-          )
-        )}
-
+        {currentStage.messages.map((message, index) => (
+          <NPCBubble key={index} message={message} />
+        ))}
       </section>
-
 
       {/* =====================
           질문
       ====================== */}
 
       <section className="question-area">
-
-        <h3>
-          어떻게 대응하시겠습니까?
-        </h3>
-
-        <p>
-          {currentStage.question}
-        </p>
-
+        <h3>어떻게 대응하시겠습니까?</h3>
+        <p>{currentStage.question}</p>
       </section>
-
 
       {/* =====================
           사용자 입력
       ====================== */}
 
-      {!answered && (
-
-        <UserInput
-          onSubmit={handleAnswer}
-        />
-
-      )}
-
+      {!answered && <UserInput onSubmit={handleAnswer} />}
 
       {/* =====================
           답변 이후
       ====================== */}
 
       {answered && (
-
         <section className="result-area">
-
           <FeedbackCard
             userAnswer={userAnswer}
-            scoreType={
-              currentStage.scoreType
-            }
+            scoreType={currentStage.scoreType}
           />
 
+          <ManyangCoach stage={currentStage.id} />
 
-          <ManyangCoach
-            stage={currentStage.id}
-          />
-
-
-          <button
-            className="next-button"
-            onClick={handleNext}
-          >
-
-            {
-              currentStage.id === 5
-                ? "결과 확인하기"
-                : "다음 단계"
-            }
-
+          <button className="next-button" onClick={handleNext}>
+            {currentStage.id === 5 ? "결과 확인하기" : "다음 단계"}
           </button>
-
         </section>
-
       )}
-
-    </main>
+    </div>
   );
 }

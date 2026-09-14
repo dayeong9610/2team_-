@@ -4,8 +4,8 @@ function EpisodeListPage() {
   };
 
   return (
-    <div>
-
+    
+    <main className="page-container">
       <h1>오늘은 어떤 상황을 연습해볼까?</h1>
 
       <button
@@ -22,8 +22,7 @@ function EpisodeListPage() {
       <button disabled>
         Episode 03
       </button>
-
-    </div>
+    </main>
   );
 }
 

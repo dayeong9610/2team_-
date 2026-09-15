@@ -1,5 +1,6 @@
 # Frontend
 node_modules/
+dist/
 
 # Python
 __pycache__/
@@ -7,7 +8,11 @@ __pycache__/
 
 # Environment
 .env
+.env.local
 2team/backend/.env
+
+# Local database connection
+2team/backend/src/database/connection.py
 
 # Test files
 2team/backend/tests/manual_test_episode01_ai.py

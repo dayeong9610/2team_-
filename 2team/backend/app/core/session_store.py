@@ -40,6 +40,55 @@ def get_session(
     )
 
 
+def get_session_state(
+    session_id: str
+):
+
+    completed_count = len(
+    session["completed_stages"]
+    )
+
+#    total_stages = get_total_stages(
+#        session["episode_id"] ) 수정필요함
+    total_stages = 5
+
+    progress = int(
+        completed_count
+        / total_stages
+        * 100
+    )
+
+    session = sessions.get(
+        session_id
+    )
+
+    if session is None:
+        return None
+
+    return {
+        "session_id":
+            session_id,
+
+        "episode_id":
+            session["episode_id"],
+
+        "current_stage":
+            session["current_stage"],
+
+        "completed_stages":
+            session["completed_stages"],
+
+        "scores":
+            session["scores"],
+
+        "progress":
+            progress,
+
+        "is_complete":
+            session["is_complete"]
+    }
+
+
 def add_scores(
     session_id: str,
     scores: dict
@@ -118,3 +167,18 @@ def get_result(
         "is_complete":
             session["is_complete"]
     }
+
+
+#Session 종료 기능
+def delete_session(
+    session_id: str
+) -> bool:
+
+    if session_id not in sessions:
+        return False
+
+    del sessions[
+        session_id
+    ]
+
+    return True

@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import (
     APIRouter,
     HTTPException
@@ -15,6 +17,7 @@ from app.core.scenario_engine import (
 from app.core.session_store import (
     get_session,
     add_scores,
+    save_stage_result,
     complete_stage
 )
 
@@ -48,31 +51,48 @@ async def chat(
         )
 
 
-    # 2. 현재 Session의 Episode와 요청 Episode가 같은지 확인
-    if session["episode_id"] != request.episode_id:
+    # 2. Session의 Episode와 요청 Episode 일치 확인
+    if (
+        session["episode_id"]
+        != request.episode_id
+    ):
         raise HTTPException(
             status_code=400,
-            detail="Invalid episode"
+            detail="Episode does not match session"
         )
 
 
-    # 3. 현재 진행해야 할 Stage인지 확인
-    if session["current_stage"] != request.stage_id:
+    # 3. 이미 Episode가 완료됐는지 확인
+    if session["is_complete"]:
         raise HTTPException(
             status_code=400,
-            detail="Invalid stage"
+            detail="Episode already completed"
         )
 
 
     # 4. 이미 완료한 Stage인지 확인
-    if request.stage_id in session["completed_stages"]:
+    if (
+        request.stage_id
+        in session["completed_stages"]
+    ):
         raise HTTPException(
             status_code=400,
             detail="Stage already completed"
         )
 
 
-    # 5. Scenario에서 현재 Stage 조회
+    # 5. 현재 진행해야 할 Stage인지 확인
+    if (
+        session["current_stage"]
+        != request.stage_id
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid stage"
+        )
+
+
+    # 6. Scenario에서 현재 Stage 조회
     stage = get_stage(
         request.episode_id,
         request.stage_id
@@ -85,29 +105,66 @@ async def chat(
         )
 
 
-    # 6. AI 평가
-    ai_result = await evaluate_response(
-        episode_id=request.episode_id,
-        stage_id=request.stage_id,
-        user_message=request.message,
-        stage_data=stage
-    )
+    # 7. AI 평가
+    try:
+
+        ai_result = await asyncio.wait_for(
+            evaluate_response(
+                episode_id=request.episode_id,
+                stage_id=request.stage_id,
+                user_message=request.message,
+                stage_data=stage
+            ),
+            timeout=20
+        )
+
+    except asyncio.TimeoutError:
+
+        raise HTTPException(
+            status_code=504,
+            detail="AI response timeout"
+        )
+
+    except Exception as exc:
+
+        # 사용자 message 자체는 로그에 남기지 않음
+        print(
+            "AI evaluation failed:",
+            type(exc).__name__
+        )
+
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "AI service temporarily "
+                "unavailable"
+            )
+        )
 
 
-    # 7. AI 점수 누적
+    # 8. AI 점수 누적
     add_scores(
         request.session_id,
         ai_result["scores"]
     )
 
 
-    # 8. 다음 Stage는 Scenario가 결정
+    # 9. Stage 결과 저장
+    save_stage_result(
+        session_id=request.session_id,
+        stage_id=request.stage_id,
+        feedback=ai_result["feedback"],
+        scores=ai_result["scores"]
+    )
+
+
+    # 10. 다음 Stage는 Scenario가 결정
     next_stage = stage.get(
         "next_stage"
     )
 
 
-    # 9. 현재 Stage 완료 처리
+    # 11. 현재 Stage 완료 처리
     complete_stage(
         session_id=request.session_id,
         stage_id=request.stage_id,
@@ -115,13 +172,13 @@ async def chat(
     )
 
 
-    # 10. Episode 종료 여부
+    # 12. Episode 종료 여부
     is_episode_complete = (
         next_stage is None
     )
 
 
-    # 11. Frontend 반환
+    # 13. Frontend 반환
     return ChatResponse(
         npc_response=(
             ai_result["npc_response"]

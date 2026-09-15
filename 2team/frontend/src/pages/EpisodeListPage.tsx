@@ -19,23 +19,23 @@ const episodes: EpisodeItem[] = [
   {
     id: "EP02",
     num: "02",
-    title: "파티에서의 낯선 권유",
-    description: "모르는 사람이 음료에 뭔가를 넣으려 해",
-    locked: true,
+    title: "해외여행에서 마주친 위험한 권유",
+    description: "여행 중 만난 외국인이 낯선 약을 권하면?",
+    locked: false,
   },
   {
     id: "EP03",
     num: "03",
     title: "SNS 다이어트 약 DM",
     description: "인스타에서 다이어트 약을 파는 메시지가 왔어",
-    locked: true,
+    locked: false,
   },
 ];
 
 function EpisodeListPage() {
   const handleEpisodeClick = (id: string, locked: boolean) => {
     if (locked) return;
-    window.location.href = `/play/${id}`;
+    window.location.assign(`/play/${id}`);
   };
 
   return (
@@ -50,7 +50,7 @@ function EpisodeListPage() {
           <h1 className="header-title">
             오늘은 어떤 상황을
             <br />
-            연습해볼까?
+            연습해볼까냥?
           </h1>
         </div>
       </div>

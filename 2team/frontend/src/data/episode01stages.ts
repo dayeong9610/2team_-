@@ -1,7 +1,12 @@
 export interface DialogueMessage {
   sender: string;
   text: string;
+  // 지정하면 텍스트 대신 이미지로 표시 (Instagram DM 연출용)
+  // "product": 상품 사진(DietPillPhoto) / "review": 후기 인증샷(DietReviewPhoto)
+  image?: "product" | "review";
 }
+
+
 
 export interface GameStage {
   id: number;
@@ -13,6 +18,9 @@ export interface GameStage {
   question: string;
   evaluation: string[];
   scoreType: string;
+  // 답변 제출 후 NPC가 되받아치는 한 줄 반응 (백엔드 연동 전 임시 목업 —
+  // 나중에는 이 자리에 /chat 응답의 npc_response가 들어갈 예정)
+  reaction?: string;
 }
 
 export const episode01Stages: GameStage[] = [
@@ -45,6 +53,8 @@ export const episode01Stages: GameStage[] = [
     ],
 
     scoreType: "위험 인지",
+
+    reaction: "에이, 한번 먹어본다고 큰일 나겠어?",
   },
 
   // =========================
@@ -75,6 +85,8 @@ export const episode01Stages: GameStage[] = [
     ],
 
     scoreType: "거절 대응",
+
+    reaction: "치, 너무 빡빡하게 구는 거 아니냐.",
   },
 
   // =========================
@@ -103,6 +115,8 @@ export const episode01Stages: GameStage[] = [
     ],
 
     scoreType: "거절 대응 심화",
+
+    reaction: "...흠, 알았어. 근데 좀 서운하네.",
   },
 
   // =========================
@@ -131,6 +145,8 @@ export const episode01Stages: GameStage[] = [
     ],
 
     scoreType: "도움 요청",
+
+    reaction: "너 진짜 말할 거야? 나중에 딴소리하지 마라.",
   },
 
   // =========================
@@ -143,7 +159,7 @@ export const episode01Stages: GameStage[] = [
     location: "그날 밤 스터디 단체 채팅방",
 
     description:
-      "그날 밤, 스터디방 방장이 단체 채팅방에 메시지를 보냅니다.",
+      "그날 밤, 스터디방 방장(지우)이 단체 채팅방에 메시지를 보냅니다.",
 
     messages: [
       { sender: "지우", text: "오늘 있었던 일은 비밀이다." },
@@ -160,5 +176,7 @@ export const episode01Stages: GameStage[] = [
     ],
 
     scoreType: "도움 요청 심화",
+
+    reaction: "...진심이냐? 후회 안 해?",
   },
 ];

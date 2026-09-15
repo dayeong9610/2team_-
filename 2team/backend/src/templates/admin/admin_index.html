@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>index</title>
+    <title>어드민 페이지입니다</title>
 </head>
 <body>
     <h1>hello FastAPI</h1>
@@ -11,13 +11,19 @@
     <br>
     <a href="/admins/signout">로그아웃</a>
     <br>
+    <a href="/admins/llmRoleList">시츄에이션 목록</a>
+    <br>
+    <a href="/admins/myRoles">나의 시츄에이션 보기</a>
+    <br>
     <form method="post" action="/admins/resign" style="display: inline;">
         <button type="submit" onclick="return confirm('정말 회원탈퇴를 진행하시겠습니까?');">회원탈퇴</button>
     </form>
+    <br>
     {% else %}
     <a href="/admins/signin">로그인 페이지</a>
     <br>
     <a href="/admins/signup">가입 페이지</a>
     {% endif %}
+
 </body>
 </html>

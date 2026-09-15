@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy import BigInteger, Column, DateTime, Enum, ForeignKey
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -10,12 +11,29 @@ if TYPE_CHECKING:
 class Chatting(SQLModel, table=True):
     __tablename__ = "CHATTING"
 
-    chat_id: int | None = Field(default=None, primary_key=True)
-    room_id: int = Field(foreign_key="CHAT_ROOM.room_id")
-    chatter: str = Field(max_length=50)
-    chat_content: str | None = None
-    chat_emoticon: str | None = Field(default=None, max_length=255)
-    chat_file: str | None = Field(default=None, max_length=255)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    chat_id: int | None = Field(
+        default=None,
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True),
+    )
+    room_id: int = Field(
+        sa_column=Column(
+            BigInteger,
+            ForeignKey(
+                "CHAT_ROOM.room_id",
+                ondelete="RESTRICT",
+                onupdate="RESTRICT",
+            ),
+            nullable=False,
+        )
+    )
+    chatter: str = Field(
+        sa_column=Column(
+            Enum("AI", "USER", name="chatter_enum"),
+            nullable=False,
+        )
+    )
+    created_at: datetime = Field(
+        sa_column=Column(DateTime, nullable=False)
+    )
 
     room: "ChatRoom" = Relationship(back_populates="chatting")

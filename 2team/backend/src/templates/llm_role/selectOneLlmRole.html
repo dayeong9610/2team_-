@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ llm_role.title }}</title>
+</head>
+<body>
+    <h1>
+        {{ llm_role.title }}
+    </h1>
+    <span>작성일시 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  {{ llm_role.created_at }}
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 작성자명 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ llm_role.admin_id }}</span>
+    <p>
+        {{ llm_role.content }}
+    </p>
+    <a href="/admins/llmRoleList">시츄에이션 목록으로 돌아가기</a>
+    <br>
+    <a href="/admins/writeform">시츄에이션 작성하기</a>
+    <br>
+    {% if is_owner %}
+        <a href="/admins/updateLlmRole/{{ llm_role.lr_num }}">수정하기</a>
+        <br>
+        <a href="/admins/deleteLlmRole/{{ llm_role.lr_num }}">삭제하기</a>
+    {% endif %}
+</body>
+</html>

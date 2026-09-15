@@ -31,6 +31,8 @@ export const episode03Stages: GameStage[] = [
     ],
 
     scoreType: "위험 인지",
+
+    reaction: "링크 원하시면 언제든 말씀하세요~",
   },
 
   // =========================
@@ -54,6 +56,8 @@ export const episode03Stages: GameStage[] = [
     evaluation: ["단호하게 거절하는가?", "조급함에 결제하려 하는가?"],
 
     scoreType: "거절 대응",
+
+    reaction: "음... 알겠어요, 나중에 마음 바뀌면 연락 주세요.",
   },
 
   // =========================
@@ -84,6 +88,8 @@ export const episode03Stages: GameStage[] = [
     ],
 
     scoreType: "거절 대응 심화",
+
+    reaction: "그러시군요, 아쉽네요 ㅠㅠ",
   },
 
   // =========================
@@ -111,6 +117,8 @@ export const episode03Stages: GameStage[] = [
     ],
 
     scoreType: "도움 요청",
+
+    reaction: "정말...? 고마워, 혼자 너무 무서웠어.",
   },
 
   // =========================
@@ -138,5 +146,7 @@ export const episode03Stages: GameStage[] = [
     ],
 
     scoreType: "도움 요청 심화",
+
+    reaction: "...알겠어. 같이 말씀드려보자.",
   },
 ];

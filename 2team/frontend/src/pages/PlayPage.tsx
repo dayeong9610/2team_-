@@ -323,6 +323,18 @@ export default function PlayPage() {
                     </div>
                   )}
 
+                  {/* NPC 반응 - 백엔드 연동 전 임시 목업(reaction). 나중엔 /chat 응답의 npc_response로 교체 */}
+                  {answered && currentStage.reaction && (
+                    <div className="vn-line">
+                      <span className="vn-line-name">
+                        {currentStage.messages[
+                          currentStage.messages.length - 1
+                        ]?.sender ?? ""}
+                      </span>
+                      <p className="vn-line-text">{currentStage.reaction}</p>
+                    </div>
+                  )}
+
                   {answered && manyangStages.includes(currentStage.id) && (
                     <div className="manyang-popup">
                       <ManyangCoach stage={currentStage.id} />
@@ -361,6 +373,33 @@ export default function PlayPage() {
                                 {answersByStage[stage.id]}
                               </div>
                             </div>
+                          ))}
+
+                        {/* NPC 반응 - 백엔드 연동 전 임시 목업(reaction). 나중엔 /chat 응답의 npc_response로 교체 */}
+                        {answersByStage[stage.id] &&
+                          stage.reaction &&
+                          (stageIsDM ? (
+                            <InstagramBubble
+                              messages={[
+                                {
+                                  sender:
+                                    stage.messages[stage.messages.length - 1]
+                                      ?.sender ?? "",
+                                  text: stage.reaction,
+                                },
+                              ]}
+                            />
+                          ) : (
+                            <NPCBubble
+                              messages={[
+                                {
+                                  sender:
+                                    stage.messages[stage.messages.length - 1]
+                                      ?.sender ?? "",
+                                  text: stage.reaction,
+                                },
+                              ]}
+                            />
                           ))}
                       </div>
                     );

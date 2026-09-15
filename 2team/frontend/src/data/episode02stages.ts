@@ -29,6 +29,8 @@ export const episode02Stages: GameStage[] = [
     ],
 
     scoreType: "위험 인지",
+
+    reaction: "에이 겁 많네, 한번 사는 인생인데.",
   },
 
   // =========================
@@ -52,6 +54,8 @@ export const episode02Stages: GameStage[] = [
     evaluation: ["명확하게 거절하는가?", "분위기에 휩쓸리는가?"],
 
     scoreType: "거절 대응",
+
+    reaction: "치, 다들 하는데 너만 유난이네.",
   },
 
   // =========================
@@ -79,6 +83,8 @@ export const episode02Stages: GameStage[] = [
     ],
 
     scoreType: "거절 대응 심화",
+
+    reaction: "...쳇, 마음대로 해.",
   },
 
   // =========================
@@ -106,6 +112,8 @@ export const episode02Stages: GameStage[] = [
     ],
 
     scoreType: "도움 요청",
+
+    reaction: "고마워... 나 좀 어지러운데 부탁해.",
   },
 
   // =========================
@@ -133,5 +141,7 @@ export const episode02Stages: GameStage[] = [
     ],
 
     scoreType: "도움 요청 심화",
+
+    reaction: "...진짜 신고할 거야? 알았어, 네 맘대로 해.",
   },
 ];

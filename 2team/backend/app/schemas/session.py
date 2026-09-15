@@ -15,7 +15,11 @@ class SessionCreateResponse(BaseModel):
 class SessionResultResponse(BaseModel):
     episode_id: str
 
-    scores: dict
+    scores: StageScores
+
+    stage_results: list[
+        StageResultResponse
+    ]
 
     completed_stages: list[str]
 
@@ -36,3 +40,15 @@ class SessionStateResponse(BaseModel):
     scores: dict
 
     is_complete: bool
+
+
+class StageScores(BaseModel):
+    risk_awareness: int
+    refusal: int
+    help_request: int
+
+
+class StageResultResponse(BaseModel):
+    stage_id: str
+    feedback: str
+    scores: StageScores

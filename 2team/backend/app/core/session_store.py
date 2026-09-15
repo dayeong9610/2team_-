@@ -19,6 +19,8 @@ def create_session(
 
             "completed_stages": [],
 
+            "stage_results": [],
+
             "scores": {
                 "risk_awareness": 0,
                 "refusal": 0,
@@ -161,6 +163,10 @@ def get_result(
         "scores":
             session["scores"],
 
+        "stage_results":
+            session["stage_results"],        
+
+
         "completed_stages":
             session["completed_stages"],
 
@@ -180,5 +186,52 @@ def delete_session(
     del sessions[
         session_id
     ]
+
+    return True
+
+def save_stage_result(
+    session_id: str,
+    stage_id: str,
+    feedback: str,
+    scores: dict
+):
+
+    session = sessions.get(
+        session_id
+    )
+
+    if session is None:
+        return False
+
+    # 같은 Stage 결과 중복 저장 방지
+    for result in session["stage_results"]:
+        if result["stage_id"] == stage_id:
+            return False
+
+    session["stage_results"].append(
+        {
+            "stage_id": stage_id,
+            "feedback": feedback,
+            "scores": {
+                "risk_awareness":
+                    scores.get(
+                        "risk_awareness",
+                        0
+                    ),
+
+                "refusal":
+                    scores.get(
+                        "refusal",
+                        0
+                    ),
+
+                "help_request":
+                    scores.get(
+                        "help_request",
+                        0
+                    )
+            }
+        }
+    )
 
     return True

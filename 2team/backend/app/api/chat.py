@@ -15,6 +15,7 @@ from app.core.scenario_engine import (
 from app.core.session_store import (
     get_session,
     add_scores,
+    save_stage_result,
     complete_stage
 )
 
@@ -48,31 +49,29 @@ async def chat(
         )
 
 
-    # 2. 현재 Session의 Episode와 요청 Episode가 같은지 확인
-    if session["episode_id"] != request.episode_id:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid episode"
-        )
-
-
-    # 3. 현재 진행해야 할 Stage인지 확인
-    if session["current_stage"] != request.stage_id:
+    # 2. 현재 진행해야 할 Stage인지 확인
+    if (
+        session["current_stage"]
+        != request.stage_id
+    ):
         raise HTTPException(
             status_code=400,
             detail="Invalid stage"
         )
 
 
-    # 4. 이미 완료한 Stage인지 확인
-    if request.stage_id in session["completed_stages"]:
+    # 3. 이미 완료한 Stage인지 확인
+    if (
+        request.stage_id
+        in session["completed_stages"]
+    ):
         raise HTTPException(
             status_code=400,
             detail="Stage already completed"
         )
 
 
-    # 5. Scenario에서 현재 Stage 조회
+    # 4. Scenario에서 현재 Stage 조회
     stage = get_stage(
         request.episode_id,
         request.stage_id
@@ -85,7 +84,7 @@ async def chat(
         )
 
 
-    # 6. AI 평가
+    # 5. AI 평가
     ai_result = await evaluate_response(
         episode_id=request.episode_id,
         stage_id=request.stage_id,
@@ -94,10 +93,19 @@ async def chat(
     )
 
 
-    # 7. AI 점수 누적
+    # 6. AI 점수 누적
     add_scores(
         request.session_id,
         ai_result["scores"]
+    )
+
+
+    # 7. Stage 결과 저장
+    save_stage_result(
+    session_id=request.session_id,
+    stage_id=request.stage_id,
+    feedback=ai_result["feedback"],
+    scores=ai_result["scores"]
     )
 
 

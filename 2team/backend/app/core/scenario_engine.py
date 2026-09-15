@@ -52,3 +52,22 @@ def get_stage(
             return stage
 
     return None
+
+
+def get_total_stages(
+    episode_id: str
+) -> int:
+
+    episode = load_episode(
+        episode_id
+    )
+
+    if episode is None:
+        return 0
+
+    return len(
+        episode.get(
+            "stages",
+            []
+        )
+    )

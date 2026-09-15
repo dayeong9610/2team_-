@@ -8,12 +8,15 @@ from fastapi import (
 from app.schemas.session import (
     SessionCreateRequest,
     SessionCreateResponse,
-    SessionResultResponse
+    SessionResultResponse,
+    SessionStateResponse
 )
 
 from app.core.session_store import (
     create_session,
-    get_result
+    get_result,
+    get_session_state,
+    delete_session
 )
 
 
@@ -74,3 +77,48 @@ def session_result(
         )
 
     return result
+
+
+@router.get(
+    "/sessions/{session_id}",
+    response_model=SessionStateResponse
+)
+def session_state(
+    session_id: str
+):
+
+    session = get_session_state(
+        session_id
+    )
+
+    if session is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found"
+        )
+
+    return session
+
+@router.delete(
+    "/sessions/{session_id}"
+)
+def end_session(
+    session_id: str
+):
+
+    deleted = delete_session(
+        session_id
+    )
+
+    if not deleted:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found"
+        )
+
+    return {
+        "message":
+            "Session deleted"
+    }

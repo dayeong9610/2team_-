@@ -6,3 +6,4 @@ export default defineConfig({
   // React 플러그인만 사용하는 기본 설정
   plugins: [react()],
 })
+

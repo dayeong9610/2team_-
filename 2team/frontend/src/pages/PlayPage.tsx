@@ -199,13 +199,7 @@ export default function PlayPage() {
           스토리(좌측) + 채팅(중앙) 레이아웃
       ====================== */}
 
-      <div
-        className={
-          currentStage.id === 5
-            ? "play-layout play-layout--vertical"
-            : "play-layout"
-        }
-      >
+      <div className="play-layout">
         {/* ---------------------
             스토리 사이드
         ---------------------- */}

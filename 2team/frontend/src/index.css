@@ -1,10 +1,51 @@
+:root {
+  --header-h: 76px;
+}
+
+/* =====================================================================
+   Site header (공통)
+   - 로고 + 서비스명. 모든 페이지 상단에 고정 노출됩니다. (App.tsx 참고)
+   ===================================================================== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--header-h);
+  padding: 0 20px;
+  box-sizing: border-box;
+  background: #FFFFFF;
+  border-bottom: 1px solid #EEE9DE;
+}
+
+.site-header-logo {
+  display: flex;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+}
+
+.site-header-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.site-header-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #23262B;
+}
+
 .play-page {
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px 20px 16px;
   box-sizing: border-box;
   height: 100vh;
-  height: 100dvh;
+  height: calc(100dvh - var(--header-h));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -120,15 +161,6 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-}
-
-.play-layout--vertical {
-  flex-direction: column;
-}
-
-.play-layout--vertical .play-story {
-  flex: none;
-  width: 100%;
 }
 
 @media (max-width: 560px) {
@@ -522,33 +554,6 @@
   gap: 32px;
 }
 
-.home-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #EEE9DE;
-}
-
-.home-logo {
-  display: flex;
-  flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-}
-
-.home-logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.home-service-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #23262B;
-}
-
 .home-hero,
 .home-cta {
   display: flex;
@@ -635,6 +640,16 @@
   background: #33665D;
 }
 
+.home-start-button--outline {
+  background: transparent;
+  color: #3D7C71;
+  border: 1.5px solid #3D7C71;
+}
+
+.home-start-button--outline:hover {
+  background: #EAF3F1;
+}
+
 .home-footer {
   padding-top: 20px;
   border-top: 1px solid #EEE9DE;
@@ -645,6 +660,35 @@
 
 .home-footer strong {
   color: #3D7C71;
+}
+
+/* =====================================================================
+   Tutorial page (온보딩 설명)
+   - Home page와 같은 캐릭터 박스 + 말풍선(.home-character-box / .home-bubble)
+     스타일을 재사용해서 Home → Tutorial → Episode 목록 흐름의 톤을 맞췄습니다.
+   ===================================================================== */
+.tutorial-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 24px 20px 40px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tutorial-content {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .tutorial-content {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 640px) {
@@ -660,13 +704,105 @@
   }
 }
 
+/* =====================================================================
+   Result page (에피소드 종료 화면)
+   - Home / Tutorial과 같은 캐릭터 박스 + 말풍선을 재사용하고,
+     PlayPage 우측 상단 mini-stat과 같은 초록(#3D7C71) 톤으로
+     결과 그래프를 맞췄습니다.
+   ===================================================================== */
+.result-page {
+  max-width: 700px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 32px 20px 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 32px;
+}
+
+.result-hero {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.result-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 28px;
+  background: #F5F3ED;
+  border: 1px solid #EEE9DE;
+  border-radius: 24px;
+}
+
+.result-stats-title {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3D7C71;
+}
+
+.result-stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.result-stat-label {
+  flex-shrink: 0;
+  width: 76px;
+  font-size: 0.9rem;
+  color: #5A5F5E;
+}
+
+.result-stat-track {
+  flex: 1;
+  height: 10px;
+  background: #E5E1D8;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.result-stat-fill {
+  height: 100%;
+  background: #3D7C71;
+  border-radius: 999px;
+}
+
+.result-stat-value {
+  flex-shrink: 0;
+  width: 42px;
+  text-align: right;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #3D7C71;
+}
+
+.result-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 560px) {
+  .result-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
 /* Episode list page */
 .episode-list-page {
   max-width: 1000px;
   margin: 0 auto;
   min-height: 100vh;
   padding: 40px 20px 48px;
-  background: #ECE7DB;
+  background: #FFFFFF;
   color: #23262B;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic",
     sans-serif;

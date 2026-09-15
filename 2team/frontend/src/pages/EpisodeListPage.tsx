@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import manyangImg from "../assets/마냥_기본.png";
 
 interface EpisodeItem {
@@ -50,7 +51,7 @@ function EpisodeListPage() {
           <h1 className="header-title">
             오늘은 어떤 상황을
             <br />
-            연습해볼까?
+            연습해볼까냥?
           </h1>
         </div>
       </div>

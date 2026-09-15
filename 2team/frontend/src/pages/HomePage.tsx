@@ -1,26 +1,135 @@
-import { useNavigate } from "react-router-dom";
+import houseLogo from "../assets/홈버튼.png";
+import manyangSitting from "../assets/마냥_기본.png";
+import manyangLying from "../assets/마냥_홈 소개.png";
+
+// =====================================================================
+// HomePage (첫 화면)
+// ---------------------------------------------------------------------
+// 사이트에 처음 들어왔을 때 가장 먼저 보이는 화면입니다.
+// 사용자가 제공한 와이어프레임 이미지의 4단 구조를 그대로 따라 만들었습니다.
+//
+//   1) home-header  : 좌측 상단 로고 아이콘 + 서비스명
+//   2) home-hero     : (왼쪽) 마냥이 캐릭터 이미지 /
+//                       (오른쪽) 말풍선 형태의 캐릭터 소개
+//   3) home-cta      : (왼쪽) 말풍선 형태의 시작 유도 문구 + 버튼 /
+//                       (오른쪽) 마냥이 캐릭터 이미지
+//   4) home-footer   : 마약 관련 전문기관 안내(전화번호 등)
+//
+// 각 섹션의 실제 문구/이미지 배치는 팀 논의에 따라 자유롭게 바꿔도
+// 되도록 구조와 클래스명을 최대한 단순하게 유지했습니다.
+// (스타일은 frontend/src/index.css 안의 "Home page" 섹션에 있습니다.)
+// =====================================================================
 
 function HomePage() {
-
-  const navigate = useNavigate();
+  // "시작하기" 버튼을 누르면 기존 온보딩 플로우(TutorialPage)로 이동합니다.
+  const handleStart = () => {
+    window.location.href = "/tutorial";
+  };
 
   return (
-    <div>
+    <main className="home-page">
+      {/* home-content: 헤더+캐릭터 소개+시작 유도를 한 덩어리로 묶어서
+          화면(뷰포트) 안에서 세로로 가운데 정렬되게 합니다. 하단 안내
+          문구(home-footer)는 이 블록 밖에서 항상 맨 아래에 붙습니다. */}
+      <div className="home-content">
+      {/* =====================================================
+          1) 상단 헤더 : 로고 아이콘 + 서비스명
+          - 로고 이미지(홈버튼.png)는 클릭 시 이 첫 화면("/")으로
+            돌아오는 링크로 만들어 뒀습니다. 다른 페이지 상단에도
+            같은 로고를 재사용하고 싶다면 이 블록을 공용 컴포넌트로
+            분리하면 됩니다.
+          - "서비스명" 자리는 지금 프로젝트 전반에서 쓰이는 이름인
+            "마냥이"를 기본값으로 넣어뒀습니다. 정식 서비스명이
+            정해지면 이 문자열만 교체하면 됩니다.
+      ===================================================== */}
+      <header className="home-header">
+        <a href="/" className="home-logo" aria-label="마냥이 홈으로 이동">
+          <img src={houseLogo} alt="" />
+        </a>
 
-      <h1>마냥이</h1>
+        {/* TODO: 정식 서비스명이 확정되면 교체 */}
+        <span className="home-service-name">마냥이</span>
+      </header>
 
-      <p>
-        위험한 상황에서
-        나를 지키는 방법을 연습해봐!
-      </p>
+      {/* =====================================================
+          2) 캐릭터 소개 섹션 (와이어프레임 2번째 줄)
+          - home-character-box : 캐릭터 이미지를 담는 카드.
+            지금은 "마냥_기본.png"(앉아서 손을 든 포즈)를 사용합니다.
+          - home-bubble--right : 캐릭터 오른쪽에 붙는 말풍선.
+            꼬리(tail)가 왼쪽(캐릭터 쪽)을 향하도록 CSS로 처리했습니다.
+          - 말풍선 안 문구는 자리 표시용 초안입니다. 실제 캐릭터
+            소개 카피가 정해지면 <p> 내용만 바꾸면 됩니다.
+      ===================================================== */}
+      <section className="home-hero">
+        <div className="home-character-box">
+          <img
+            src={manyangSitting}
+            alt="마냥이 캐릭터"
+            className="home-character-img"
+          />
+        </div>
 
-      <button
-        onClick={() => navigate("/tutorial")}
-      >
-        시작하기
-      </button>
+        <div className="home-bubble home-bubble--right">
+          {/* TODO: 실제 캐릭터 소개 카피로 교체 */}
+          <p>
+            안녕하냥, 나는 마냥이다옹! 위험한 순간, 거절하기 어려운 순간에
+            너와 함께 연습할거다냥. 실제 대화처럼 다양한 상황을 겪어보면서
+            나를 지키는 방법을 같이 배워보자냥.
+          </p>
+        </div>
+      </section>
 
-    </div>
+      {/* =====================================================
+          3) 시작 유도 섹션 (와이어프레임 3번째 줄)
+          - home-bubble--left : 시작 유도 문구 + 버튼이 들어가는
+            말풍선. 꼬리가 오른쪽(캐릭터 쪽)을 향합니다.
+          - home-start-button : 실제 이동 로직은 위쪽 handleStart
+            함수에서 관리합니다. 지금은 /tutorial로 이동합니다.
+          - home-character-box : 두 번째 캐릭터 이미지 카드.
+            "마냥_홈 소개.png"(누워서 쉬는 포즈)를 사용해 첫 번째
+            섹션과 다른 포즈로 변화를 줬습니다.
+      ===================================================== */}
+      <section className="home-cta">
+        <div className="home-bubble home-bubble--left">
+          {/* TODO: 실제 시작 유도 카피로 교체 */}
+          <p>오늘은 어떤 상황을 함께 연습해볼까냥?</p>
+
+          <button
+            type="button"
+            className="home-start-button"
+            onClick={handleStart}
+          >
+            시작하기
+          </button>
+        </div>
+
+        <div className="home-character-box">
+          <img
+            src={manyangLying}
+            alt="마냥이 캐릭터"
+            className="home-character-img"
+          />
+        </div>
+      </section>
+      </div>
+
+      {/* =====================================================
+          4) 하단 안내 섹션 (와이어프레임 마지막 줄)
+          - 마약 관련 전문기관 연락처를 안내하는 영역입니다.
+          - ⚠️ 아래 번호/기관명은 자리 표시용 예시입니다.
+            실제 서비스 오픈 전에 반드시 정확한 기관명과 전화번호로
+            검증 후 교체해야 합니다. (임의로 만든 값이 아니라
+            일반적으로 알려진 상담 전화를 예시로 넣어뒀지만,
+            서비스 성격/지역에 맞는 기관으로 다시 확인해주세요.)
+      ===================================================== */}
+      <footer className="home-footer">
+        {/* TODO: 실제 검증된 기관명 · 전화번호로 교체 (아래는 예시) */}
+        <p>
+          청소년 상담전화 <strong>1388</strong> · 마약류 중독관리센터{" "}
+          <strong>1899-0893</strong>
+        </p>
+      </footer>
+    </main>
   );
 }
 

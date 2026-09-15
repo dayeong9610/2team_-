@@ -31,3 +31,4 @@
 2team/backend/app/core/__pycache__/session_store.cpython-314.pyc
 2team/backend/app/services/__pycache__/ai_service.cpython-314.pyc
 >>>>>>> origin/main
+2team/backend/tests/__pycache__/test_ai_contract.cpython-314-pytest-9.1.1.pyc

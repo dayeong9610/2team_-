@@ -15,12 +15,12 @@ export const episode02Stages: GameStage[] = [
       "대학 친구들과 떠난 첫 해외여행. 현지 클럽에서 새로 사귄 외국인 일행과 어울리게 되었습니다.",
 
     messages: [
-      { sender: "라이언", text: "이거 한번 먹어봐, 여기선 다들 하는 거야." },
+      { sender: "라이언", text: "이거 한번 마셔봐, 여기선 다들 마시는 거야." },
       { sender: "라이언", text: "기분이 최고로 좋아질걸?" },
     ],
 
     question:
-      "낯선 초콜릿을 권유받았습니다. 이 상황에서 가장 신경 쓰이는 점은 무엇인가요?",
+      "낯선 음료를 권유받았습니다. 이 상황에서 어떻게 대답할까요?",
 
     evaluation: [
       "출처를 알 수 없는 약물임을 의심하는가?",
@@ -40,11 +40,11 @@ export const episode02Stages: GameStage[] = [
     title: "거절",
     location: "클럽 테이블",
 
-    description: "라이언이 다시 다가와 초콜릿을 권합니다.",
+    description: "라이언이 다시 다가와 음료를 권합니다.",
 
     messages: [
       { sender: "라이언", text: "왜 그래, 한 번뿐인 여행이잖아." },
-      { sender: "라이언", text: "다른 애들도 다 했어." },
+      { sender: "라이언", text: "다른 애들도 다 마시던데..." },
     ],
 
     question: "친구가 계속 권유하고 있습니다. 어떻게 답하겠습니까?",
@@ -68,7 +68,7 @@ export const episode02Stages: GameStage[] = [
 
     messages: [
       { sender: "라이언", text: "우리 무시하는 거야?" },
-      { sender: "라이언", text: "같이 온 네 친구도 했는데." },
+      { sender: "라이언", text: "같이 온 네 친구도 마셨는데." },
     ],
 
     question: "낯선 타지에서 압박을 받고 있습니다. 어떻게 행동하겠습니까?",
@@ -91,11 +91,11 @@ export const episode02Stages: GameStage[] = [
     location: "숙소로 돌아가는 길",
 
     description:
-      "같이 간 친구 민준이 몸이 이상하다며 비틀거립니다. 끈질긴 권유에 초콜릿을 먹었다고 합니다.",
+      "같이 간 친구 민준이 몸이 이상하다며 비틀거립니다. 끈질긴 권유에 음료를 먹었다고 합니다.",
 
     messages: [
       { sender: "민준", text: "나 좀 이상해... 머리가 핑 돈다." },
-      { sender: "민준", text: "아까 그 사람이 준 거 먹었는데..." },
+      { sender: "민준", text: "아까 그 사람이 준 거 마셨는데..." },
     ],
 
     question: "친구가 위험한 상태입니다. 당신은 어떻게 행동하겠습니까?",

@@ -18,9 +18,9 @@ function TutorialPage() {
 
         <div className="home-bubble home-bubble--right">
           <p>
-            안녕! 나는 마냥이야 😺
+            안녕! 나는 마냥이다옹 😺
             <br />
-            앞으로 몇 가지 상황을 보여줄게냥.
+            앞으로 몇 가지 상황을 보여줄거다옹.
             <br />
             정답을 맞히는 게임이 아니라 실제 상황에서 어떻게 대응할지
             직접 말해보는 연습이다옹.
@@ -35,6 +35,10 @@ function TutorialPage() {
           </button>
         </div>
       </div>
+
+      <p className="tutorial-privacy-note">
+        * 여기서 나눈 대화는 따로 저장되지 않으니 편하게 연습해보세요. *
+      </p>
     </main>
   );
 }

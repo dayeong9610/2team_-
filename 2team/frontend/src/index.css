@@ -642,6 +642,34 @@
   color: #FFFFFF;
 }
 
+.ig-bubble--image {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 160px;
+  padding: 0;
+  background: transparent;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.ig-product-photo {
+  display: block;
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.ig-review-photo {
+  display: block;
+  width: 160px;
+  height: 210px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 14px;
+}
+
 .next-button {
   width: 100%;
   margin-top: 12px;
@@ -823,6 +851,11 @@
   position: relative;
   flex: 1;
   min-width: 240px;
+  min-height: 140px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 24px 28px;
   background: #EAF3F1;
   border: 1.5px solid #3D7C71;
@@ -912,6 +945,7 @@
   padding: 24px 20px 40px;
   box-sizing: border-box;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -921,6 +955,13 @@
   align-items: center;
   gap: 28px;
   flex-wrap: wrap;
+}
+
+.tutorial-privacy-note {
+  margin: 24px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #9C978C;
 }
 
 @media (max-width: 640px) {

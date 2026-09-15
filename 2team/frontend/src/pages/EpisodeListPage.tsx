@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import manyangImg from "../assets/마냥_기본.png";
 
 interface EpisodeItem {
@@ -36,7 +35,7 @@ const episodes: EpisodeItem[] = [
 function EpisodeListPage() {
   const handleEpisodeClick = (id: string, locked: boolean) => {
     if (locked) return;
-    window.location.href = `/play/${id}`;
+    window.location.assign(`/play/${id}`);
   };
 
   return (

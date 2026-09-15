@@ -1,7 +1,12 @@
 export interface DialogueMessage {
   sender: string;
   text: string;
+  // 지정하면 텍스트 대신 이미지로 표시 (Instagram DM 연출용)
+  // "product": 상품 사진(DietPillPhoto) / "review": 후기 인증샷(DietReviewPhoto)
+  image?: "product" | "review";
 }
+
+
 
 export interface GameStage {
   id: number;

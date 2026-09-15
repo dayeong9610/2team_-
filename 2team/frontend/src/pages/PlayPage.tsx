@@ -108,7 +108,7 @@ export default function PlayPage() {
     if (el) {
       el.scrollTop = el.scrollHeight;
     }
-  }, [stageIndex, answered]);
+  }, [stageIndex, answered, draftMessage]);
 
   // 아직 콘텐츠가 준비되지 않은 에피소드
   if (!currentStage) {

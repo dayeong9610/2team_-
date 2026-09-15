@@ -1,6 +1,12 @@
+import { Fragment } from "react";
+
+import DietPillPhoto from "./DietPillPhoto";
+import DietReviewPhoto from "./DietReviewPhoto";
+
 interface DialogueMessage {
   sender: string;
   text: string;
+  image?: "product" | "review";
 }
 
 interface InstagramBubbleProps {
@@ -9,19 +15,19 @@ interface InstagramBubbleProps {
 
 interface MessageGroup {
   sender: string;
-  texts: string[];
+  items: DialogueMessage[];
 }
 
 function groupMessages(messages: DialogueMessage[]): MessageGroup[] {
   const groups: MessageGroup[] = [];
 
-  messages.forEach(({ sender, text }) => {
+  messages.forEach((message) => {
     const lastGroup = groups[groups.length - 1];
 
-    if (lastGroup && lastGroup.sender === sender) {
-      lastGroup.texts.push(text);
+    if (lastGroup && lastGroup.sender === message.sender) {
+      lastGroup.items.push(message);
     } else {
-      groups.push({ sender, texts: [text] });
+      groups.push({ sender: message.sender, items: [message] });
     }
   });
 
@@ -37,11 +43,27 @@ export default function InstagramBubble({ messages }: InstagramBubbleProps) {
     <>
       {groups.map((group, index) => (
         <div className="ig-message" key={index}>
-          {group.texts.map((text, textIndex) => (
-            <div className="ig-bubble" key={textIndex}>
-              {text}
-            </div>
-          ))}
+          {group.items.map((item, itemIndex) => {
+            if (item.image === "product" || item.image === "review") {
+              const Photo =
+                item.image === "product" ? DietPillPhoto : DietReviewPhoto;
+
+              return (
+                <Fragment key={itemIndex}>
+                  <div className="ig-bubble ig-bubble--image">
+                    <Photo />
+                  </div>
+                  <div className="ig-bubble">{item.text}</div>
+                </Fragment>
+              );
+            }
+
+            return (
+              <div className="ig-bubble" key={itemIndex}>
+                {item.text}
+              </div>
+            );
+          })}
         </div>
       ))}
     </>

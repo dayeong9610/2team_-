@@ -15,6 +15,7 @@ from app.core.scenario_engine import (
 from app.core.session_store import (
     get_session,
     add_scores,
+    save_stage_result,
     complete_stage
 )
 
@@ -96,6 +97,15 @@ async def chat(
     add_scores(
         request.session_id,
         ai_result["scores"]
+    )
+
+
+    # 7. Stage 결과 저장
+    save_stage_result(
+    session_id=request.session_id,
+    stage_id=request.stage_id,
+    feedback=ai_result["feedback"],
+    scores=ai_result["scores"]
     )
 
 

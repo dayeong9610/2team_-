@@ -19,6 +19,9 @@ from app.core.session_store import (
     delete_session
 )
 
+from app.core.scenario_engine import (
+    load_episode
+)
 
 router = APIRouter(
     tags=["Sessions"]
@@ -37,8 +40,33 @@ def start_session(
         uuid4()
     )
 
-    # 현재 EP01은 항상 Stage01에서 시작
-    first_stage = "EP01_STAGE01"
+    # 에피소드 조회
+    episode = load_episode(
+    request.episode_id
+    )
+
+    if episode is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Episode not found"
+        )
+
+
+    # 현재 에피소드의 첫 번째 Stage 안에서 시작
+    stages = episode.get(
+        "stages",
+        []
+    )
+
+    if not stages:
+        raise HTTPException(
+            status_code=500,
+            detail="Episode has no stages"
+        )
+
+    first_stage = stages[0][
+        "stage_id"
+    ]
 
     session = create_session(
         session_id=session_id,

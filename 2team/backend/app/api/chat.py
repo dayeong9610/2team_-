@@ -38,7 +38,7 @@ async def chat(
 
     # 1. Session 존재 확인
     session = (
-        session_store.get_session(
+        session_store.get(
             request.session_id
         )
     )
@@ -140,48 +140,47 @@ async def chat(
             )
         )
 
-
-    # 8. AI 점수 누적
-    session_store.add_scores(
-        request.session_id,
-        ai_result["scores"]
-    )
-
-
-    # 9. Stage 결과 저장
-    session_store.save_stage_result(
-        session_id=request.session_id,
-        stage_id=request.stage_id,
-        feedback=ai_result[
-            "feedback"
-        ],
-        scores=ai_result[
-            "scores"
-        ]
-    )
-
-
-    # 10. 다음 Stage는 Scenario가 결정
+    # 8. Scenario 기준으로 다음 Stage 결정
     next_stage = stage.get(
         "next_stage"
     )
 
+     # 9. 점수 + Stage 결과 + 진행상태 저장
+    saved = (
+        session_store.apply_stage_result(
+            session_id=
+                request.session_id,
 
-    # 11. 현재 Stage 완료 처리
-    session_store.complete_stage(
-        session_id=request.session_id,
-        stage_id=request.stage_id,
-        next_stage=next_stage
+            stage_id=
+                request.stage_id,
+
+            feedback=
+                ai_result["feedback"],
+
+            scores=
+                ai_result["scores"],
+
+            next_stage=next_stage
+        )
     )
 
+    if not saved:
 
-    # 12. Episode 종료 여부
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Failed to save "
+                "stage result"
+            )
+        )
+
+    # 10. Episode 종료 여부
     is_episode_complete = (
         next_stage is None
     )
 
 
-    # 13. Frontend 반환
+    # 11. Frontend 반환
     return ChatResponse(
         npc_response=(
             ai_result["npc_response"]

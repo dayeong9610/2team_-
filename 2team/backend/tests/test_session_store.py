@@ -1,11 +1,37 @@
 from app.core.session_store import (
-    SessionStore
+    MemorySessionStore
 )
 
 
-def test_session_store():
+def test_create_session():
 
-    store = SessionStore()
+    store = MemorySessionStore()
+
+    session = store.create_session(
+        session_id="TEST001",
+        episode_id="EP01",
+        first_stage="EP01_STAGE01"
+    )
+
+    assert session["episode_id"] == "EP01"
+
+    assert (
+        session["current_stage"]
+        == "EP01_STAGE01"
+    )
+
+    assert session["scores"] == {
+        "risk_awareness": 0,
+        "refusal": 0,
+        "help_request": 0
+    }
+
+    assert session["is_complete"] is False
+
+
+def test_get_session():
+
+    store = MemorySessionStore()
 
     store.create_session(
         session_id="TEST001",
@@ -24,77 +50,116 @@ def test_session_store():
         == "EP01"
     )
 
-    assert (
-        session["current_stage"]
-        == "EP01_STAGE01"
-    )
 
-# 점수 테스트
-def test_add_scores():
+def test_apply_stage_result():
 
-    store = SessionStore()
+    store = MemorySessionStore()
 
     store.create_session(
-        "TEST001",
-        "EP01",
-        "EP01_STAGE01"
+        session_id="TEST001",
+        episode_id="EP01",
+        first_stage="EP01_STAGE01"
     )
 
-    store.add_scores(
-        "TEST001",
-        {
+    saved = store.apply_stage_result(
+        session_id="TEST001",
+
+        stage_id="EP01_STAGE01",
+
+        feedback=(
+            "위험성을 잘 인지했어요."
+        ),
+
+        scores={
             "risk_awareness": 3,
-            "refusal": 1,
+            "refusal": 0,
             "help_request": 0
-        }
+        },
+
+        next_stage="EP01_STAGE02"
     )
 
-    result = store.get_result(
+    assert saved is True
+
+    session = store.get_session(
         "TEST001"
     )
 
     assert (
-        result["scores"][
+        session["scores"][
             "risk_awareness"
         ]
         == 3
     )
 
     assert (
-        result["scores"][
-            "refusal"
-        ]
-        == 1
-    )
-
-
-def test_session_copy():
-
-    store = SessionStore()
-
-    store.create_session(
-        "TEST001",
-        "EP01",
-        "EP01_STAGE01"
-    )
-
-    session = store.get_session(
-        "TEST001"
-    )
-
-    session[
-        "scores"
-    ][
-        "refusal"
-    ] = 999
-
-    original = store.get_session(
-        "TEST001"
+        session["current_stage"]
+        == "EP01_STAGE02"
     )
 
     assert (
-        original["scores"][
-            "refusal"
+        "EP01_STAGE01"
+        in session[
+            "completed_stages"
         ]
-        == 0
+    )
+
+
+def test_duplicate_stage():
+
+    store = MemorySessionStore()
+
+    store.create_session(
+        session_id="TEST001",
+        episode_id="EP01",
+        first_stage="EP01_STAGE01"
+    )
+
+    scores = {
+        "risk_awareness": 3,
+        "refusal": 0,
+        "help_request": 0
+    }
+
+    first = store.apply_stage_result(
+        session_id="TEST001",
+        stage_id="EP01_STAGE01",
+        feedback="첫 번째 평가",
+        scores=scores,
+        next_stage="EP01_STAGE02"
+    )
+
+    second = store.apply_stage_result(
+        session_id="TEST001",
+        stage_id="EP01_STAGE01",
+        feedback="중복 평가",
+        scores=scores,
+        next_stage="EP01_STAGE02"
+    )
+
+    assert first is True
+    assert second is False
+
+
+def test_delete_session():
+
+    store = MemorySessionStore()
+
+    store.create_session(
+        session_id="TEST001",
+        episode_id="EP01",
+        first_stage="EP01_STAGE01"
+    )
+
+    deleted = store.delete_session(
+        "TEST001"
+    )
+
+    assert deleted is True
+
+    assert (
+        store.get_session(
+            "TEST001"
+        )
+        is None
     )

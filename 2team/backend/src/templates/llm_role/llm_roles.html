@@ -1,10 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>챗봇 시츄에이션 리스트</title>
 </head>
 <body>
-$END$
+    {% if not llm_roles %}
+        <span>작성된 챗봇 시츄에이션이 없습니다.</span>
+    {% else %}
+        <table>
+            <tr>
+                <th>일련번호</th>
+                <th>제목</th>
+                <th>작성자명</th>
+                <th>작성일시</th>
+            </tr>
+            {% for llm_role in llm_roles %}
+                <tr>
+                    <td>{{ llm_role.lr_num }}</td>
+                    <td><a href="/admins/llmRole/{{ llm_role.lr_num }}">{{ llm_role.title }}</a></td>
+                    <td>{{ llm_role.admin_id }}</td>
+                    <td>{{ llm_role.created_at }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+    <br>
+    <a href="/admins/writeform">시츄에이션 작성하기</a>
+
 </body>
 </html>

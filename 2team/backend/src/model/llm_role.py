@@ -14,7 +14,7 @@ class LlmRole(SQLModel, table=True):
     __table_args__ = (
         CheckConstraint(
             "category = 'user_defined' OR category = 'school' OR category = 'trip'",
-            name="category",
+            name="CHK_LLM_ROLE_CATEGORY",
         ),
     )
 

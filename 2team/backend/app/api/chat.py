@@ -5,15 +5,15 @@ from app.schemas.chat import (
     ChatResponse
 )
 
-from app.core.scenario_engine import (
-    get_stage
-)
+from app.core.scenario_engine import get_stage
 
 from app.services.ai_service import evaluate_response
+
 
 router = APIRouter(
     tags=["Chat"]
 )
+
 
 @router.post(
     "/chat",
@@ -29,7 +29,6 @@ async def chat(
     )
 
     if stage is None:
-
         raise HTTPException(
             status_code=404,
             detail="Stage not found"
@@ -42,12 +41,10 @@ async def chat(
         stage_data=stage
     )
 
-    # 여기 추가
     update_score(
         request.session_id,
         ai_result["scores"]
     )
-
 
     next_stage = stage.get(
         "next_stage"
@@ -59,22 +56,23 @@ async def chat(
 
     return {
         "npc_response":
-        ai_result["npc_response"],
+            ai_result["npc_response"],
 
         "feedback":
-        ai_result["feedback"],
+            ai_result["feedback"],
 
         "scores":
-        ai_result["scores"],
+            ai_result["scores"],
 
         "next_stage":
-        next_stage,
+            next_stage,
 
         "is_episode_complete":
-        is_complete
+            is_complete
     }
 
-#DB없는 형태로 임시 저장, 나중에 Redis/DB로 바꾸기
+
+# DB 없는 임시 세션 저장
 sessions = {}
 
 

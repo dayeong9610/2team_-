@@ -1,5 +1,6 @@
 # Frontend
 node_modules/
+dist/
 
 # Python
 __pycache__/
@@ -7,6 +8,7 @@ __pycache__/
 
 # Environment
 .env
+.env.local
 2team/backend/.env
 
 # Test files

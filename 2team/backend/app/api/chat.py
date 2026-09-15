@@ -8,9 +8,9 @@ from app.schemas.chat import (
     ChatResponse
 )
 
-from app.core.scenario_engine import get_stage
-
-from app.services.ai_service import evaluate_response
+from app.core.scenario_engine import (
+    get_stage
+)
 
 from app.core.session_store import (
     get_session,
@@ -33,7 +33,6 @@ router = APIRouter(
     response_model=ChatResponse
 )
 async def chat(
-async def chat(
     request: ChatRequest
 ):
 
@@ -49,29 +48,31 @@ async def chat(
         )
 
 
-    # 2. 현재 진행해야 할 Stage인지 확인
-    if (
-        session["current_stage"]
-        != request.stage_id
-    ):
+    # 2. 현재 Session의 Episode와 요청 Episode가 같은지 확인
+    if session["episode_id"] != request.episode_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid episode"
+        )
+
+
+    # 3. 현재 진행해야 할 Stage인지 확인
+    if session["current_stage"] != request.stage_id:
         raise HTTPException(
             status_code=400,
             detail="Invalid stage"
         )
 
 
-    # 3. 이미 완료한 Stage인지 확인
-    if (
-        request.stage_id
-        in session["completed_stages"]
-    ):
+    # 4. 이미 완료한 Stage인지 확인
+    if request.stage_id in session["completed_stages"]:
         raise HTTPException(
             status_code=400,
             detail="Stage already completed"
         )
 
 
-    # 4. Scenario에서 현재 Stage 조회
+    # 5. Scenario에서 현재 Stage 조회
     stage = get_stage(
         request.episode_id,
         request.stage_id
@@ -83,19 +84,8 @@ async def chat(
             detail="Stage not found"
         )
 
-    ai_result = await evaluate_response(
-        episode_id=request.episode_id,
-        stage_id=request.stage_id,
-        user_message=request.message,
-        stage_data=stage
-    )
 
-    update_score(
-        request.session_id,
-        ai_result["scores"]
-
-
-    # 5. AI 평가
+    # 6. AI 평가
     ai_result = await evaluate_response(
         episode_id=request.episode_id,
         stage_id=request.stage_id,
@@ -104,20 +94,20 @@ async def chat(
     )
 
 
-    # 6. AI 점수 누적
+    # 7. AI 점수 누적
     add_scores(
         request.session_id,
         ai_result["scores"]
     )
 
 
-    # 7. 다음 Stage는 Scenario가 결정
+    # 8. 다음 Stage는 Scenario가 결정
     next_stage = stage.get(
         "next_stage"
     )
 
 
-    # 8. 현재 Stage 완료 처리
+    # 9. 현재 Stage 완료 처리
     complete_stage(
         session_id=request.session_id,
         stage_id=request.stage_id,
@@ -125,78 +115,28 @@ async def chat(
     )
 
 
-    # 9. Episode 종료 여부
+    # 10. Episode 종료 여부
     is_episode_complete = (
         next_stage is None
     )
 
-    return {
-        "npc_response":
-            ai_result["npc_response"],
 
-    # 10. Frontend 반환
+    # 11. Frontend 반환
     return ChatResponse(
         npc_response=(
             ai_result["npc_response"]
         ),
 
-        "feedback":
-            ai_result["feedback"],
         feedback=(
             ai_result["feedback"]
         ),
 
-        "scores":
-            ai_result["scores"],
         scores=(
             ai_result["scores"]
         ),
 
-        "next_stage":
-            next_stage,
         next_stage=next_stage,
 
-        "is_episode_complete":
-            is_complete
-    }
-
-
-# DB 없는 임시 세션 저장
-sessions = {}
-
-
-def update_score(
-    session_id: str,
-    scores: dict
-):
-
-    if session_id not in sessions:
-
-        sessions[session_id] = {
-            "risk_awareness": 0,
-            "refusal": 0,
-            "help_request": 0
-        }
-
-    sessions[session_id][
-        "risk_awareness"
-    ] += scores.get(
-        "risk_awareness",
-        0
-    )
-
-    sessions[session_id][
-        "refusal"
-    ] += scores.get(
-        "refusal",
-        0
-    )
-
-    sessions[session_id][
-        "help_request"
-    ] += scores.get(
-        "help_request",
-        0
         is_episode_complete=(
             is_episode_complete
         )

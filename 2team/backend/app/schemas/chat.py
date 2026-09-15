@@ -1,12 +1,40 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 
 class ChatRequest(BaseModel):
-    session_id: str
-    episode_id: str
-    stage_id: str
-    message: str
+    session_id: str = Field(
+        min_length=1
+    )
+
+    episode_id: str = Field(
+        min_length=1
+    )
+
+    stage_id: str = Field(
+        min_length=1
+    )
+
+    message: str = Field(
+        min_length=1,
+        max_length=500
+    )
+
+    @field_validator("message")
+    @classmethod
+    def validate_message(
+        cls,
+        value: str
+    ) -> str:
+
+        value = value.strip()
+
+        if not value:
+            raise ValueError(
+                "Message cannot be empty"
+            )
+
+        return value
 
 
 class Scores(BaseModel):

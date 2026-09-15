@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export interface Stage {
   stageId: string;
   title: string;
@@ -7,7 +9,15 @@ export interface Stage {
 }
 
 export interface Episode {
-  episodeId: string;
+  id: string;
   title: string;
-  stages: Stage[];
+  description: string;
+
+  totalStages: number;
+  estimatedTime: string;
+
+  status: "available" | "locked" | "completed";
+
+  episodeId?: string;
+  stages?: Stage[];
 }

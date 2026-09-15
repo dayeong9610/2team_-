@@ -1,19 +1,5 @@
-interface DialogueMessage {
-  sender: string;
-  text: string;
-}
-
-interface NPCBubbleProps {
-  messages: DialogueMessage[];
-}
-
-interface MessageGroup {
-  sender: string;
-  texts: string[];
-}
-
-function groupMessages(messages: DialogueMessage[]): MessageGroup[] {
-  const groups: MessageGroup[] = [];
+function groupMessages(messages) {
+  const groups = [];
 
   messages.forEach(({ sender, text }) => {
     const lastGroup = groups[groups.length - 1];
@@ -28,7 +14,7 @@ function groupMessages(messages: DialogueMessage[]): MessageGroup[] {
   return groups;
 }
 
-export default function NPCBubble({ messages }: NPCBubbleProps) {
+export default function NPCBubble({ messages }) {
   const groups = groupMessages(messages);
 
   return (

@@ -1,19 +1,9 @@
 import { useState } from "react";
 
-interface UserInputProps {
-  onSubmit: (message: string) => void;
-  onChange?: (value: string) => void;
-  disabled?: boolean;
-}
-
-export default function UserInput({
-  onSubmit,
-  onChange,
-  disabled = false,
-}: UserInputProps) {
+export default function UserInput({ onSubmit, onChange, disabled = false }) {
   const [message, setMessage] = useState("");
 
-  const handleChange = (value: string) => {
+  const handleChange = (value) => {
     setMessage(value);
     onChange?.(value);
   };
@@ -31,7 +21,7 @@ export default function UserInput({
     onChange?.("");
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();

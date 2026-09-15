@@ -1,12 +1,6 @@
 import { mockResult } from "../../data/mockResult";
 
-interface FeedbackCardProps {
-  scoreType: string;
-}
-
-export default function FeedbackCard({
-  scoreType,
-}: FeedbackCardProps) {
+export default function FeedbackCard({ scoreType }) {
   return (
     <div className="feedback-card">
       <div className="evaluation-target">

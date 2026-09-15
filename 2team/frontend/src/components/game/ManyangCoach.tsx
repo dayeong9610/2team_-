@@ -1,3 +1,5 @@
+import manyangImg from "../../assets/마냥_기본.png";
+
 interface ManyangCoachProps {
   stage: number;
 }
@@ -16,7 +18,7 @@ export default function ManyangCoach({
   return (
     <div className="manyang-coach">
       <div className="manyang-character">
-        😺
+        <img src={manyangImg} alt="마냥이" />
       </div>
 
       <div>

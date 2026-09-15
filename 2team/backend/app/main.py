@@ -1,12 +1,18 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import (
+    CORSMiddleware
+)
+# python -m uvicorn app.main:app --reload 실행확인
+from app.api.chat import (
+    router as chat_router
+)
 
-from app.api import episodes, chat
-
+from app.api.sessions import (
+    router as session_router
+)
 
 app = FastAPI(
-    title="Manyang Backend",
-    version="0.1.0"
+    title="Manyang API"
 )
 
 
@@ -22,17 +28,29 @@ app.add_middleware(
 
 
 app.include_router(
-    episodes.router,
+    chat_router,
     prefix="/api"
 )
 
+
 app.include_router(
-    chat.router,
+    session_router,
     prefix="/api"
 )
 
 @app.get("/")
 def root():
     return {
-        "message": "Manyang Backend Running"
+        "message":
+        "Manyang API Running"
+    }
+
+@app.get(
+    "/api/health",
+    tags=["System"]
+)
+def health_check():
+
+    return {
+        "status": "ok"
     }

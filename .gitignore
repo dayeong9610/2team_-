@@ -10,6 +10,8 @@ __pycache__/
 2team/backend/.env
 
 # Test files
+
+# Test files
 2team/backend/tests/manual_test_episode01_ai.py
 2team/backend/app/ai/__pycache__/safety.cpython-314.pyc
 2team/backend/tests/__pycache__/test_safety.cpython-314-pytest-9.1.1.pyc

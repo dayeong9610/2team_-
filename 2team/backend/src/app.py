@@ -5,8 +5,8 @@ from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 
 from database.connection import conn
-from routes.admin_route import router, template
-
+from routes.admin_route import router
+from routes.student_route import student_router
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -15,6 +15,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="2Team API", lifespan=lifespan)
 app.include_router(router)
+app.include_router(student_router)
 
 templates = Jinja2Templates("templates/")
 

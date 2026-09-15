@@ -1,30 +1,39 @@
 import json
 from pathlib import Path
+from typing import Optional, Dict, Any
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DATA_DIR = BASE_DIR / "data"
 
+def load_episode(
+    episode_id: str
+) -> Optional[Dict[str, Any]]:
 
-def load_episode(episode_id: str):
+    if episode_id != "EP01":
+        return None
 
-    if episode_id == "EP01":
-        file_path = DATA_DIR / "episode01.json"
-    else:
+    file_path = (
+        BASE_DIR
+        / "data"
+        / "episode01.json"
+    )
+
+    if not file_path.exists():
         return None
 
     with open(
         file_path,
         "r",
         encoding="utf-8"
-    ) as file:
+    ) as f:
+        return json.load(f)
 
-        return json.load(file)
+
 def get_stage(
     episode_id: str,
     stage_id: str
-):
+) -> Optional[Dict[str, Any]]:
 
     episode = load_episode(
         episode_id
@@ -33,9 +42,32 @@ def get_stage(
     if episode is None:
         return None
 
-    for stage in episode["stages"]:
-
-        if stage["stage_id"] == stage_id:
+    for stage in episode.get(
+        "stages",
+        []
+    ):
+        if stage.get(
+            "stage_id"
+        ) == stage_id:
             return stage
 
     return None
+
+
+def get_total_stages(
+    episode_id: str
+) -> int:
+
+    episode = load_episode(
+        episode_id
+    )
+
+    if episode is None:
+        return 0
+
+    return len(
+        episode.get(
+            "stages",
+            []
+        )
+    )

@@ -15,10 +15,7 @@ from app.core.scenario_engine import (
 )
 
 from app.core.session_store import (
-    get_session,
-    add_scores,
-    save_stage_result,
-    complete_stage
+    session_store
 )
 
 from app.services.ai_service import (
@@ -40,8 +37,10 @@ async def chat(
 ):
 
     # 1. Session 존재 확인
-    session = get_session(
-        request.session_id
+    session = (
+        session_store.get_session(
+            request.session_id
+        )
     )
 
     if session is None:
@@ -143,18 +142,22 @@ async def chat(
 
 
     # 8. AI 점수 누적
-    add_scores(
+    session_store.add_scores(
         request.session_id,
         ai_result["scores"]
     )
 
 
     # 9. Stage 결과 저장
-    save_stage_result(
+    session_store.save_stage_result(
         session_id=request.session_id,
         stage_id=request.stage_id,
-        feedback=ai_result["feedback"],
-        scores=ai_result["scores"]
+        feedback=ai_result[
+            "feedback"
+        ],
+        scores=ai_result[
+            "scores"
+        ]
     )
 
 
@@ -165,7 +168,7 @@ async def chat(
 
 
     # 11. 현재 Stage 완료 처리
-    complete_stage(
+    session_store.complete_stage(
         session_id=request.session_id,
         stage_id=request.stage_id,
         next_stage=next_stage

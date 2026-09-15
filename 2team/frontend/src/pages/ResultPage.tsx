@@ -1,3 +1,5 @@
+import { useSearchParams } from "react-router-dom";
+
 import manyangResult from "../assets/마냥_홈 소개.png";
 import { mockResult } from "../data/mockResult";
 
@@ -8,8 +10,11 @@ const STAT_ITEMS = [
 ];
 
 function ResultPage() {
+  const [searchParams] = useSearchParams();
+  const episodeId = searchParams.get("episodeId") ?? "EP01";
+
   const handleRetry = () => {
-    window.location.href = "/play/EP01";
+    window.location.href = `/play/${episodeId}`;
   };
 
   const handleGoToEpisodes = () => {

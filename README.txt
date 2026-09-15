@@ -1,8 +1,8 @@
 Git 사용 규칙
 
 작업 시작 전에 항상:
-git checkout develop
-git pull origin develop
+git checkout main
+git pull origin main
 
 
 
@@ -22,7 +22,7 @@ feature/game-ui
       ↓
 Pull Request
       ↓
-develop
+main
 
 Merge합니다.
 

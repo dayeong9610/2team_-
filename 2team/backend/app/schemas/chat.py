@@ -1,6 +1,13 @@
 from pydantic import BaseModel, Field
-#backend/app/ai/evaluator.py → LLM 출력 검증
-#backend/app/schemas/chat.py → Backend ↔ Frontend API 검증
+from typing import Optional
+
+
+class ChatRequest(BaseModel):
+    session_id: str
+    episode_id: str
+    stage_id: str
+    message: str
+
 
 class Scores(BaseModel):
     risk_awareness: int = Field(default=0, ge=0, le=3)
@@ -8,7 +15,11 @@ class Scores(BaseModel):
     help_request: int = Field(default=0, ge=0, le=3)
 
 
-class AIResponse(BaseModel):
+class ChatResponse(BaseModel):
     npc_response: str
     feedback: str
     scores: Scores
+
+    next_stage: Optional[str] = None
+
+    is_episode_complete: bool = False

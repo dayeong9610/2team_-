@@ -29,6 +29,8 @@ function pickManyangStages(): number[] {
   return MANYANG_APPEARANCE_SETS[randomIndex];
 }
 
+// 밑 import는 백엔드,api 연동시 사용!!
+ // import { sendChat } from "../services/api";
 
 export default function PlayPage() {
 
@@ -77,6 +79,9 @@ export default function PlayPage() {
   // 사용자 답변
   // =========================
 
+
+  // 밑 코드는 목업기준 코드 이후 백엔드,api 연동시 수정 필요
+  
   const handleAnswer = (
     message: string
   ) => {

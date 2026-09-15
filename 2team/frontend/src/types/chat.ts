@@ -1,19 +1,23 @@
 export interface ChatRequest {
-  sessionId: string;
-  episodeId: string;
-  stageId: string;
+  session_id: string;
+  episode_id: string;
+  stage_id: string;
   message: string;
 }
 
 export interface Scores {
-  riskAwareness: number;
+  risk_awareness: number;
   refusal: number;
-  helpRequest: number;
+  help_request: number;
 }
 
 export interface ChatResponse {
-  npcResponse: string;
+  npc_response: string;
   feedback: string;
+
   scores: Scores;
-  nextStage: string | null;
+
+  next_stage: string | null;
+
+  is_episode_complete: boolean;
 }

@@ -1,1 +1,13 @@
+# Frontend
 node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Environment
+.env
+2team/backend/.env
+
+# Test files
+2team/backend/tests/manual_test_episode01_ai.py

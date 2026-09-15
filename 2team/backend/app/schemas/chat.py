@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 
@@ -10,17 +10,16 @@ class ChatRequest(BaseModel):
 
 
 class Scores(BaseModel):
-    risk_awareness: int = 0
-    refusal: int = 0
-    help_request: int = 0
+    risk_awareness: int = Field(default=0, ge=0, le=3)
+    refusal: int = Field(default=0, ge=0, le=3)
+    help_request: int = Field(default=0, ge=0, le=3)
 
 
 class ChatResponse(BaseModel):
     npc_response: str
     feedback: str
-
     scores: Scores
 
-    next_stage: Optional[str]
+    next_stage: Optional[str] = None
 
-    is_episode_complete: bool
+    is_episode_complete: bool = False

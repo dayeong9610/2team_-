@@ -1,8 +1,7 @@
 {
-  "compilerOptions": {
-    "jsx": "preserve",
-    "lib": ["dom", "dom.iterable", "esnext"]
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }

@@ -143,7 +143,7 @@ export const episode01Stages: GameStage[] = [
     location: "그날 밤 스터디 단체 채팅방",
 
     description:
-      "그날 밤, 스터디방 방장이 단체 채팅방에 메시지를 보냅니다.",
+      "그날 밤, 스터디방 방장(지우)이 단체 채팅방에 메시지를 보냅니다.",
 
     messages: [
       { sender: "지우", text: "오늘 있었던 일은 비밀이다." },

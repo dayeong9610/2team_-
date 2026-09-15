@@ -4,6 +4,7 @@ import {
   Route
 } from "react-router-dom";
 
+import Header from "./components/common/Header";
 import HomePage from "./pages/HomePage";
 import TutorialPage from "./pages/TutorialPage";
 import EpisodeListPage from "./pages/EpisodeListPage";
@@ -14,6 +15,8 @@ import ProfilePage from "./pages/ProfilePage";
 function App() {
   return (
     <BrowserRouter>
+
+      <Header />
 
       <Routes>
 

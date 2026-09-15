@@ -109,13 +109,13 @@ async def chat(
     )
 
 
-    # 7. 다음 Stage는 Scenario가 결정
+    # 8. 다음 Stage는 Scenario가 결정
     next_stage = stage.get(
         "next_stage"
     )
 
 
-    # 8. 현재 Stage 완료 처리
+    # 9. 현재 Stage 완료 처리
     complete_stage(
         session_id=request.session_id,
         stage_id=request.stage_id,
@@ -123,13 +123,13 @@ async def chat(
     )
 
 
-    # 9. Episode 종료 여부
+    # 10. Episode 종료 여부
     is_episode_complete = (
         next_stage is None
     )
 
 
-    # 10. Frontend 반환
+    # 11. Frontend 반환
     return ChatResponse(
         npc_response=(
             ai_result["npc_response"]

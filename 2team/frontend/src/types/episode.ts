@@ -1,5 +1,3 @@
-import { ReactNode } from "react";
-
 export interface Stage {
   stageId: string;
   title: string;

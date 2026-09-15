@@ -8,9 +8,9 @@ from app.schemas.chat import (
     ChatResponse
 )
 
-from app.core.scenario_engine import (
-    get_stage
-)
+from app.core.scenario_engine import get_stage
+
+from app.services.ai_service import evaluate_response
 
 from app.core.session_store import (
     get_session,
@@ -32,6 +32,7 @@ router = APIRouter(
     "/chat",
     response_model=ChatResponse
 )
+async def chat(
 async def chat(
     request: ChatRequest
 ):
@@ -82,6 +83,17 @@ async def chat(
             detail="Stage not found"
         )
 
+    ai_result = await evaluate_response(
+        episode_id=request.episode_id,
+        stage_id=request.stage_id,
+        user_message=request.message,
+        stage_data=stage
+    )
+
+    update_score(
+        request.session_id,
+        ai_result["scores"]
+
 
     # 5. AI 평가
     ai_result = await evaluate_response(
@@ -118,6 +130,9 @@ async def chat(
         next_stage is None
     )
 
+    return {
+        "npc_response":
+            ai_result["npc_response"],
 
     # 10. Frontend 반환
     return ChatResponse(
@@ -125,16 +140,63 @@ async def chat(
             ai_result["npc_response"]
         ),
 
+        "feedback":
+            ai_result["feedback"],
         feedback=(
             ai_result["feedback"]
         ),
 
+        "scores":
+            ai_result["scores"],
         scores=(
             ai_result["scores"]
         ),
 
+        "next_stage":
+            next_stage,
         next_stage=next_stage,
 
+        "is_episode_complete":
+            is_complete
+    }
+
+
+# DB 없는 임시 세션 저장
+sessions = {}
+
+
+def update_score(
+    session_id: str,
+    scores: dict
+):
+
+    if session_id not in sessions:
+
+        sessions[session_id] = {
+            "risk_awareness": 0,
+            "refusal": 0,
+            "help_request": 0
+        }
+
+    sessions[session_id][
+        "risk_awareness"
+    ] += scores.get(
+        "risk_awareness",
+        0
+    )
+
+    sessions[session_id][
+        "refusal"
+    ] += scores.get(
+        "refusal",
+        0
+    )
+
+    sessions[session_id][
+        "help_request"
+    ] += scores.get(
+        "help_request",
+        0
         is_episode_complete=(
             is_episode_complete
         )

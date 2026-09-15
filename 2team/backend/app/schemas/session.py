@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -17,5 +18,21 @@ class SessionResultResponse(BaseModel):
     scores: dict
 
     completed_stages: list[str]
+
+    is_complete: bool
+
+
+class SessionStateResponse(BaseModel):
+    session_id: str
+
+    progress: int
+
+    episode_id: str
+
+    current_stage: Optional[str]
+
+    completed_stages: list[str]
+
+    scores: dict
 
     is_complete: bool

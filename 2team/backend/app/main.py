@@ -44,3 +44,13 @@ def root():
         "message":
         "Manyang API Running"
     }
+
+@app.get(
+    "/api/health",
+    tags=["System"]
+)
+def health_check():
+
+    return {
+        "status": "ok"
+    }

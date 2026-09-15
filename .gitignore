@@ -1,15 +1,32 @@
 # Frontend
 node_modules/
+.next/
 dist/
 
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
 
-# Environment
+# Python virtual environment
+venv/
+.venv/
+
+# Environment variables
 .env
-.env.local
-2team/backend/.env
+.env.*
+!.env.example
 
-# Test files
-2team/backend/tests/manual_test_episode01_ai.py
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test / cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log

@@ -38,7 +38,7 @@ async def chat(
 
     # 1. Session 존재 확인
     session = (
-        session_store.get(
+        session_store.get_session(
             request.session_id
         )
     )

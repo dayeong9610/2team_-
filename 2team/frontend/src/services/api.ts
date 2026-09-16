@@ -104,3 +104,21 @@ export async function getSessionResult(
 
   return response.json();
 }
+
+export async function deleteSession(
+  sessionId: string
+): Promise<void> {
+
+  const response = await fetch(
+    `${API_BASE_URL}/sessions/${sessionId}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "세션을 삭제하지 못했습니다."
+    );
+  }
+}

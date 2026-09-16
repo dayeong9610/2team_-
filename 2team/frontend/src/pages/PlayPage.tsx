@@ -15,6 +15,7 @@ import type { GameStage } from "../data/episode01stages";
 import { episode01Stages } from "../data/episode01stages";
 import { episode02Stages } from "../data/episode02stages";
 import { episode03Stages } from "../data/episode03stages";
+import { scoreLimits } from "../data/scoreLimits";
 
 import {
   createSession,
@@ -415,38 +416,43 @@ export default function PlayPage() {
     setNextStageId(null);
   };
 
-  const maxScore =
-    stages.length * 3;
+  const limits =
+    scoreLimits[episodeId] ??
+    scoreLimits.EP01;
 
   const scorePercent = (
-    value: number
+    value: number,
+    limit: number
   ) => {
 
-    if (!maxScore) {
+    if (limit <= 0) {
       return 0;
     }
 
     return Math.min(
       100,
       Math.round(
-        value / maxScore * 100
+        value / limit * 100
       )
     );
   };
 
   const riskPercent =
     scorePercent(
-      scores.risk_awareness
+      scores.risk_awareness,
+      limits.risk_awareness
     );
 
   const refusalPercent =
     scorePercent(
-      scores.refusal
+      scores.refusal,
+      limits.refusal
     );
 
   const helpPercent =
     scorePercent(
-      scores.help_request
+      scores.help_request,
+      limits.help_request
     );
 
 
@@ -727,7 +733,7 @@ export default function PlayPage() {
               <FeedbackCard
                 scoreType={currentStage.scoreType}
                 scores={scores}
-                maxScore={maxScore}
+                limits={limits}
               />
 
               <button className="next-button" onClick={handleNext}>

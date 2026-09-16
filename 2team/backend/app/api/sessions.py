@@ -13,10 +13,12 @@ from app.schemas.session import (
 )
 
 from app.core.session_store import (
-    create_session,
-    get_result,
-    get_session_state,
-    delete_session
+    session_store
+)
+
+from app.core.scenario_engine import (
+    load_episode,
+    get_total_stages
 )
 
 
@@ -24,6 +26,10 @@ router = APIRouter(
     tags=["Sessions"]
 )
 
+
+# =========================
+# Session 생성
+# =========================
 
 @router.post(
     "/sessions",
@@ -33,17 +39,46 @@ def start_session(
     request: SessionCreateRequest
 ):
 
+    # 1. Episode 조회
+    episode = load_episode(
+        request.episode_id
+    )
+
+    if episode is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Episode not found"
+        )
+
+    # 2. Episode Stage 확인
+    stages = episode.get(
+        "stages",
+        []
+    )
+
+    if not stages:
+        raise HTTPException(
+            status_code=500,
+            detail="Episode has no stages"
+        )
+
+    # 3. 첫 Stage 결정
+    first_stage = stages[0][
+        "stage_id"
+    ]
+
+    # 4. Session ID 생성
     session_id = str(
         uuid4()
     )
 
-    # 현재 EP01은 항상 Stage01에서 시작
-    first_stage = "EP01_STAGE01"
-
-    session = create_session(
-        session_id=session_id,
-        episode_id=request.episode_id,
-        first_stage=first_stage
+    # 5. Session 생성
+    session = (
+        session_store.create_session(
+            session_id=session_id,
+            episode_id=request.episode_id,
+            first_stage=first_stage
+        )
     )
 
     return {
@@ -58,6 +93,10 @@ def start_session(
     }
 
 
+# =========================
+# Session 결과 조회
+# =========================
+
 @router.get(
     "/sessions/{session_id}/result",
     response_model=SessionResultResponse
@@ -66,8 +105,10 @@ def session_result(
     session_id: str
 ):
 
-    result = get_result(
-        session_id
+    result = (
+        session_store.get_result(
+            session_id
+        )
     )
 
     if result is None:
@@ -79,6 +120,10 @@ def session_result(
     return result
 
 
+# =========================
+# Session 현재 상태 조회
+# =========================
+
 @router.get(
     "/sessions/{session_id}",
     response_model=SessionStateResponse
@@ -87,18 +132,54 @@ def session_state(
     session_id: str
 ):
 
-    session = get_session_state(
-        session_id
+    # 1. Session 존재 확인
+    session = (
+        session_store.get_session(
+            session_id
+        )
     )
 
     if session is None:
-
         raise HTTPException(
             status_code=404,
             detail="Session not found"
         )
 
-    return session
+    # 2. 해당 Episode의 전체 Stage 수 조회
+    total_stages = (
+        get_total_stages(
+            session[
+                "episode_id"
+            ]
+        )
+    )
+
+    if total_stages <= 0:
+        raise HTTPException(
+            status_code=500,
+            detail="Episode has no stages"
+        )
+
+    # 3. 진행률 포함 Session 상태 조회
+    state = (
+        session_store.get_session_state(
+            session_id,
+            total_stages
+        )
+    )
+
+    if state is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found"
+        )
+
+    return state
+
+
+# =========================
+# Session 종료
+# =========================
 
 @router.delete(
     "/sessions/{session_id}"
@@ -107,12 +188,13 @@ def end_session(
     session_id: str
 ):
 
-    deleted = delete_session(
-        session_id
+    deleted = (
+        session_store.delete_session(
+            session_id
+        )
     )
 
     if not deleted:
-
         raise HTTPException(
             status_code=404,
             detail="Session not found"

@@ -1,10 +1,51 @@
+:root {
+  --header-h: 76px;
+}
+
+/* =====================================================================
+   Site header (공통)
+   - 로고 + 서비스명. 모든 페이지 상단에 고정 노출됩니다. (App.tsx 참고)
+   ===================================================================== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--header-h);
+  padding: 0 20px;
+  box-sizing: border-box;
+  background: #FFFFFF;
+  border-bottom: 1px solid #EEE9DE;
+}
+
+.site-header-logo {
+  display: flex;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+}
+
+.site-header-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.site-header-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #23262B;
+}
+
 .play-page {
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px 20px 16px;
   box-sizing: border-box;
   height: 100vh;
-  height: 100dvh;
+  height: calc(100dvh - var(--header-h));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -120,15 +161,6 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-}
-
-.play-layout--vertical {
-  flex-direction: column;
-}
-
-.play-layout--vertical .play-story {
-  flex: none;
-  width: 100%;
 }
 
 @media (max-width: 560px) {
@@ -372,6 +404,272 @@
   cursor: default;
 }
 
+/* =====================================================================
+   Scene dialogue (EP02: 노래방/룸카페처럼 대면 상황인 에피소드용)
+   - 메신저 채팅 대신, 룸 배경(KaraokeBackdrop) + 캐릭터 대사창으로 보여줍니다.
+   ===================================================================== */
+.chat-window--vn {
+  position: relative;
+  background: linear-gradient(180deg, #2C2140 0%, #3D2A55 55%, #55366A 100%);
+  border: none;
+}
+
+.conversation--vn {
+  justify-content: flex-end;
+}
+
+.chat-window--vn .conversation-turn-label {
+  background: rgba(255, 255, 255, 0.18);
+  color: #F3E9FF;
+}
+
+.chat-window--vn .dm-composer {
+  background: rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.chat-window--vn .dm-composer-input {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.vn-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.vn-spotlight {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  filter: blur(16px);
+  opacity: 0.35;
+}
+
+.vn-spotlight--a {
+  top: -60px;
+  left: -40px;
+  background: radial-gradient(circle, #FFD9A0 0%, transparent 70%);
+}
+
+.vn-spotlight--b {
+  top: -20px;
+  right: -60px;
+  background: radial-gradient(circle, #8FD9C4 0%, transparent 70%);
+}
+
+.vn-disco-ball {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+}
+
+.vn-note {
+  position: absolute;
+  color: #F3E9FF;
+  opacity: 0.55;
+  font-size: 1.1rem;
+}
+
+.vn-note--a {
+  top: 60px;
+  left: 12%;
+}
+
+.vn-note--b {
+  top: 90px;
+  right: 16%;
+  font-size: 1.4rem;
+}
+
+.vn-note--c {
+  top: 40px;
+  right: 32%;
+  font-size: 0.9rem;
+}
+
+.vn-line {
+  position: relative;
+  z-index: 1;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 88%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+.vn-line--me {
+  align-self: flex-end;
+  background: #3D7C71;
+}
+
+.vn-line--me .vn-line-name,
+.vn-line--me .vn-line-text {
+  color: #FFFFFF;
+}
+
+.vn-line--advance {
+  position: relative;
+  padding-right: 32px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+
+.vn-advance-hint {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  color: #6B4FA0;
+  font-size: 1rem;
+  animation: vnAdvanceHint 1.2s infinite ease-in-out;
+}
+
+@keyframes vnAdvanceHint {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(3px);
+    opacity: 1;
+  }
+}
+
+.vn-line--prompt .vn-line-text {
+  color: #6B4FA0;
+  font-style: italic;
+}
+
+.vn-line-name {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6B4FA0;
+}
+
+.vn-line-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: #23262B;
+}
+
+/* =====================================================================
+   Instagram DM 연출 (EP03: DM 단계에서만 적용, location이 "인스타그램 DM"인 stage)
+   ===================================================================== */
+.ig-dm-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #EFEFEF;
+  background: #FFFFFF;
+}
+
+.ig-dm-back {
+  font-size: 1.3rem;
+  color: #23262B;
+  line-height: 1;
+}
+
+.ig-dm-avatar {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F58529, #DD2A7B 45%, #8134AF 100%);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ig-dm-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.ig-dm-username {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #23262B;
+}
+
+.ig-dm-status {
+  font-size: 0.72rem;
+  color: #8e8e8e;
+}
+
+.ig-message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.ig-message--me {
+  align-items: flex-end;
+}
+
+.ig-bubble {
+  width: fit-content;
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 20px;
+  background: #EFEFEF;
+  color: #1c1c1e;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.ig-bubble--me {
+  background: #3897F0;
+  color: #FFFFFF;
+}
+
+.ig-bubble--image {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 160px;
+  padding: 0;
+  background: transparent;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.ig-product-photo {
+  display: block;
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.ig-review-photo {
+  display: block;
+  width: 160px;
+  height: 210px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 14px;
+}
+
 .next-button {
   width: 100%;
   margin-top: 12px;
@@ -522,33 +820,6 @@
   gap: 32px;
 }
 
-.home-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #EEE9DE;
-}
-
-.home-logo {
-  display: flex;
-  flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-}
-
-.home-logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.home-service-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #23262B;
-}
-
 .home-hero,
 .home-cta {
   display: flex;
@@ -580,6 +851,11 @@
   position: relative;
   flex: 1;
   min-width: 240px;
+  min-height: 140px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 24px 28px;
   background: #EAF3F1;
   border: 1.5px solid #3D7C71;
@@ -635,6 +911,16 @@
   background: #33665D;
 }
 
+.home-start-button--outline {
+  background: transparent;
+  color: #3D7C71;
+  border: 1.5px solid #3D7C71;
+}
+
+.home-start-button--outline:hover {
+  background: #EAF3F1;
+}
+
 .home-footer {
   padding-top: 20px;
   border-top: 1px solid #EEE9DE;
@@ -645,6 +931,43 @@
 
 .home-footer strong {
   color: #3D7C71;
+}
+
+/* =====================================================================
+   Tutorial page (온보딩 설명)
+   - Home page와 같은 캐릭터 박스 + 말풍선(.home-character-box / .home-bubble)
+     스타일을 재사용해서 Home → Tutorial → Episode 목록 흐름의 톤을 맞췄습니다.
+   ===================================================================== */
+.tutorial-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 24px 20px 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tutorial-content {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.tutorial-privacy-note {
+  margin: 24px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #9C978C;
+}
+
+@media (max-width: 640px) {
+  .tutorial-content {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 640px) {
@@ -660,13 +983,105 @@
   }
 }
 
+/* =====================================================================
+   Result page (에피소드 종료 화면)
+   - Home / Tutorial과 같은 캐릭터 박스 + 말풍선을 재사용하고,
+     PlayPage 우측 상단 mini-stat과 같은 초록(#3D7C71) 톤으로
+     결과 그래프를 맞췄습니다.
+   ===================================================================== */
+.result-page {
+  max-width: 700px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 32px 20px 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 32px;
+}
+
+.result-hero {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.result-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 28px;
+  background: #F5F3ED;
+  border: 1px solid #EEE9DE;
+  border-radius: 24px;
+}
+
+.result-stats-title {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3D7C71;
+}
+
+.result-stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.result-stat-label {
+  flex-shrink: 0;
+  width: 76px;
+  font-size: 0.9rem;
+  color: #5A5F5E;
+}
+
+.result-stat-track {
+  flex: 1;
+  height: 10px;
+  background: #E5E1D8;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.result-stat-fill {
+  height: 100%;
+  background: #3D7C71;
+  border-radius: 999px;
+}
+
+.result-stat-value {
+  flex-shrink: 0;
+  width: 42px;
+  text-align: right;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #3D7C71;
+}
+
+.result-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 560px) {
+  .result-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
 /* Episode list page */
 .episode-list-page {
   max-width: 1000px;
   margin: 0 auto;
   min-height: 100vh;
   padding: 40px 20px 48px;
-  background: #ECE7DB;
+  background: #FFFFFF;
   color: #23262B;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic",
     sans-serif;

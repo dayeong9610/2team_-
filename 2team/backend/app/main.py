@@ -11,6 +11,10 @@ from app.api.sessions import (
     router as session_router
 )
 
+from app.api.episodes import (
+    router as episode_router
+)
+
 app = FastAPI(
     title="Manyang API"
 )
@@ -19,7 +23,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "http://localhost:5173"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -35,6 +40,11 @@ app.include_router(
 
 app.include_router(
     session_router,
+    prefix="/api"
+)
+
+app.include_router(
+    episode_router,
     prefix="/api"
 )
 

@@ -642,6 +642,16 @@
   color: #FFFFFF;
 }
 
+.ig-bubble--typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ig-bubble--typing .typing-dot {
+  background: #9C978C;
+}
+
 .ig-bubble--image {
   display: flex;
   flex-direction: column;

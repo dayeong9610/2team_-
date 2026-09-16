@@ -145,6 +145,12 @@ def session_state(
             detail="Session not found"
         )
 
+    if not session["is_complete"]:
+        raise HTTPException(
+            status_code=409,
+            detail="Episode is not completed"
+        )
+
     # 2. 해당 Episode의 전체 Stage 수 조회
     total_stages = (
         get_total_stages(

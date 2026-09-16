@@ -80,6 +80,19 @@ async def chat(
         )
 
 
+    expected_prefix = (
+        f"{request.episode_id}_STAGE"
+    )
+
+    if not request.stage_id.startswith(
+        expected_prefix
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Stage does not belong to episode"
+        )
+
+
     # 5. 현재 진행해야 할 Stage인지 확인
     if (
         session["current_stage"]
@@ -200,3 +213,37 @@ async def chat(
             is_episode_complete
         )
     )
+
+    required_ai_fields = {
+        "npc_response",
+        "feedback",
+        "scores"
+    }
+
+    if not required_ai_fields.issubset(
+        ai_result.keys()
+    ):
+        raise HTTPException(
+            status_code=502,
+            detail="Invalid AI response"
+        )
+
+
+    required_score_fields = {
+        "risk_awareness",
+        "refusal",
+        "help_request"
+    }
+
+    scores = ai_result.get(
+        "scores",
+        {}
+    )
+
+    if not required_score_fields.issubset(
+        scores.keys()
+    ):
+        raise HTTPException(
+            status_code=502,
+            detail="Invalid AI score response"
+        )

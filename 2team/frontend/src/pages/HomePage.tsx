@@ -1,4 +1,3 @@
-import houseLogo from "../assets/홈버튼.png";
 import manyangSitting from "../assets/마냥_기본.png";
 import manyangLying from "../assets/마냥_홈 소개.png";
 
@@ -34,22 +33,9 @@ function HomePage() {
       <div className="home-content">
       {/* =====================================================
           1) 상단 헤더 : 로고 아이콘 + 서비스명
-          - 로고 이미지(홈버튼.png)는 클릭 시 이 첫 화면("/")으로
-            돌아오는 링크로 만들어 뒀습니다. 다른 페이지 상단에도
-            같은 로고를 재사용하고 싶다면 이 블록을 공용 컴포넌트로
-            분리하면 됩니다.
-          - "서비스명" 자리는 지금 프로젝트 전반에서 쓰이는 이름인
-            "마냥이"를 기본값으로 넣어뒀습니다. 정식 서비스명이
-            정해지면 이 문자열만 교체하면 됩니다.
+          - 모든 페이지 상단에 공통으로 뜨는 <Header /> (App.tsx)로
+            분리되어 이제 이 페이지에서는 따로 렌더링하지 않습니다.
       ===================================================== */}
-      <header className="home-header">
-        <a href="/" className="home-logo" aria-label="마냥이 홈으로 이동">
-          <img src={houseLogo} alt="" />
-        </a>
-
-        {/* TODO: 정식 서비스명이 확정되면 교체 */}
-        <span className="home-service-name">마냥이</span>
-      </header>
 
       {/* =====================================================
           2) 캐릭터 소개 섹션 (와이어프레임 2번째 줄)

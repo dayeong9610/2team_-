@@ -1,13 +1,39 @@
 import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 
 import ProgressBar from "../components/common/ProgressBar";
 import NPCBubble from "../components/game/NPCBubble";
+import SceneDialogue from "../components/game/SceneDialogue";
+import KaraokeBackdrop from "../components/game/KaraokeBackdrop";
+import InstagramDMHeader from "../components/game/InstagramDMHeader";
+import InstagramBubble from "../components/game/InstagramBubble";
 import UserInput from "../components/game/UserInput";
 import ManyangCoach from "../components/game/ManyangCoach";
 import FeedbackCard from "../components/game/FeedbackCard";
 
+import type { GameStage } from "../data/episode01stages";
 import { episode01Stages } from "../data/episode01stages";
+import { episode02Stages } from "../data/episode02stages";
+import { episode03Stages } from "../data/episode03stages";
 import { mockResult } from "../data/mockResult";
+
+// EpisodeListPage에 있는 제목/번호와 맞춰뒀습니다.
+// layout "scene"은 대면 상황(노래방/룸카페 등)이라 메신저 채팅 대신
+// 룸 배경 + 캐릭터 대사창(SceneDialogue)으로 보여줍니다.
+const EPISODE_META: Record<
+  string,
+  { num: string; title: string; layout: "chat" | "scene" }
+> = {
+  EP01: { num: "01", title: "시험기간 스터디 그룹", layout: "chat" },
+  EP02: { num: "02", title: "해외여행에서 마주친 위험한 권유", layout: "chat" },
+  EP03: { num: "03", title: "SNS 다이어트 약 DM", layout: "chat" },
+};
+
+const STAGES_BY_EPISODE: Record<string, GameStage[]> = {
+  EP01: episode01Stages,
+  EP02: episode02Stages,
+  EP03: episode03Stages,
+};
 
 
 // 마냥이가 등장할 스테이지 조합 (2~3회, 연속 등장 없음)
@@ -34,6 +60,12 @@ function pickManyangStages(): number[] {
 
 export default function PlayPage() {
 
+  const { episodeId = "EP01" } = useParams();
+
+  const stages = STAGES_BY_EPISODE[episodeId] ?? [];
+  const episodeMeta = EPISODE_META[episodeId] ?? EPISODE_META.EP01;
+  const isScene = episodeMeta.layout === "scene";
+
   // 현재 Stage 배열 위치
   const [stageIndex, setStageIndex] =
     useState(0);
@@ -54,17 +86,21 @@ export default function PlayPage() {
   const [manyangStages] =
     useState(pickManyangStages);
 
+  // scene(비주얼노벨) 모드에서 현재 몇 번째 대사까지 넘겼는지
+  const [sceneLineIndex, setSceneLineIndex] =
+    useState(0);
+
   // 채팅 자동 스크롤용
   const conversationRef =
     useRef<HTMLDivElement>(null);
 
   // 현재 Stage
   const currentStage =
-    episode01Stages[stageIndex];
+    stages[stageIndex];
 
   // 지금까지 진행한 모든 Stage (지난 대화 누적 표시용)
   const visibleStages =
-    episode01Stages.slice(0, stageIndex + 1);
+    stages.slice(0, stageIndex + 1);
 
   useEffect(() => {
     const el = conversationRef.current;
@@ -72,7 +108,28 @@ export default function PlayPage() {
     if (el) {
       el.scrollTop = el.scrollHeight;
     }
-  }, [stageIndex, answered]);
+  }, [stageIndex, answered, draftMessage]);
+
+  // 아직 콘텐츠가 준비되지 않은 에피소드
+  if (!currentStage) {
+    return (
+      <div className="play-page">
+        <p>아직 준비 중인 에피소드입니다.</p>
+      </div>
+    );
+  }
+
+  // 현재 Stage가 인스타그램 DM 상황인지 (EP03 일부 단계) - location으로 판단
+  const isCurrentStageDM = currentStage.location === "인스타그램 DM";
+
+  // scene 모드: 현재 Stage의 대사를 한 줄씩 보여주고, 다 넘기면 답변을 받습니다.
+  const sceneMessages = currentStage.messages;
+  const sceneNpcDone = sceneLineIndex >= sceneMessages.length;
+  const sceneCurrentMessage = sceneMessages[sceneLineIndex];
+
+  const handleSceneAdvance = () => {
+    setSceneLineIndex((prev) => Math.min(prev + 1, sceneMessages.length));
+  };
 
 
   // =========================
@@ -106,7 +163,7 @@ export default function PlayPage() {
     // 마지막 Stage인지 확인
     if (
       stageIndex <
-      episode01Stages.length - 1
+      stages.length - 1
     ) {
 
       setStageIndex(
@@ -117,11 +174,13 @@ export default function PlayPage() {
 
       setDraftMessage("");
 
+      setSceneLineIndex(0);
+
     } else {
 
-      // Stage 5 종료
+      // 마지막 Stage 종료
       window.location.href =
-        "/result";
+        `/result?episodeId=${episodeId}`;
     }
   };
 
@@ -135,13 +194,13 @@ export default function PlayPage() {
       <div className="play-topbar">
         <div className="play-topbar-main">
           <header className="game-header">
-            <span>Episode 01</span>
-            <h1>시험기간 스터디 그룹</h1>
+            <span>Episode {episodeMeta.num}</span>
+            <h1>{episodeMeta.title}</h1>
           </header>
 
           <ProgressBar
             currentStage={currentStage.id}
-            totalStages={episode01Stages.length}
+            totalStages={stages.length}
           />
         </div>
 
@@ -199,13 +258,7 @@ export default function PlayPage() {
           스토리(좌측) + 채팅(중앙) 레이아웃
       ====================== */}
 
-      <div
-        className={
-          currentStage.id === 5
-            ? "play-layout play-layout--vertical"
-            : "play-layout"
-        }
-      >
+      <div className="play-layout">
         {/* ---------------------
             스토리 사이드
         ---------------------- */}
@@ -226,46 +279,162 @@ export default function PlayPage() {
         ---------------------- */}
 
         <div className="play-chat">
-          <section className="chat-window">
-            <div className="conversation" ref={conversationRef}>
-              {visibleStages.map((stage) => (
-                <div className="conversation-turn" key={stage.id}>
-                  {stage.id !== 1 && (
-                    <div className="conversation-turn-label">
-                      STEP {stage.id} · {stage.title}
+          <section
+            className={
+              isScene ? "chat-window chat-window--vn" : "chat-window"
+            }
+          >
+            {isScene && <KaraokeBackdrop />}
+            {!isScene && isCurrentStageDM && (
+              <InstagramDMHeader
+                username={currentStage.messages[0]?.sender ?? ""}
+              />
+            )}
+
+            <div
+              className={
+                isScene ? "conversation conversation--vn" : "conversation"
+              }
+              ref={conversationRef}
+            >
+              {isScene ? (
+                <>
+                  {!sceneNpcDone && (
+                    <SceneDialogue
+                      message={sceneCurrentMessage}
+                      onAdvance={handleSceneAdvance}
+                    />
+                  )}
+
+                  {sceneNpcDone && !answered && (
+                    <div className="vn-line vn-line--prompt">
+                      <p className="vn-line-text">
+                        어떻게 대답하시겠습니까?
+                      </p>
                     </div>
                   )}
 
-                  <NPCBubble messages={stage.messages} />
+                  {answered && (
+                    <div className="vn-line vn-line--me">
+                      <span className="vn-line-name">나</span>
+                      <p className="vn-line-text">
+                        {answersByStage[currentStage.id]}
+                      </p>
+                    </div>
+                  )}
 
-                  {answersByStage[stage.id] && (
-                    <div className="npc-message npc-message--me">
-                      <div className="npc-bubble npc-bubble--me">
-                        {answersByStage[stage.id]}
+                  {/* NPC 반응 - 백엔드 연동 전 임시 목업(reaction). 나중엔 /chat 응답의 npc_response로 교체 */}
+                  {answered && currentStage.reaction && (
+                    <div className="vn-line">
+                      <span className="vn-line-name">
+                        {currentStage.messages[
+                          currentStage.messages.length - 1
+                        ]?.sender ?? ""}
+                      </span>
+                      <p className="vn-line-text">{currentStage.reaction}</p>
+                    </div>
+                  )}
+
+                  {answered && manyangStages.includes(currentStage.id) && (
+                    <div className="manyang-popup">
+                      <ManyangCoach stage={currentStage.id} />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {visibleStages.map((stage) => {
+                    const stageIsDM = stage.location === "인스타그램 DM";
+
+                    return (
+                      <div className="conversation-turn" key={stage.id}>
+                        {stage.id !== 1 && (
+                          <div className="conversation-turn-label">
+                            STEP {stage.id} · {stage.title}
+                          </div>
+                        )}
+
+                        {stageIsDM ? (
+                          <InstagramBubble messages={stage.messages} />
+                        ) : (
+                          <NPCBubble messages={stage.messages} />
+                        )}
+
+                        {answersByStage[stage.id] &&
+                          (stageIsDM ? (
+                            <div className="ig-message ig-message--me">
+                              <div className="ig-bubble ig-bubble--me">
+                                {answersByStage[stage.id]}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="npc-message npc-message--me">
+                              <div className="npc-bubble npc-bubble--me">
+                                {answersByStage[stage.id]}
+                              </div>
+                            </div>
+                          ))}
+
+                        {/* NPC 반응 - 백엔드 연동 전 임시 목업(reaction). 나중엔 /chat 응답의 npc_response로 교체 */}
+                        {answersByStage[stage.id] &&
+                          stage.reaction &&
+                          (stageIsDM ? (
+                            <InstagramBubble
+                              messages={[
+                                {
+                                  sender:
+                                    stage.messages[stage.messages.length - 1]
+                                      ?.sender ?? "",
+                                  text: stage.reaction,
+                                },
+                              ]}
+                            />
+                          ) : (
+                            <NPCBubble
+                              messages={[
+                                {
+                                  sender:
+                                    stage.messages[stage.messages.length - 1]
+                                      ?.sender ?? "",
+                                  text: stage.reaction,
+                                },
+                              ]}
+                            />
+                          ))}
                       </div>
+                    );
+                  })}
+
+                  {!answered && draftMessage.trim() && (
+                    isCurrentStageDM ? (
+                      <div className="ig-message ig-message--me">
+                        <div className="ig-bubble ig-bubble--me">
+                          <span className="typing-dot" />
+                          <span className="typing-dot" />
+                          <span className="typing-dot" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="npc-message npc-message--me">
+                        <div className="npc-bubble npc-bubble--typing">
+                          <span className="typing-dot" />
+                          <span className="typing-dot" />
+                          <span className="typing-dot" />
+                        </div>
+                      </div>
+                    )
+                  )}
+
+                  {answered && manyangStages.includes(currentStage.id) && (
+                    <div className="manyang-popup">
+                      <ManyangCoach stage={currentStage.id} />
                     </div>
                   )}
-                </div>
-              ))}
-
-              {!answered && draftMessage.trim() && (
-                <div className="npc-message npc-message--me">
-                  <div className="npc-bubble npc-bubble--typing">
-                    <span className="typing-dot" />
-                    <span className="typing-dot" />
-                    <span className="typing-dot" />
-                  </div>
-                </div>
-              )}
-
-              {answered && manyangStages.includes(currentStage.id) && (
-                <div className="manyang-popup">
-                  <ManyangCoach stage={currentStage.id} />
-                </div>
+                </>
               )}
             </div>
 
-            {!answered && (
+            {!answered && (!isScene || sceneNpcDone) && (
               <UserInput onSubmit={handleAnswer} onChange={setDraftMessage} />
             )}
           </section>

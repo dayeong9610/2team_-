@@ -33,7 +33,7 @@ class ChatRoom(SQLModel, table=True):
     status: str = Field(max_length=10)
     created_at: datetime = Field(
         sa_column=Column(
-            DateTime,
+            DateTime(timezone=True),
             nullable=False,
             server_default=func.now(),
         )

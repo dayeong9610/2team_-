@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum as PyEnum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, Column, DateTime, Enum, ForeignKey
@@ -6,6 +7,11 @@ from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from model.chat_room import ChatRoom
+
+
+class ChatterEnum(str, PyEnum):
+    AI = "AI"
+    USER = "USER"
 
 
 class Chatting(SQLModel, table=True):
@@ -26,14 +32,14 @@ class Chatting(SQLModel, table=True):
             nullable=False,
         )
     )
-    chatter: str = Field(
+    chatter: ChatterEnum = Field(
         sa_column=Column(
-            Enum("AI", "USER", name="chatter_enum"),
+            Enum(ChatterEnum, name="chatter_enum", native_enum=True),
             nullable=False,
         )
     )
     created_at: datetime = Field(
-        sa_column=Column(DateTime, nullable=False)
+        sa_column=Column(DateTime(timezone=True), nullable=False)
     )
 
     room: "ChatRoom" = Relationship(back_populates="chatting")

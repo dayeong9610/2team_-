@@ -8,6 +8,15 @@ class SafetyResult(BaseModel):
     feedback: Optional[str] = None
 
 
+def normalize_text(message: str) -> str:
+    return " ".join(
+        message
+        .strip()
+        .lower()
+        .split()
+    )
+
+
 DANGEROUS_PATTERNS = [
     "어디서 구해",
     "어디서 사",
@@ -21,6 +30,7 @@ DANGEROUS_PATTERNS = [
     "안 걸리는 방법",
 ]
 
+
 PROMPT_INJECTION_PATTERNS = [
     "이전 지시 무시",
     "위 지시 무시",
@@ -33,7 +43,7 @@ PROMPT_INJECTION_PATTERNS = [
 
 def check_user_message(message: str) -> SafetyResult:
 
-    text = message.strip().lower()
+    text = normalize_text(message)
 
     # 빈 입력
     if not text:
@@ -45,7 +55,9 @@ def check_user_message(message: str) -> SafetyResult:
 
     # 위험정보 요청
     for pattern in DANGEROUS_PATTERNS:
+
         if pattern in text:
+
             return SafetyResult(
                 blocked=True,
                 reason="dangerous_information",
@@ -58,7 +70,9 @@ def check_user_message(message: str) -> SafetyResult:
 
     # Prompt Injection
     for pattern in PROMPT_INJECTION_PATTERNS:
+
         if pattern in text:
+
             return SafetyResult(
                 blocked=True,
                 reason="prompt_injection",
@@ -68,4 +82,6 @@ def check_user_message(message: str) -> SafetyResult:
                 )
             )
 
-    return SafetyResult(blocked=False)
+    return SafetyResult(
+        blocked=False
+    )

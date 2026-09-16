@@ -1,7 +1,7 @@
-from datetime import datetime
-from typing import TYPE_CHECKING, Optional, Literal
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Literal, Optional
 
-from sqlalchemy import BigInteger, Column, CheckConstraint
+from sqlalchemy import BigInteger, CheckConstraint, Column
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -13,7 +13,7 @@ class LlmRole(SQLModel, table=True):
     __tablename__ = "LLM_ROLE"
     __table_args__ = (
         CheckConstraint(
-            "category = 'user_defined' OR category = 'school' OR category = 'trip'",
+            "category IN ('user_defined', 'school', 'trip')",
             name="CHK_LLM_ROLE_CATEGORY",
         ),
     )
@@ -27,16 +27,23 @@ class LlmRole(SQLModel, table=True):
         ),
     )
     title: str | None = Field(default=None, max_length=30)
-    admin_id: str | None = Field(default=None, foreign_key="ADMIN_TABLE.admin_id", max_length=20)
-    category: str | None = Field(default=None, max_length=50)  # 여기는 str로 유지
-    content: str | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    admin_id: str | None = Field(
+        default=None, foreign_key="ADMIN_TABLE.admin_id", max_length=20
+    )
+    category: str | None = Field(default=None, max_length=50)
+    content: str | None = Field(default=None)
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
 
-    admin: Optional["Admin"] = Relationship(back_populates="llm_roles")
+    admin: Optional["Admin"] = Relationship(
+        back_populates="llm_roles"
+    )
     chat_rooms: list["ChatRoom"] = Relationship(back_populates="llm_role")
 
 
 class WriteLlmRole(SQLModel):
-    # table=True가 아니므로 Literal 사용 가능 → 요청 검증에 활용
-    category: Literal["user_defined", "school", "trip"] | None = Field(default=None, max_length=50)
-    content: str | None = None
+    category: Literal["user_defined", "school", "trip"] | None = Field(
+        default=None, max_length=50
+    )
+    content: str | None = Field(default=None)

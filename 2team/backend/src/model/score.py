@@ -1,10 +1,12 @@
-from sqlmodel import SQLModel, Field, Column, BigInteger, CheckConstraint, UniqueConstraint
+from sqlalchemy import BigInteger, CheckConstraint, UniqueConstraint
+from sqlmodel import Column, Field, SQLModel
+
 
 class Score(SQLModel, table=True):
     __tablename__ = "SCORE"
     __table_args__ = (
         CheckConstraint(
-            "category = 'risk_awareness' OR category = 'refusal' OR category = 'help_request'",
+            "category IN ('risk_awareness', 'refusal', 'help_request')",
             name="CHK_SCORE_CATEGORY",
         ),
         CheckConstraint(

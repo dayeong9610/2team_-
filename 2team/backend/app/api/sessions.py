@@ -105,6 +105,24 @@ def session_result(
     session_id: str
 ):
 
+    session = (
+        session_store.get_session(
+            session_id
+        )
+    )
+
+    if session is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found"
+        )
+
+    if not session["is_complete"]:
+        raise HTTPException(
+            status_code=409,
+            detail="Episode is not completed"
+        )
+
     result = (
         session_store.get_result(
             session_id
@@ -143,12 +161,6 @@ def session_state(
         raise HTTPException(
             status_code=404,
             detail="Session not found"
-        )
-
-    if not session["is_complete"]:
-        raise HTTPException(
-            status_code=409,
-            detail="Episode is not completed"
         )
 
     # 2. 해당 Episode의 전체 Stage 수 조회

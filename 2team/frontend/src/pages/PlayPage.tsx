@@ -15,7 +15,16 @@ import type { GameStage } from "../data/episode01stages";
 import { episode01Stages } from "../data/episode01stages";
 import { episode02Stages } from "../data/episode02stages";
 import { episode03Stages } from "../data/episode03stages";
-import { mockResult } from "../data/mockResult";
+
+import {
+  createSession,
+  sendChat,
+  getSessionState,
+} from "../services/api";
+
+import type {
+  Scores,
+} from "../types/chat";
 
 // EpisodeListPage에 있는 제목/번호와 맞춰뒀습니다.
 // layout "scene"은 대면 상황(노래방/룸카페 등)이라 메신저 채팅 대신
@@ -55,9 +64,6 @@ function pickManyangStages(): number[] {
   return MANYANG_APPEARANCE_SETS[randomIndex];
 }
 
-// 밑 import는 백엔드,api 연동시 사용!!
- // import { sendChat } from "../services/api";
-
 export default function PlayPage() {
 
   const { episodeId = "EP01" } = useParams();
@@ -94,6 +100,38 @@ export default function PlayPage() {
   const conversationRef =
     useRef<HTMLDivElement>(null);
 
+  // Backend에서 발급받은 Session ID
+  const [sessionId, setSessionId] =
+    useState<string | null>(null);
+
+  // 답변 전송 중 로딩 상태
+  const [isSubmitting, setIsSubmitting] =
+    useState(false);
+
+  // API 오류 메시지
+  const [errorMessage, setErrorMessage] =
+    useState("");
+
+  // 실제 NPC 응답 (Stage별)
+  const [npcResponses, setNpcResponses] =
+    useState<Record<number, string>>({});
+
+  // 실제 AI Feedback (Stage별)
+  const [feedbackByStage, setFeedbackByStage] =
+    useState<Record<number, string>>({});
+
+  // 현재까지 누적된 점수
+  const [scores, setScores] =
+    useState<Scores>({
+      risk_awareness: 0,
+      refusal: 0,
+      help_request: 0,
+    });
+
+  // Backend가 지정한 다음 Stage ID
+  const [nextStageId, setNextStageId] =
+    useState<string | null>(null);
+
   // 현재 Stage
   const currentStage =
     stages[stageIndex];
@@ -109,6 +147,48 @@ export default function PlayPage() {
       el.scrollTop = el.scrollHeight;
     }
   }, [stageIndex, answered, draftMessage]);
+
+  // 진입 시 Backend에 Session 생성 요청
+  useEffect(() => {
+
+    let cancelled = false;
+
+    async function startSession() {
+
+      try {
+
+        setErrorMessage("");
+
+        const result =
+          await createSession(
+            episodeId
+          );
+
+        if (!cancelled) {
+          setSessionId(
+            result.session_id
+          );
+        }
+
+      } catch (error) {
+
+        if (!cancelled) {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "세션 생성에 실패했습니다."
+          );
+        }
+      }
+    }
+
+    startSession();
+
+    return () => {
+      cancelled = true;
+    };
+
+  }, [episodeId]);
 
   // 아직 콘텐츠가 준비되지 않은 에피소드
   if (!currentStage) {
@@ -137,20 +217,95 @@ export default function PlayPage() {
   // =========================
 
 
-  // 밑 코드는 목업기준 코드 이후 백엔드,api 연동시 수정 필요
-  
-  const handleAnswer = (
+  const handleAnswer = async (
     message: string
   ) => {
 
-    setAnswersByStage((prev) => ({
-      ...prev,
-      [currentStage.id]: message,
-    }));
+    if (
+      !sessionId ||
+      isSubmitting
+    ) {
+      return;
+    }
 
-    setAnswered(true);
+    try {
 
-    setDraftMessage("");
+      setIsSubmitting(true);
+      setErrorMessage("");
+
+      // 화면에 사용자 답변 먼저 표시
+      setAnswersByStage(
+        (prev) => ({
+          ...prev,
+          [currentStage.id]:
+            message,
+        })
+      );
+
+      const result =
+        await sendChat({
+          session_id:
+            sessionId,
+
+          episode_id:
+            episodeId,
+
+          stage_id:
+            currentStage.stageid,
+
+          message:
+            message,
+        });
+
+      // NPC 실제 응답
+      setNpcResponses(
+        (prev) => ({
+          ...prev,
+          [currentStage.id]:
+            result.npc_response,
+        })
+      );
+
+      // 마냥이 실제 피드백
+      setFeedbackByStage(
+        (prev) => ({
+          ...prev,
+          [currentStage.id]:
+            result.feedback,
+        })
+      );
+
+      // Backend가 정한 다음 Stage
+      setNextStageId(
+        result.next_stage
+      );
+
+      // 누적 점수는 Session에서 다시 조회
+      const sessionState =
+        await getSessionState(
+          sessionId
+        );
+
+      setScores(
+        sessionState.scores
+      );
+
+      setAnswered(true);
+
+      setDraftMessage("");
+
+    } catch (error) {
+
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "답변 처리 중 오류가 발생했습니다."
+      );
+
+    } finally {
+
+      setIsSubmitting(false);
+    }
   };
 
 
@@ -160,29 +315,77 @@ export default function PlayPage() {
 
   const handleNext = () => {
 
-    // 마지막 Stage인지 확인
-    if (
-      stageIndex <
-      stages.length - 1
-    ) {
+    if (!nextStageId) {
 
-      setStageIndex(
-        (prev) => prev + 1
+      window.location.assign(
+        `/result?episodeId=${episodeId}&sessionId=${sessionId}`
       );
 
-      setAnswered(false);
-
-      setDraftMessage("");
-
-      setSceneLineIndex(0);
-
-    } else {
-
-      // 마지막 Stage 종료
-      window.location.href =
-        `/result?episodeId=${episodeId}`;
+      return;
     }
+
+    const nextIndex =
+      stages.findIndex(
+        (stage) =>
+          stage.stageid
+          === nextStageId
+      );
+
+    if (nextIndex === -1) {
+
+      setErrorMessage(
+        "다음 단계를 찾을 수 없습니다."
+      );
+
+      return;
+    }
+
+    setStageIndex(
+      nextIndex
+    );
+
+    setAnswered(false);
+
+    setDraftMessage("");
+
+    setSceneLineIndex(0);
+
+    setNextStageId(null);
   };
+
+  const maxScore =
+    stages.length * 3;
+
+  const scorePercent = (
+    value: number
+  ) => {
+
+    if (!maxScore) {
+      return 0;
+    }
+
+    return Math.min(
+      100,
+      Math.round(
+        value / maxScore * 100
+      )
+    );
+  };
+
+  const riskPercent =
+    scorePercent(
+      scores.risk_awareness
+    );
+
+  const refusalPercent =
+    scorePercent(
+      scores.refusal
+    );
+
+  const helpPercent =
+    scorePercent(
+      scores.help_request
+    );
 
 
   return (
@@ -210,11 +413,11 @@ export default function PlayPage() {
             <div className="mini-stat-track">
               <div
                 className="mini-stat-fill"
-                style={{ width: `${mockResult.riskAwareness}%` }}
+                style={{ width: `${riskPercent}%` }}
               />
             </div>
             <span className="mini-stat-value">
-              {mockResult.riskAwareness}%
+              {riskPercent}%
             </span>
           </div>
 
@@ -223,10 +426,10 @@ export default function PlayPage() {
             <div className="mini-stat-track">
               <div
                 className="mini-stat-fill"
-                style={{ width: `${mockResult.refusal}%` }}
+                style={{ width: `${refusalPercent}%` }}
               />
             </div>
-            <span className="mini-stat-value">{mockResult.refusal}%</span>
+            <span className="mini-stat-value">{refusalPercent}%</span>
           </div>
 
           <div className="mini-stat">
@@ -234,10 +437,10 @@ export default function PlayPage() {
             <div className="mini-stat-track">
               <div
                 className="mini-stat-fill"
-                style={{ width: `${mockResult.helpRequest}%` }}
+                style={{ width: `${helpPercent}%` }}
               />
             </div>
-            <span className="mini-stat-value">{mockResult.helpRequest}%</span>
+            <span className="mini-stat-value">{helpPercent}%</span>
           </div>
         </div>
       </div>
@@ -323,21 +526,22 @@ export default function PlayPage() {
                     </div>
                   )}
 
-                  {/* NPC 반응 - 백엔드 연동 전 임시 목업(reaction). 나중엔 /chat 응답의 npc_response로 교체 */}
-                  {answered && currentStage.reaction && (
+                  {answered && npcResponses[currentStage.id] && (
                     <div className="vn-line">
                       <span className="vn-line-name">
                         {currentStage.messages[
                           currentStage.messages.length - 1
                         ]?.sender ?? ""}
                       </span>
-                      <p className="vn-line-text">{currentStage.reaction}</p>
+                      <p className="vn-line-text">{npcResponses[currentStage.id]}</p>
                     </div>
                   )}
 
-                  {answered && manyangStages.includes(currentStage.id) && (
+                  {answered &&
+                    feedbackByStage[currentStage.id] &&
+                    manyangStages.includes(currentStage.id) && (
                     <div className="manyang-popup">
-                      <ManyangCoach stage={currentStage.id} />
+                      <ManyangCoach feedback={feedbackByStage[currentStage.id] ?? ""} />
                     </div>
                   )}
                 </>
@@ -375,9 +579,8 @@ export default function PlayPage() {
                             </div>
                           ))}
 
-                        {/* NPC 반응 - 백엔드 연동 전 임시 목업(reaction). 나중엔 /chat 응답의 npc_response로 교체 */}
                         {answersByStage[stage.id] &&
-                          stage.reaction &&
+                          npcResponses[stage.id] &&
                           (stageIsDM ? (
                             <InstagramBubble
                               messages={[
@@ -385,7 +588,7 @@ export default function PlayPage() {
                                   sender:
                                     stage.messages[stage.messages.length - 1]
                                       ?.sender ?? "",
-                                  text: stage.reaction,
+                                  text: npcResponses[stage.id],
                                 },
                               ]}
                             />
@@ -396,7 +599,7 @@ export default function PlayPage() {
                                   sender:
                                     stage.messages[stage.messages.length - 1]
                                       ?.sender ?? "",
-                                  text: stage.reaction,
+                                  text: npcResponses[stage.id],
                                 },
                               ]}
                             />
@@ -425,23 +628,45 @@ export default function PlayPage() {
                     )
                   )}
 
-                  {answered && manyangStages.includes(currentStage.id) && (
+                  {answered &&
+                    feedbackByStage[currentStage.id] &&
+                    manyangStages.includes(currentStage.id) && (
                     <div className="manyang-popup">
-                      <ManyangCoach stage={currentStage.id} />
+                      <ManyangCoach feedback={feedbackByStage[currentStage.id] ?? ""} />
                     </div>
                   )}
                 </>
               )}
             </div>
 
+            {isSubmitting && (
+              <p className="ai-loading">
+                마냥이가 답변을 분석하고 있어요...
+              </p>
+            )}
+
+            {errorMessage && (
+              <div className="api-error">
+                {errorMessage}
+              </div>
+            )}
+
             {!answered && (!isScene || sceneNpcDone) && (
-              <UserInput onSubmit={handleAnswer} onChange={setDraftMessage} />
+              <UserInput
+                onSubmit={handleAnswer}
+                onChange={setDraftMessage}
+                disabled={isSubmitting || !sessionId}
+              />
             )}
           </section>
 
           {answered && (
             <section className="result-area">
-              <FeedbackCard scoreType={currentStage.scoreType} />
+              <FeedbackCard
+                scoreType={currentStage.scoreType}
+                scores={scores}
+                maxScore={maxScore}
+              />
 
               <button className="next-button" onClick={handleNext}>
                 {currentStage.id === 5 ? "결과 확인하기" : "다음 단계"}

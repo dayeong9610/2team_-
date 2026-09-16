@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class ChatRoom(SQLModel, table=True):
-    __tablename__ = "CHAT_ROOM"
+    __tablename__ = "chat_room"
 
     room_id: int | None = Field(
         default=None,
@@ -22,7 +22,7 @@ class ChatRoom(SQLModel, table=True):
         sa_column=Column(
             String(20),
             ForeignKey(
-                "ADMIN_TABLE.admin_id",
+                "admin_table.admin_id",
                 ondelete="RESTRICT",
                 onupdate="RESTRICT",
             ),
@@ -43,7 +43,7 @@ class ChatRoom(SQLModel, table=True):
         sa_column=Column(
             BigInteger,
             ForeignKey(
-                "LLM_ROLE.lr_num",
+                "llm_role.lr_num",
                 ondelete="RESTRICT",
                 onupdate="RESTRICT",
             ),
@@ -51,6 +51,11 @@ class ChatRoom(SQLModel, table=True):
         )
     )
 
-    admin: "Admin" = Relationship(back_populates="chat_rooms")
-    llm_role: "LlmRole" = Relationship(back_populates="chat_rooms")
+    admin: "Admin" = Relationship(
+        back_populates="chat_rooms"
+    )
+
+    llm_role: "LlmRole" = Relationship(
+        back_populates="chat_rooms"
+    )
     chatting: list["Chatting"] = Relationship(back_populates="room")

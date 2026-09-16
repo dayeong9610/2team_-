@@ -15,7 +15,7 @@ class ChatterEnum(str, PyEnum):
 
 
 class Chatting(SQLModel, table=True):
-    __tablename__ = "CHATTING"
+    __tablename__ = "chatting"
 
     chat_id: int | None = Field(
         default=None,
@@ -25,7 +25,7 @@ class Chatting(SQLModel, table=True):
         sa_column=Column(
             BigInteger,
             ForeignKey(
-                "CHAT_ROOM.room_id",
+                "chat_room.room_id",
                 ondelete="RESTRICT",
                 onupdate="RESTRICT",
             ),

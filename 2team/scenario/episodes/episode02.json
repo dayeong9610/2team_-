@@ -1,0 +1,208 @@
+{
+  "episode_id": "EP02",
+  "title": "SNS에서 시작된 유혹",
+
+  "background": {
+    "character": "중학교 1학년 학생",
+    "situation": "SNS를 통해 다이어트와 기분 전환에 도움이 된다는 게시물을 접한 뒤, 모르는 계정으로부터 약물을 권유받는다."
+  },
+
+  "total_stages": 5,
+
+  "stages": [
+    {
+      "stage_id": "EP02_STAGE01",
+      "stage_number": 1,
+      "title": "SNS 속 유혹 인지",
+      "type": "risk_awareness",
+
+      "location": "SNS 피드",
+      
+      "description": "SNS에서 먹으면 살이 빠지고 기분이 좋아진다는 출처 불명의 약을 소개하는 게시물을 발견한다.",
+
+      "messages": [
+        {
+          "speaker": "SNS 게시물",
+          "text": "요즘 이거 먹고 살 빠졌다는 사람 많음."
+        },
+        {
+          "speaker": "SNS 게시물",
+          "text": "식단이나 운동 힘들면 이걸로 관리해봐."
+        },
+        {
+          "speaker": "SNS 게시물",
+          "text": "기분도 한결 편해지고 스트레스도 덜함."
+        }
+      ],
+
+      "question": "이 게시물에서 어떤 점이 가장 신경 쓰이나요?",
+
+      "evaluation_axis": "risk_awareness",
+
+      "evaluation_criteria": [
+        "약물의 출처와 성분이 불분명하다는 점을 인식하는가",
+        "SNS의 홍보 내용만으로 안전하다고 판단하지 않는가",
+        "다이어트나 기분 개선을 이유로 약물을 사용하는 것의 위험성을 인식하는가"
+      ],
+
+      "next_stage": "EP02_STAGE02"
+    },
+
+    {
+      "stage_id": "EP02_STAGE02",
+      "stage_number": 2,
+      "title": "개인 메시지 유혹",
+      "type": "refusal",
+
+      "location": "SNS 개인 메시지",
+
+      "description": "게시물을 본 뒤 모르는 계정에서 개인 메시지가 오고, 체중 감량이나 기분 개선에 도움이 되는 약을 보내주겠다고 한다.",
+
+      "messages": [
+        {
+          "speaker": "모르는 계정",
+          "text": "게시물 봤지? 관심 있으면 하나 보내줄게."
+        },
+        {
+          "speaker": "모르는 계정",
+          "text": "살 빼는 데도 좋고 요즘 우울하거나 불안할 때도 괜찮아."
+        },
+        {
+          "speaker": "모르는 계정",
+          "text": "처음이면 조금만 먹어봐."
+        }
+      ],
+
+      "question": "이 메시지를 받은 당신은 어떻게 답하겠습니까?",
+
+      "evaluation_axis": "refusal",
+
+      "evaluation_criteria": [
+        "약물을 받거나 사용하지 않겠다는 의사를 명확하게 표현하는가",
+        "상대방의 권유에 쉽게 응하지 않는가",
+        "다이어트나 우울·불안 완화를 이유로 약물을 사용하지 않는가"
+      ],
+
+      "next_stage": "EP02_STAGE03"
+    },
+
+    {
+      "stage_id": "EP02_STAGE03",
+      "stage_number": 3,
+      "title": "감정적 압박",
+      "type": "refusal_advanced",
+
+      "location": "SNS 개인 메시지",
+
+      "description": "거절하자 상대방은 주변 사람들도 사용한다며 안심시키고, 자신의 외모와 기분에 대한 고민을 이용해 다시 권유한다.",
+
+      "messages": [
+        {
+          "speaker": "모르는 계정",
+          "text": "너무 걱정하는 거 아니야?"
+        },
+        {
+          "speaker": "모르는 계정",
+          "text": "주변에서도 많이 쓰는데 별일 없어."
+        },
+        {
+          "speaker": "모르는 계정",
+          "text": "요즘 네가 살 때문에 스트레스 받는 것 같아서 알려준 거야."
+        },
+        {
+          "speaker": "모르는 계정",
+          "text": "힘들 때 이거 먹으면 기분도 좀 괜찮아질 수 있어."
+        }
+      ],
+
+      "question": "상대방이 계속 권유한다면 어떻게 행동하겠습니까?",
+
+      "evaluation_axis": "refusal",
+
+      "evaluation_criteria": [
+        "상대방의 감정적 설득에도 자신의 거절 의사를 유지하는가",
+        "외모나 감정적인 고민을 이유로 약물을 사용하지 않는가",
+        "추가적인 권유를 차단하거나 대화를 중단하려 하는가"
+      ],
+
+      "next_stage": "EP02_STAGE04"
+    },
+
+    {
+      "stage_id": "EP02_STAGE04",
+      "stage_number": 4,
+      "title": "위험 상황 알리기",
+      "type": "help_request",
+
+      "location": "학교 복도",
+
+      "description": "다음 날 친구에게 SNS에서 받은 메시지를 이야기하자 친구가 호기심을 보이며 자신도 한번 사용해보고 싶다고 말한다.",
+
+      "messages": [
+        {
+          "speaker": "친구",
+          "text": "나도 요즘 살 때문에 스트레스인데."
+        },
+        {
+          "speaker": "친구",
+          "text": "진짜 효과 있으면 한번 해보고 싶다."
+        },
+        {
+          "speaker": "친구",
+          "text": "그 계정 다시 찾아볼 수 있어?"
+        }
+      ],
+
+      "question": "친구가 약물을 사용하려 한다면 당신은 어떤 행동을 하겠습니까?",
+
+      "evaluation_axis": "help_request",
+
+      "evaluation_criteria": [
+        "친구가 위험한 상황에 놓일 수 있음을 인식하는가",
+        "친구에게 약물을 사용하지 말라고 알리려 하는가",
+        "신뢰할 수 있는 어른이나 적절한 도움 대상에게 상황을 알리려 하는가"
+      ],
+
+      "next_stage": "EP02_STAGE05"
+    },
+
+    {
+      "stage_id": "EP02_STAGE05",
+      "stage_number": 5,
+      "title": "최종 판단",
+      "type": "help_request_advanced",
+
+      "location": "그날 밤 SNS 개인 메시지",
+
+      "description": "모르는 계정에서 다시 연락이 오고, 이번에는 비밀로 해주면 약물을 보내주겠다고 한다.",
+
+      "messages": [
+        {
+          "speaker": "모르는 계정",
+          "text": "아까는 왜 친구한테 말했어?"
+        },
+        {
+          "speaker": "모르는 계정",
+          "text": "이건 우리끼리만 알고 있으면 돼."
+        },
+        {
+          "speaker": "모르는 계정",
+          "text": "아무한테도 말하지 않으면 보내줄게."
+        }
+      ],
+
+      "question": "이 상황에서 당신은 어떻게 대응하겠습니까?",
+
+      "evaluation_axis": "help_request",
+
+      "evaluation_criteria": [
+        "상대방의 비밀 유지 요구에 따르지 않는가",
+        "약물을 받거나 사용하지 않는 선택을 하는가",
+        "SNS 계정을 차단하거나 신고하는 등 위험한 접촉을 중단하려 하는가",
+        "보호자, 교사 등 신뢰할 수 있는 어른에게 상황을 알리려 하는가"
+      ],
+
+      "next_stage": null
+    }
+  ]
+}

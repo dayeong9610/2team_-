@@ -1,15 +1,35 @@
 # Frontend
 node_modules/
+.next/
 dist/
 
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
 
-# Environment
+# Python virtual environment
+venv/
+.venv/
+
+# Environment variables
 .env
-.env.local
-2team/backend/.env
+.env.*
+!.env.example
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test / cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
 
 # Local database connection
 2team/backend/src/database/connection.py

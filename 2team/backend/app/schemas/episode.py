@@ -1,34 +1,66 @@
 from typing import Optional
-from pydantic import BaseModel
+
+from pydantic import (
+    BaseModel,
+    Field
+)
 
 
-class EpisodeSummary(BaseModel):
-    episode_id: str
-    title: str
-    description: str
-    total_stages: int
+class DialogueMessage(BaseModel):
+
+    speaker: str
+
+    text: str
 
 
 class StageResponse(BaseModel):
+
     stage_id: str
-    type: Optional[str] = None
+
+    stage_number: int
+
     title: str
 
-    scene: dict
+    type: str
 
-    npc_messages: list[str]
+    location: str
+
+    description: str
+
+    messages: list[
+        DialogueMessage
+    ]
 
     question: str
 
-    evaluation: dict
+    evaluation_axis: str
+
+    evaluation_criteria: list[str]
 
     next_stage: Optional[str] = None
 
 
-class EpisodeDetailResponse(BaseModel):
+class EpisodeSummary(BaseModel):
+
     episode_id: str
+
     title: str
+
     description: str
+
     total_stages: int
 
-    stages: list[StageResponse]
+
+class EpisodeDetailResponse(BaseModel):
+
+    episode_id: str
+
+    title: str
+
+    description: str
+
+    total_stages: int
+
+    stages: list[
+        StageResponse
+    ]

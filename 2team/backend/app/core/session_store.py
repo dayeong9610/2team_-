@@ -1,18 +1,24 @@
+from copy import deepcopy
 from typing import Dict, Optional
 
-#초기 MVP에서는 DB 없이 메모리로 먼저 테스트합니다.
-sessions: Dict[str, dict] = {}
+
+class MemorySessionStore:
+
+    def __init__(self):
+        self._sessions: Dict[str, dict] = {}
 
 
-def create_session(
-    session_id: str,
-    episode_id: str,
-    first_stage: str
-):
+    # =========================
+    # Session 생성
+    # =========================
+    def create_session(
+        self,
+        session_id: str,
+        episode_id: str,
+        first_stage: str
+    ) -> dict:
 
-    if session_id not in sessions:
-
-        sessions[session_id] = {
+        session = {
             "episode_id": episode_id,
 
             "current_stage": first_stage,
@@ -30,208 +36,303 @@ def create_session(
             "is_complete": False
         }
 
-    return sessions[session_id]
+        self._sessions[
+            session_id
+        ] = session
+
+        return deepcopy(session)
 
 
-def get_session(
-    session_id: str
-) -> Optional[dict]:
+    # =========================
+    # Session 조회
+    # =========================
+    def get_session(
+        self,
+        session_id: str
+    ) -> Optional[dict]:
 
-    return sessions.get(
-        session_id
-    )
+        session = self._sessions.get(
+            session_id
+        )
 
+        if session is None:
+            return None
 
-def get_session_state(
-    session_id: str
-):
-
-    completed_count = len(
-    session["completed_stages"]
-    )
-
-#    total_stages = get_total_stages(
-#        session["episode_id"] ) 수정필요함
-    total_stages = 5
-
-    progress = int(
-        completed_count
-        / total_stages
-        * 100
-    )
-
-    session = sessions.get(
-        session_id
-    )
-
-    if session is None:
-        return None
-
-    return {
-        "session_id":
-            session_id,
-
-        "episode_id":
-            session["episode_id"],
-
-        "current_stage":
-            session["current_stage"],
-
-        "completed_stages":
-            session["completed_stages"],
-
-        "scores":
-            session["scores"],
-
-        "progress":
-            progress,
-
-        "is_complete":
-            session["is_complete"]
-    }
+        return deepcopy(session)
 
 
-def add_scores(
-    session_id: str,
-    scores: dict
-):
+    # =========================
+    # Session 진행 상태 조회
+    # =========================
+    def get_session_state(
+        self,
+        session_id: str,
+        total_stages: int
+    ) -> Optional[dict]:
 
-    session = sessions.get(
-        session_id
-    )
+        session = self._sessions.get(
+            session_id
+        )
 
-    if session is None:
-        return
+        if session is None:
+            return None
 
-    current = session["scores"]
+        completed_count = len(
+            session[
+                "completed_stages"
+            ]
+        )
 
-    current["risk_awareness"] += scores.get(
-        "risk_awareness",
-        0
-    )
+        if total_stages <= 0:
+            progress = 0
 
-    current["refusal"] += scores.get(
-        "refusal",
-        0
-    )
+        else:
+            progress = int(
+                completed_count
+                / total_stages
+                * 100
+            )
 
-    current["help_request"] += scores.get(
-        "help_request",
-        0
-    )
+        return {
+            "session_id":
+                session_id,
+
+            "episode_id":
+                session[
+                    "episode_id"
+                ],
+
+            "current_stage":
+                session[
+                    "current_stage"
+                ],
+
+            "completed_stages":
+                list(
+                    session[
+                        "completed_stages"
+                    ]
+                ),
+
+            "scores":
+                deepcopy(
+                    session[
+                        "scores"
+                    ]
+                ),
+
+            "progress":
+                progress,
+
+            "is_complete":
+                session[
+                    "is_complete"
+                ]
+        }
 
 
-def complete_stage(
-    session_id: str,
-    stage_id: str,
-    next_stage: Optional[str]
-):
+    # =========================
+    # Stage 결과 한번에 저장
+    # =========================
+    def apply_stage_result(
+        self,
+        session_id: str,
+        stage_id: str,
+        feedback: str,
+        scores: dict,
+        next_stage: Optional[str]
+    ) -> bool:
 
-    session = sessions.get(
-        session_id
-    )
+        session = self._sessions.get(
+            session_id
+        )
 
-    if session is None:
-        return
+        if session is None:
+            return False
 
-    if stage_id not in session["completed_stages"]:
-        session["completed_stages"].append(
+        # 같은 Stage 중복 처리 방지
+        if (
+            stage_id
+            in session[
+                "completed_stages"
+            ]
+        ):
+            return False
+
+
+        # -------------------------
+        # 1. 점수 누적
+        # -------------------------
+        current_scores = session[
+            "scores"
+        ]
+
+        current_scores[
+            "risk_awareness"
+        ] += scores.get(
+            "risk_awareness",
+            0
+        )
+
+        current_scores[
+            "refusal"
+        ] += scores.get(
+            "refusal",
+            0
+        )
+
+        current_scores[
+            "help_request"
+        ] += scores.get(
+            "help_request",
+            0
+        )
+
+
+        # -------------------------
+        # 2. Stage 결과 저장
+        # -------------------------
+        session[
+            "stage_results"
+        ].append(
+            {
+                "stage_id":
+                    stage_id,
+
+                "feedback":
+                    feedback,
+
+                "scores": {
+                    "risk_awareness":
+                        scores.get(
+                            "risk_awareness",
+                            0
+                        ),
+
+                    "refusal":
+                        scores.get(
+                            "refusal",
+                            0
+                        ),
+
+                    "help_request":
+                        scores.get(
+                            "help_request",
+                            0
+                        )
+                }
+            }
+        )
+
+
+        # -------------------------
+        # 3. 완료 Stage 추가
+        # -------------------------
+        session[
+            "completed_stages"
+        ].append(
             stage_id
         )
 
-    session["current_stage"] = next_stage
 
-    if next_stage is None:
-        session["is_complete"] = True
-
-
-def get_result(
-    session_id: str
-) -> Optional[dict]:
-
-    session = sessions.get(
-        session_id
-    )
-
-    if session is None:
-        return None
-
-    return {
-        "episode_id":
-            session["episode_id"],
-
-        "scores":
-            session["scores"],
-
-        "stage_results":
-            session["stage_results"],        
+        # -------------------------
+        # 4. 다음 Stage 설정
+        # -------------------------
+        session[
+            "current_stage"
+        ] = next_stage
 
 
-        "completed_stages":
-            session["completed_stages"],
+        # -------------------------
+        # 5. Episode 종료 확인
+        # -------------------------
+        session[
+            "is_complete"
+        ] = (
+            next_stage is None
+        )
 
-        "is_complete":
-            session["is_complete"]
-    }
+        return True
 
 
-#Session 종료 기능
-def delete_session(
-    session_id: str
-) -> bool:
+    # =========================
+    # 최종 결과 조회
+    # =========================
+    def get_result(
+        self,
+        session_id: str
+    ) -> Optional[dict]:
 
-    if session_id not in sessions:
-        return False
+        session = self._sessions.get(
+            session_id
+        )
 
-    del sessions[
-        session_id
-    ]
+        if session is None:
+            return None
 
-    return True
+        return {
+            "episode_id":
+                session[
+                    "episode_id"
+                ],
 
-def save_stage_result(
-    session_id: str,
-    stage_id: str,
-    feedback: str,
-    scores: dict
-):
+            "scores":
+                deepcopy(
+                    session[
+                        "scores"
+                    ]
+                ),
 
-    session = sessions.get(
-        session_id
-    )
+            "stage_results":
+                deepcopy(
+                    session[
+                        "stage_results"
+                    ]
+                ),
 
-    if session is None:
-        return False
+            "completed_stages":
+                list(
+                    session[
+                        "completed_stages"
+                    ]
+                ),
 
-    # 같은 Stage 결과 중복 저장 방지
-    for result in session["stage_results"]:
-        if result["stage_id"] == stage_id:
+            "is_complete":
+                session[
+                    "is_complete"
+                ]
+        }
+
+
+    # =========================
+    # Session 삭제
+    # =========================
+    def delete_session(
+        self,
+        session_id: str
+    ) -> bool:
+
+        if (
+            session_id
+            not in self._sessions
+        ):
             return False
 
-    session["stage_results"].append(
-        {
-            "stage_id": stage_id,
-            "feedback": feedback,
-            "scores": {
-                "risk_awareness":
-                    scores.get(
-                        "risk_awareness",
-                        0
-                    ),
+        del self._sessions[
+            session_id
+        ]
 
-                "refusal":
-                    scores.get(
-                        "refusal",
-                        0
-                    ),
+        return True
 
-                "help_request":
-                    scores.get(
-                        "help_request",
-                        0
-                    )
-            }
-        }
-    )
 
-    return True
+    # =========================
+    # 테스트용 전체 초기화
+    # =========================
+    def clear(self):
+
+        self._sessions.clear()
+
+
+# Backend 전체에서 사용하는
+# 공용 Memory Session Store
+session_store = MemorySessionStore()

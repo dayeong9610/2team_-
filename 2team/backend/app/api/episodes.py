@@ -5,7 +5,8 @@ from fastapi import (
 
 from app.core.scenario_engine import (
     load_episode,
-    get_stage
+    get_stage,
+    list_episodes
 )
 
 from app.schemas.episode import (
@@ -19,33 +20,52 @@ router = APIRouter(
     tags=["Episodes"]
 )
 
-
 @router.get(
     "/episodes",
     response_model=list[EpisodeSummary]
 )
 def get_episodes():
 
-    episode = load_episode("EP01")
+    episodes = list_episodes()
 
-    if episode is None:
-        return []
+    result = []
 
-    return [
-        {
-            "episode_id":
-                episode["episode_id"],
+    for episode in episodes:
 
-            "title":
-                episode["title"],
+        background = episode.get(
+            "background",
+            {}
+        )
 
-            "description":
-                episode["description"],
+        result.append(
+            {
+                "episode_id":
+                    episode[
+                        "episode_id"
+                    ],
 
-            "total_stages":
-                episode["total_stages"]
-        }
-    ]
+                "title":
+                    episode[
+                        "title"
+                    ],
+
+                "description":
+                    background.get(
+                        "situation",
+                        ""
+                    ),
+
+                "total_stages":
+                    len(
+                        episode.get(
+                            "stages",
+                            []
+                        )
+                    )
+            }
+        )
+
+    return result
 
 #두 번째 API: 에피소드 상세 정보 반환
 @router.get(
@@ -67,7 +87,39 @@ def get_episode(
             detail="Episode not found"
         )
 
-    return episode
+    background = episode.get(
+        "background",
+        {}
+    )
+
+    return {
+        "episode_id":
+            episode["episode_id"],
+
+        "title":
+            episode["title"],
+
+        "description":
+            background.get(
+                "situation",
+                ""
+            ),
+
+        "total_stages":
+            len(
+                episode.get(
+                    "stages",
+                    []
+                )
+            ),
+
+        "stages":
+            episode.get(
+                "stages",
+                []
+            )
+    }
+
 
 #Stage 조회 API
 @router.get(

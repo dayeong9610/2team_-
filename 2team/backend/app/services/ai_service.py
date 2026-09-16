@@ -1,31 +1,66 @@
 import os
-from dotenv import load_dotenv
-from google import genai
-from google.genai import types
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
 
-from app.ai.prompts import SYSTEM_PROMPT, build_user_prompt
-from app.ai.evaluator import AIResponse
-from app.ai.safety import check_user_message
+from functools import lru_cache
+
+from dotenv import load_dotenv
+
+from langchain_google_genai import (
+    ChatGoogleGenerativeAI
+)
+
+from langchain_core.messages import (
+    SystemMessage,
+    HumanMessage
+)
+
+from app.ai.prompts import (
+    SYSTEM_PROMPT,
+    build_user_prompt
+)
+
+from app.ai.evaluator import (
+    AIResponse
+)
+
+from app.ai.safety import (
+    check_user_message
+)
+
 
 load_dotenv()
 
-# gpt용 코드
-# llm = ChatOpenAI(
-#     model=os.environ["LLM_MODEL"],
-#     temperature=0.4
-# )
 
-# LangChain google용 코드
-llm = ChatGoogleGenerativeAI(
-    model=os.environ["LLM_MODEL"],
-    google_api_key=os.environ["GOOGLE_API_KEY"],
-    temperature=0.4,
-)
-# LangChain 제공 구조화 메서드
-structured_llm = llm.with_structured_output(AIResponse)
+@lru_cache
+def get_structured_llm():
+
+    model = os.getenv(
+        "LLM_MODEL"
+    )
+
+    api_key = os.getenv(
+        "GOOGLE_API_KEY"
+    )
+
+    if not model:
+        raise RuntimeError(
+            "LLM_MODEL is not configured"
+        )
+
+    if not api_key:
+        raise RuntimeError(
+            "GOOGLE_API_KEY is not configured"
+        )
+
+    llm = ChatGoogleGenerativeAI(
+        model=model,
+        google_api_key=api_key,
+        temperature=0.3
+    )
+
+    return llm.with_structured_output(
+        AIResponse
+    )
+
 
 async def evaluate_response(
     episode_id: str,
@@ -35,16 +70,26 @@ async def evaluate_response(
 ) -> dict:
 
     # 1. Safety 검사
-    safety_result = check_user_message(user_message)
+    safety_result = (
+        check_user_message(
+            user_message
+        )
+    )
 
     if safety_result.blocked:
+
         return {
             "npc_response": (
                 "그 내용보다는 지금 상황에서 "
-                "어떻게 안전하게 행동할지 생각해보자."
+                "어떻게 안전하게 행동할지 "
+                "생각해보자."
             ),
 
-            "feedback": safety_result.feedback,
+            "feedback": (
+                safety_result.feedback
+                or
+                "안전한 대응 방법을 생각해보세요."
+            ),
 
             "scores": {
                 "risk_awareness": 0,
@@ -53,38 +98,37 @@ async def evaluate_response(
             }
         }
 
-    try:
+    # 2. Prompt 구성
+    user_prompt = build_user_prompt(
+        episode_id=episode_id,
+        stage_id=stage_id,
+        user_message=user_message,
+        stage_data=stage_data
+    )
 
-        user_prompt = build_user_prompt(
-            episode_id=episode_id,
-            stage_id=stage_id,
-            user_message=user_message,
-            stage_data=stage_data
+    # 3. LLM 준비
+    structured_llm = (
+        get_structured_llm()
+    )
+
+    # 4. AI 호출
+    result = await structured_llm.ainvoke(
+        [
+            SystemMessage(
+                content=SYSTEM_PROMPT
+            ),
+
+            HumanMessage(
+                content=user_prompt
+            )
+        ]
+    )
+
+    # 5. 응답 검증
+    validated = (
+        AIResponse.model_validate(
+            result
         )
+    )
 
-        result = await structured_llm.ainvoke(
-            [
-                SystemMessage(content=SYSTEM_PROMPT),
-                HumanMessage(content=user_prompt)
-            ]
-        )
-
-        return result.model_dump()
-
-    except Exception as e:
-
-        print(f"AI ERROR: {e}")
-
-        return {
-            "npc_response":
-                "잠시 문제가 생겼어. 다시 한 번 말해줄래?",
-
-            "feedback":
-                "답변을 처리하는 중 문제가 발생했습니다.",
-
-            "scores": {
-                "risk_awareness": 0,
-                "refusal": 0,
-                "help_request": 0
-            }
-        }
+    return validated.model_dump()

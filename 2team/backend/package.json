@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/app.js",
-    "start": "node src/app.js"
-  },
+  "dev": "python -m uvicorn app:app --app-dir src --reload --port 8000",
+  "start": "python -m uvicorn app:app --app-dir src --host 0.0.0.0 --port 8000"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",

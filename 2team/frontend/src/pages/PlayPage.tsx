@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import ProgressBar from "../components/common/ProgressBar";
@@ -15,6 +15,7 @@ import type { GameStage } from "../data/episode01stages";
 import { episode01Stages } from "../data/episode01stages";
 import { episode02Stages } from "../data/episode02stages";
 import { episode03Stages } from "../data/episode03stages";
+import { scoreLimits } from "../data/scoreLimits";
 
 import {
   createSession,
@@ -68,9 +69,15 @@ export default function PlayPage() {
 
   const { episodeId = "EP01" } = useParams();
 
-  const stages = STAGES_BY_EPISODE[episodeId] ?? [];
+  const stages = useMemo(
+    () => STAGES_BY_EPISODE[episodeId] ?? [],
+    [episodeId]
+  );
   const episodeMeta = EPISODE_META[episodeId] ?? EPISODE_META.EP01;
   const isScene = episodeMeta.layout === "scene";
+
+  const sessionStorageKey =
+    `manyang_session_${episodeId}`;
 
   // 현재 Stage 배열 위치
   const [stageIndex, setStageIndex] =
@@ -148,16 +155,66 @@ export default function PlayPage() {
     }
   }, [stageIndex, answered, draftMessage]);
 
-  // 진입 시 Backend에 Session 생성 요청
+  // 진입 시 기존 Session 복구를 먼저 시도하고, 없거나 실패하면 새로 생성
   useEffect(() => {
 
     let cancelled = false;
 
-    async function startSession() {
+    async function restoreOrCreateSession() {
 
       try {
 
         setErrorMessage("");
+
+        const savedSessionId =
+          sessionStorage.getItem(
+            sessionStorageKey
+          );
+
+        if (savedSessionId) {
+
+          try {
+
+            const sessionState =
+              await getSessionState(
+                savedSessionId
+              );
+
+            if (cancelled) {
+              return;
+            }
+
+            setSessionId(
+              savedSessionId
+            );
+
+            setScores(
+              sessionState.scores
+            );
+
+            const restoredIndex =
+              stages.findIndex(
+                (stage) =>
+                  stage.stageid ===
+                  sessionState.current_stage
+              );
+
+            if (restoredIndex !== -1) {
+              setStageIndex(
+                restoredIndex
+              );
+            }
+
+            return;
+
+          } catch {
+
+            // 저장된 세션이 만료/삭제된 경우 새 세션으로 대체
+            sessionStorage.removeItem(
+              sessionStorageKey
+            );
+          }
+        }
 
         const result =
           await createSession(
@@ -165,7 +222,13 @@ export default function PlayPage() {
           );
 
         if (!cancelled) {
+
           setSessionId(
+            result.session_id
+          );
+
+          sessionStorage.setItem(
+            sessionStorageKey,
             result.session_id
           );
         }
@@ -182,13 +245,13 @@ export default function PlayPage() {
       }
     }
 
-    startSession();
+    restoreOrCreateSession();
 
     return () => {
       cancelled = true;
     };
 
-  }, [episodeId]);
+  }, [episodeId, sessionStorageKey, stages]);
 
   // 아직 콘텐츠가 준비되지 않은 에피소드
   if (!currentStage) {
@@ -353,38 +416,43 @@ export default function PlayPage() {
     setNextStageId(null);
   };
 
-  const maxScore =
-    stages.length * 3;
+  const limits =
+    scoreLimits[episodeId] ??
+    scoreLimits.EP01;
 
   const scorePercent = (
-    value: number
+    value: number,
+    limit: number
   ) => {
 
-    if (!maxScore) {
+    if (limit <= 0) {
       return 0;
     }
 
     return Math.min(
       100,
       Math.round(
-        value / maxScore * 100
+        value / limit * 100
       )
     );
   };
 
   const riskPercent =
     scorePercent(
-      scores.risk_awareness
+      scores.risk_awareness,
+      limits.risk_awareness
     );
 
   const refusalPercent =
     scorePercent(
-      scores.refusal
+      scores.refusal,
+      limits.refusal
     );
 
   const helpPercent =
     scorePercent(
-      scores.help_request
+      scores.help_request,
+      limits.help_request
     );
 
 
@@ -665,7 +733,7 @@ export default function PlayPage() {
               <FeedbackCard
                 scoreType={currentStage.scoreType}
                 scores={scores}
-                maxScore={maxScore}
+                limits={limits}
               />
 
               <button className="next-button" onClick={handleNext}>

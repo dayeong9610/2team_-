@@ -3,8 +3,9 @@ import { useSearchParams } from "react-router-dom";
 
 import manyangResult from "../assets/마냥_홈 소개.png";
 
-import { getSessionResult } from "../services/api";
+import { deleteSession, getSessionResult } from "../services/api";
 import type { SessionResultResponse } from "../types/session";
+import { scoreLimits } from "../data/scoreLimits";
 
 function ResultPage() {
   const [searchParams] = useSearchParams();
@@ -53,22 +54,38 @@ function ResultPage() {
     };
   }, [sessionId]);
 
-  const handleRetry = () => {
-    window.location.assign(`/play/${result?.episode_id ?? episodeId}`);
+  const handleRetry = async () => {
+    const targetEpisodeId = result?.episode_id ?? episodeId;
+
+    if (sessionId) {
+      try {
+        await deleteSession(sessionId);
+      } catch {
+        // 삭제 실패해도 새로 시작하는 흐름은 계속 진행
+      }
+    }
+
+    sessionStorage.removeItem(`manyang_session_${targetEpisodeId}`);
+
+    window.location.assign(`/play/${targetEpisodeId}`);
   };
 
   const handleGoToEpisodes = () => {
+    sessionStorage.removeItem(`manyang_session_${episodeId}`);
+
     window.location.assign("/episodes");
   };
 
-  const maxScore = result ? result.stage_results.length * 3 : 0;
+  const limits =
+    scoreLimits[result?.episode_id ?? episodeId] ??
+    scoreLimits.EP01;
 
-  const toPercent = (value: number) => {
-    if (maxScore <= 0) {
+  const toPercent = (value: number, limit: number) => {
+    if (limit <= 0) {
       return 0;
     }
 
-    return Math.min(100, Math.round((value / maxScore) * 100));
+    return Math.min(100, Math.round((value / limit) * 100));
   };
 
   const statItems = result
@@ -76,17 +93,17 @@ function ResultPage() {
         {
           key: "riskAwareness",
           label: "위험 인지",
-          value: toPercent(result.scores.risk_awareness),
+          value: toPercent(result.scores.risk_awareness, limits.risk_awareness),
         },
         {
           key: "refusal",
           label: "거절 대응",
-          value: toPercent(result.scores.refusal),
+          value: toPercent(result.scores.refusal, limits.refusal),
         },
         {
           key: "helpRequest",
           label: "도움 요청",
-          value: toPercent(result.scores.help_request),
+          value: toPercent(result.scores.help_request, limits.help_request),
         },
       ]
     : [];

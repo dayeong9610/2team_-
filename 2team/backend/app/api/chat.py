@@ -153,6 +153,40 @@ async def chat(
             )
         )
 
+    required_ai_fields = {
+        "npc_response",
+        "feedback",
+        "scores"
+    }
+
+    if not required_ai_fields.issubset(
+        ai_result.keys()
+    ):
+        raise HTTPException(
+            status_code=502,
+            detail="Invalid AI response"
+        )
+
+
+    required_score_fields = {
+        "risk_awareness",
+        "refusal",
+        "help_request"
+    }
+
+    scores = ai_result.get(
+        "scores",
+        {}
+    )
+
+    if not required_score_fields.issubset(
+        scores.keys()
+    ):
+        raise HTTPException(
+            status_code=502,
+            detail="Invalid AI score response"
+        )
+
     # 8. Scenario 기준으로 다음 Stage 결정
     next_stage = stage.get(
         "next_stage"
@@ -213,37 +247,3 @@ async def chat(
             is_episode_complete
         )
     )
-
-    required_ai_fields = {
-        "npc_response",
-        "feedback",
-        "scores"
-    }
-
-    if not required_ai_fields.issubset(
-        ai_result.keys()
-    ):
-        raise HTTPException(
-            status_code=502,
-            detail="Invalid AI response"
-        )
-
-
-    required_score_fields = {
-        "risk_awareness",
-        "refusal",
-        "help_request"
-    }
-
-    scores = ai_result.get(
-        "scores",
-        {}
-    )
-
-    if not required_score_fields.issubset(
-        scores.keys()
-    ):
-        raise HTTPException(
-            status_code=502,
-            detail="Invalid AI score response"
-        )

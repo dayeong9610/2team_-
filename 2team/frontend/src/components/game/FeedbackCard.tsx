@@ -6,28 +6,29 @@ import type {
 interface FeedbackCardProps {
   scoreType: string;
   scores: Scores;
-  maxScore: number;
+  limits: Scores;
 }
 
 
 export default function FeedbackCard({
   scoreType,
   scores,
-  maxScore,
+  limits,
 }: FeedbackCardProps) {
 
   const toPercent = (
-    score: number
+    score: number,
+    limit: number
   ) => {
 
-    if (maxScore <= 0) {
+    if (limit <= 0) {
       return 0;
     }
 
     return Math.min(
       100,
       Math.round(
-        score / maxScore * 100
+        score / limit * 100
       )
     );
   };
@@ -35,17 +36,20 @@ export default function FeedbackCard({
 
   const risk =
     toPercent(
-      scores.risk_awareness
+      scores.risk_awareness,
+      limits.risk_awareness
     );
 
   const refusal =
     toPercent(
-      scores.refusal
+      scores.refusal,
+      limits.refusal
     );
 
   const help =
     toPercent(
-      scores.help_request
+      scores.help_request,
+      limits.help_request
     );
 
 

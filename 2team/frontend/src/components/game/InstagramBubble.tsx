@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 
 import DietPillPhoto from "./DietPillPhoto";
 import DietReviewPhoto from "./DietReviewPhoto";
@@ -34,37 +34,72 @@ function groupMessages(messages: DialogueMessage[]): MessageGroup[] {
   return groups;
 }
 
+const TYPING_DELAY_MS = 700;
+
+function InstagramMessageGroup({ group }: { group: MessageGroup }) {
+  const [visibleCount, setVisibleCount] = useState(1);
+
+  useEffect(() => {
+    if (visibleCount >= group.items.length) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setVisibleCount((count) => count + 1);
+    }, TYPING_DELAY_MS);
+
+    return () => clearTimeout(timer);
+  }, [visibleCount, group.items.length]);
+
+  const isTyping = visibleCount < group.items.length;
+
+  return (
+    <div className="ig-message">
+      {group.items.slice(0, visibleCount).map((item, itemIndex) => {
+        if (item.image === "product" || item.image === "review") {
+          const Photo =
+            item.image === "product" ? DietPillPhoto : DietReviewPhoto;
+
+          return (
+            <Fragment key={itemIndex}>
+              <div className="ig-bubble ig-bubble--image">
+                <Photo />
+              </div>
+              <div className="ig-bubble">{item.text}</div>
+            </Fragment>
+          );
+        }
+
+        return (
+          <div className="ig-bubble" key={itemIndex}>
+            {item.text}
+          </div>
+        );
+      })}
+
+      {isTyping && (
+        <div className="ig-bubble ig-bubble--typing">
+          <span className="typing-dot" />
+          <span className="typing-dot" />
+          <span className="typing-dot" />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // EP03 인스타그램 DM 연출용 - 상단에 상대 계정명이 이미 나오므로
 // 말풍선마다 이름을 반복하지 않는, 실제 DM에 가까운 모양입니다.
 export default function InstagramBubble({ messages }: InstagramBubbleProps) {
-  const groups = groupMessages(messages);
+  const groups = useMemo(
+    () => groupMessages(messages),
+    [messages]
+  );
 
   return (
     <>
       {groups.map((group, index) => (
-        <div className="ig-message" key={index}>
-          {group.items.map((item, itemIndex) => {
-            if (item.image === "product" || item.image === "review") {
-              const Photo =
-                item.image === "product" ? DietPillPhoto : DietReviewPhoto;
-
-              return (
-                <Fragment key={itemIndex}>
-                  <div className="ig-bubble ig-bubble--image">
-                    <Photo />
-                  </div>
-                  <div className="ig-bubble">{item.text}</div>
-                </Fragment>
-              );
-            }
-
-            return (
-              <div className="ig-bubble" key={itemIndex}>
-                {item.text}
-              </div>
-            );
-          })}
-        </div>
+        <InstagramMessageGroup group={group} key={index} />
       ))}
     </>
   );

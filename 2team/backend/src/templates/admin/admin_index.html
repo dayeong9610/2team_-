@@ -1,29 +1,142 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>어드민 페이지입니다</title>
+    <title>마냥이 관리자 페이지</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            background: #F5F5F5;
+            color: #222;
+            font-family: -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+        }
+
+        .admin-container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .admin-header {
+            margin-bottom: 24px;
+        }
+
+        .admin-header h1 {
+            margin: 0 0 4px;
+            font-size: 1.4rem;
+        }
+
+        .admin-header p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .admin-card {
+            background: #FFFFFF;
+            border: 1px solid #DDD;
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        .admin-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .admin-actions a,
+        .admin-actions button {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 16px;
+            border-radius: 6px;
+            border: 1px solid #CCC;
+            background: #FAFAFA;
+            color: #222;
+            font-size: 0.95rem;
+            text-align: left;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .admin-actions a:hover,
+        .admin-actions button:hover {
+            background: #F0F0F0;
+        }
+
+        .admin-actions .primary {
+            background: #333;
+            color: #FFFFFF;
+            border-color: #333;
+        }
+
+        .admin-actions .primary:hover {
+            background: #111;
+        }
+
+        .admin-divider {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #E5E5E5;
+        }
+
+        .admin-danger-zone {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .admin-danger-zone a {
+            color: #666;
+        }
+
+        .admin-danger-zone button {
+            border: none;
+            background: none;
+            color: #B3453E;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+        }
+    </style>
 </head>
 <body>
-    <h1>hello FastAPI</h1>
-    {% if is_authenticated %}
-    <a href="/admins/update">회원정보 수정</a>
-    <br>
-    <a href="/admins/signout">로그아웃</a>
-    <br>
-    <a href="/admins/llmRoleList">시츄에이션 목록</a>
-    <br>
-    <a href="/admins/myRoles">나의 시츄에이션 보기</a>
-    <br>
-    <form method="post" action="/admins/resign" style="display: inline;">
-        <button type="submit" onclick="return confirm('정말 회원탈퇴를 진행하시겠습니까?');">회원탈퇴</button>
-    </form>
-    <br>
-    {% else %}
-    <a href="/admins/signin">로그인 페이지</a>
-    <br>
-    <a href="/admins/signup">가입 페이지</a>
-    {% endif %}
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>마냥이 관리자 페이지</h1>
+            <p>시츄에이션(NPC 시나리오) 콘텐츠 관리</p>
+        </div>
 
+        <div class="admin-card">
+            {% if is_authenticated %}
+            <div class="admin-actions">
+                <a class="primary" href="/admins/writeform">새 시츄에이션 작성</a>
+                <a href="/admins/llmRoleList">전체 시츄에이션 목록</a>
+                <a href="/admins/myRoles">내가 작성한 시츄에이션</a>
+                <a href="/admins/update">회원정보 수정</a>
+            </div>
+
+            <hr class="admin-divider">
+
+            <div class="admin-danger-zone">
+                <a href="/admins/signout">로그아웃</a>
+                <form method="post" action="/admins/resign"
+                      onsubmit="return confirm('정말 회원탈퇴를 진행하시겠습니까?');">
+                    <button type="submit">회원탈퇴</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="admin-actions">
+                <a class="primary" href="/admins/signin">로그인</a>
+                <a href="/admins/signup">회원가입</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </body>
 </html>

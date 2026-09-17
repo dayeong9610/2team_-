@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class Admin(SQLModel, table=True):
-    __tablename__ = "ADMIN_TABLE"
+    __tablename__ = "admin_table"
 
     admin_id: str = Field(primary_key=True, max_length=20)
     admin_pw: str = Field(max_length=255)
@@ -23,7 +23,9 @@ class Admin(SQLModel, table=True):
     )
 
     llm_roles: list["LlmRole"] = Relationship(back_populates="admin")
-    chat_rooms: list["ChatRoom"] = Relationship(back_populates="admin")
+    chat_rooms: list["ChatRoom"] = Relationship(
+        back_populates="admin"
+    )
 
 
 class AdminSignIn(SQLModel):

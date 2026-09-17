@@ -11,7 +11,7 @@ from model.llm_role import LlmRole
 
 # 여기부터는 학생들이 이용할 서비스 라우터입니다.
 # /students 부터 시작
-student_router = APIRouter(prefix =  "/students",tags = ["Students"])
+student_router = APIRouter(prefix = "/students",tags = ["Students"])
 
 template = Jinja2Templates("templates/")
 

@@ -6,22 +6,19 @@ from fastapi import (
     HTTPException
 )
 
-from app.schemas.chat import (
+from schemas.chat import (
     ChatRequest,
     ChatResponse
 )
 
-from app.core.scenario_engine import (
+from core.scenario_engine import (
     get_stage
 )
 
-from app.core.session_store import (
+from core.session_store import (
     session_store
 )
 
-from app.services.ai_service import (
-    evaluate_response
-)
 
 
 router = APIRouter(
@@ -122,6 +119,9 @@ async def chat(
     # 7. AI 평가
     # 외부 AI 호출이 오래 걸리거나 실패해도 API가 무한 대기하지 않게 합니다.
     try:
+        # Keep the main application importable for admin/student pages even
+        # when the optional AI dependencies have not been installed yet.
+        from services.ai_service import evaluate_response
 
         ai_result = await asyncio.wait_for(
             evaluate_response(

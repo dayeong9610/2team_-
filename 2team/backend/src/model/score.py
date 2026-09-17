@@ -3,7 +3,7 @@ from sqlmodel import Column, Field, SQLModel
 
 
 class Score(SQLModel, table=True):
-    __tablename__ = "SCORE"
+    __tablename__ = "score"
     __table_args__ = (
         CheckConstraint(
             "category IN ('risk_awareness', 'refusal', 'help_request')",
@@ -20,6 +20,6 @@ class Score(SQLModel, table=True):
         default=None,
         sa_column=Column(BigInteger, primary_key=True, autoincrement=True),
     )
-    chat_id: int = Field(foreign_key="CHATTING.chat_id", nullable=False)
+    chat_id: int = Field(foreign_key="chatting.chat_id", nullable=False)
     category: str = Field(max_length=50, nullable=False)
     score: int = Field(nullable=False)

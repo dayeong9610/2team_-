@@ -35,8 +35,8 @@ const EPISODE_META: Record<
   { num: string; title: string; layout: "chat" | "scene" }
 > = {
   EP01: { num: "01", title: "시험기간 스터디 그룹", layout: "chat" },
-  EP02: { num: "02", title: "해외여행에서 마주친 위험한 권유", layout: "chat" },
-  EP03: { num: "03", title: "SNS 다이어트 약 DM", layout: "chat" },
+  EP02: { num: "02", title: "SNS에서 시작된 유혹", layout: "chat" },
+  EP03: { num: "03", title: "학원가에서 받은 음료", layout: "chat" },
 };
 
 const STAGES_BY_EPISODE: Record<string, GameStage[]> = {

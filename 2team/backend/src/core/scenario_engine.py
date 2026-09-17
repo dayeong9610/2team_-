@@ -1,4 +1,3 @@
-# JSON 시나리오 파일을 찾고 에피소드와 Stage를 조회하는 모듈입니다.
 import json
 from pathlib import Path
 from typing import (
@@ -10,14 +9,12 @@ from typing import (
 
 
 PROJECT_ROOT = (
-    # 현재 파일 위치를 기준으로 프로젝트 루트를 계산합니다.
     Path(__file__)
     .resolve()
     .parents[3]
 )
 
 SCENARIO_DIR = (
-    # 에피소드 JSON 파일이 저장된 디렉터리입니다.
     PROJECT_ROOT
     / "scenario"
     / "episodes"

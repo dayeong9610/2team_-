@@ -1,5 +1,23 @@
 import manyangImg from "../assets/마냥_기본.png";
 
+// =====================================================================
+// EpisodeListPage (에피소드 선택 목록) — 라우트: "/episodes"
+// ---------------------------------------------------------------------
+// TutorialPage 다음에 오는 화면으로, 플레이할 에피소드(EP01~EP03)를
+// 고르는 목록입니다. 카드를 클릭하면 /play/{episode.id}로 이동합니다.
+//
+// [Backend 연동 참고]
+// - 아래 `episodes` 배열(제목/설명)은 프론트에 하드코딩된 화면 표시용
+//   데이터입니다. Backend의 GET /api/episodes 같은 API는 아직 호출하지
+//   만 화면에 보여줄 에피소드 목록(episodes 배열)이 코드 안에 직접 텍스트로 박혀 있는 하드코딩된 상태.
+// - 다만 `episode.id`("EP01", "EP02", "EP03")는 실제로 Backend에
+//   보내는 값과 동일한 규칙이에요. 이 화면 이후 PlayPage에서
+//   POST /api/sessions 호출 시 body의 episode_id로 이 값이 그대로
+//   전달되고, Backend는 이걸로 scenario/episodes/episode{번호}.json을
+//   찾습니다. 즉 새 에피소드를 추가할 땐 이 id 값과 그 JSON 파일명이
+//   반드시 일치해야 합니다.
+// =====================================================================
+
 interface EpisodeItem {
   id: string;
   num: string;
@@ -8,6 +26,9 @@ interface EpisodeItem {
   locked: boolean;
 }
 
+// 하드코딩된 화면 표시용 데이터 (Backend API 응답 아님).
+// id 값("EP01" 등)만 Backend와의 실제 계약이고, 나머지(num/title/
+// description)는 순수 프론트 문구입니다.
 const episodes: EpisodeItem[] = [
   {
     id: "EP01",
@@ -19,20 +40,22 @@ const episodes: EpisodeItem[] = [
   {
     id: "EP02",
     num: "02",
-    title: "해외여행에서 마주친 위험한 권유",
-    description: "여행 중 만난 외국인이 낯선 약을 권하면?",
+    title: "SNS에서 시작된 유혹",
+    description: "SNS에서 살 빠지는 약을 준다는 DM이 왔다면?",
     locked: false,
   },
   {
     id: "EP03",
     num: "03",
-    title: "SNS 다이어트 약 DM",
-    description: "인스타에서 다이어트 약을 파는 메시지가 왔어",
+    title: "학원가에서 받은 음료",
+    description: "학원가에서 낯선 사람이 무료 음료를 나눠준다면?",
     locked: false,
   },
 ];
 
 function EpisodeListPage() {
+  // 여기서는 세션을 만들지 않고 그냥 /play/{id}로 이동만 함.
+  // 실제 POST /api/sessions 호출은 PlayPage 진입 시 일어남.
   const handleEpisodeClick = (id: string, locked: boolean) => {
     if (locked) return;
     window.location.assign(`/play/${id}`);

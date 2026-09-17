@@ -5,18 +5,18 @@ from fastapi import (
     HTTPException
 )
 
-from app.schemas.session import (
+from schemas.session import (
     SessionCreateRequest,
     SessionCreateResponse,
     SessionResultResponse,
     SessionStateResponse
 )
 
-from app.core.session_store import (
+from core.session_store import (
     session_store
 )
 
-from app.core.scenario_engine import (
+from core.scenario_engine import (
     load_episode,
     get_total_stages
 )

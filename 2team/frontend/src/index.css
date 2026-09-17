@@ -380,6 +380,30 @@
   background: #FAFAFA;
 }
 
+.dm-composer-wrapper {
+  flex-shrink: 0;
+  background: #FAFAFA;
+}
+
+
+/* 욕설 입력 경고 */
+
+.chat-input-warning {
+  padding: 8px 14px 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #D94A4A;
+  background: #FAFAFA;
+}
+
+
+/* 욕설 감지된 입력창 */
+
+.dm-composer-input--warning {
+  outline: 1px solid #E79A9A;
+  background: #FFF4F4;
+}
+
 .dm-composer-input {
   flex: 1;
   resize: none;

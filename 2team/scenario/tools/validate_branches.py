@@ -1,16 +1,9 @@
 import json
+import sys
 from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-EPISODE_PATH = BASE_DIR / "episodes" / "episode01.json"
-
-BRANCH_PATH = (
-    BASE_DIR
-    / "branches"
-    / "episode01-branches.json"
-)
 
 
 def load_json(path):
@@ -23,6 +16,53 @@ def load_json(path):
 
 
 def main():
+
+    if len(sys.argv) < 2:
+        print(
+            "사용법: "
+            "python validate_branches.py EP01"
+        )
+        return
+
+    episode_id = sys.argv[1].upper()
+
+    if not episode_id.startswith("EP"):
+        print(
+            "Episode ID는 EP01, EP02, EP03 "
+            "형식이어야 합니다."
+        )
+        return
+
+    episode_number = episode_id.replace(
+        "EP",
+        ""
+    )
+
+    EPISODE_PATH = (
+        BASE_DIR
+        / "episodes"
+        / f"episode{episode_number}.json"
+    )
+
+    BRANCH_PATH = (
+        BASE_DIR
+        / "branches"
+        / f"episode{episode_number}-branches.json"
+    )
+
+    if not EPISODE_PATH.exists():
+        print(
+            f"\n시나리오 파일이 없습니다: "
+            f"{EPISODE_PATH}"
+        )
+        return
+
+    if not BRANCH_PATH.exists():
+        print(
+            f"\n분기 파일이 없습니다: "
+            f"{BRANCH_PATH}"
+        )
+        return
 
     episode = load_json(EPISODE_PATH)
     branch_data = load_json(BRANCH_PATH)
@@ -94,7 +134,10 @@ def main():
 
     if errors:
 
-        print("\n분기 검사 실패\n")
+        print(
+            f"\n{episode_id} "
+            "분기 검사 실패\n"
+        )
 
         for error in errors:
             print("-", error)
@@ -102,7 +145,8 @@ def main():
     else:
 
         print(
-            "\nEP01 분기 검사 성공"
+            f"\n{episode_id} "
+            "분기 검사 성공"
         )
 
         print(

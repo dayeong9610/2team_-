@@ -65,6 +65,49 @@ function pickManyangStages(): number[] {
   return MANYANG_APPEARANCE_SETS[randomIndex];
 }
 
+// =====================================================================
+// PlayPage (실제 플레이 화면) — 라우트: "/play/:episodeId"
+// ---------------------------------------------------------------------
+// 에피소드를 실제로 플레이하는 화면입니다. 이 프로젝트에서 Backend와
+// 가장 많이, 가장 실시간으로 통신하는 페이지예요. 아래 3개 API를
+// 씁니다 (전부 services/api.ts에 정의, API_BASE_URL은
+// http://localhost:8000/api).
+//
+// 1) POST /api/sessions   { episode_id }  → { session_id, episode_id,
+//    current_stage }
+//    - 이 화면에 처음 들어올 때(또는 복구할 세션이 없을 때) 호출.
+//
+// 2) POST /api/chat  { session_id, episode_id, stage_id, message }
+//    → { npc_response, feedback, scores, next_stage, is_episode_complete }
+//    - 사용자가 UserInput에 답변을 입력하고 전송할 때(handleAnswer)
+//      호출. stage_id는 숫자 id(1~5)가 아니라 GameStage.stageid
+//      문자열("EP01_STAGE01" 형태)을 보내야 합니다.
+//    - 다음 Stage로 넘어갈지는 이 프론트가 정하지 않고, 응답의
+//      next_stage 값을 그대로 따라갑니다(handleNext).
+//
+// 3) GET /api/sessions/{sessionId}  → { session_id, episode_id,
+//    current_stage, completed_stages, scores, progress, is_complete }
+//    - (a) 새로고침 등으로 재진입 시 sessionStorage에 저장된
+//      session_id로 현재 진행 상태를 복구할 때
+//    - (b) POST /api/chat 응답 직후, 서버 기준 최신 누적 점수를
+//      다시 받아오기 위해(=score of record는 항상 서버)
+//      두 경우 모두 호출합니다.
+//
+// [세션을 브라우저에 기억시키는 방법]
+// 세션 자체는 Backend가 관리하지만, "이 브라우저가 지금 어떤
+// session_id를 쓰고 있는지"는 sessionStorage에
+// `manyang_session_{episodeId}` 라는 키로 저장해둡니다. 그래서 F5로
+// 새로고침해도 세션이 끊기지 않고 이어집니다. 이 키는 ResultPage의
+// "다시 도전하기" / "다른 상황 연습하러 가기"에서 지워집니다.
+//
+// [화면/시나리오 데이터 vs 서버 데이터 구분]
+// 스토리 대사, 인물 이름, 배경 설명(data/episode0X stages.ts)은
+// 전부 프론트에 하드코딩된 화면 표시용 데이터이고, Backend가 내려주는
+// 것과는 별개입니다. 실제 채점/평가/피드백/다음 단계 결정은 전부
+// Backend(POST /api/chat) 몫이고, 프론트는 그 결과를 화면에 표시만
+// 합니다.
+// =====================================================================
+
 export default function PlayPage() {
 
   const { episodeId = "EP01" } = useParams();
@@ -175,6 +218,8 @@ export default function PlayPage() {
 
           try {
 
+            // GET /api/sessions/{id} — 저장된 세션이 아직 유효한지
+            // 확인하면서, 그 세션의 현재 Stage/점수를 그대로 복구
             const sessionState =
               await getSessionState(
                 savedSessionId
@@ -216,6 +261,8 @@ export default function PlayPage() {
           }
         }
 
+        // POST /api/sessions { episode_id } — 복구할 세션이 없거나
+        // 만료된 경우, 완전히 새 세션을 시작
         const result =
           await createSession(
             episodeId
@@ -305,6 +352,8 @@ export default function PlayPage() {
         })
       );
 
+      // POST /api/chat 호출. stage_id는 숫자 id가 아니라
+      // "EP01_STAGE01" 같은 문자열(currentStage.stageid)이어야 함.
       const result =
         await sendChat({
           session_id:
@@ -343,7 +392,8 @@ export default function PlayPage() {
         result.next_stage
       );
 
-      // 누적 점수는 Session에서 다시 조회
+      // GET /api/sessions/{id} — 누적 점수는 Backend가 가진 값이
+      // 정답이므로, POST /api/chat 응답과 별개로 다시 조회해서 맞춤
       const sessionState =
         await getSessionState(
           sessionId
@@ -378,6 +428,9 @@ export default function PlayPage() {
 
   const handleNext = () => {
 
+    // Backend가 이번 응답에서 next_stage를 안 줬다는 건 마지막
+    // Stage를 마쳤다는 뜻 → ResultPage로 이동 (session_id를 쿼리로
+    // 넘겨서 ResultPage가 GET /api/sessions/{id}/result를 부를 수 있게 함)
     if (!nextStageId) {
 
       window.location.assign(
@@ -387,6 +440,8 @@ export default function PlayPage() {
       return;
     }
 
+    // 다음 Stage는 프론트가 임의로 stageIndex+1 하지 않고,
+    // Backend가 알려준 next_stage(문자열 stageid)를 기준으로 찾음
     const nextIndex =
       stages.findIndex(
         (stage) =>

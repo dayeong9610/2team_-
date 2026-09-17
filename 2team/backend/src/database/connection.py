@@ -3,7 +3,7 @@ from pydantic.v1 import BaseSettings
 from sqlmodel import SQLModel, Session, create_engine
 from model import Admin, ChatRoom, Chatting, LlmRole
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
@@ -16,11 +16,11 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-engine_url = create_engine(settings.DATABASE_URL, echo=True)
+engine_url = create_engine(settings.DATABASE_URL, echo=True, pool_pre_ping=True)
 
 
 def conn():
-    SQLModel.metadata.create_all(engine_url)
+    SQLModel.metadata.create_all(bind=engine_url)
 
 def get_session():
     with Session(engine_url) as session:

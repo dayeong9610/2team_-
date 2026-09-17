@@ -17,6 +17,17 @@ def normalize_text(message: str) -> str:
     )
 
 
+ABUSIVE_PATTERNS = [
+    "씨발",
+    "시발",
+    "ㅅㅂ",
+    "병신",
+    "개새끼",
+    "좆",
+    "지랄",
+]
+
+
 DANGEROUS_PATTERNS = [
     "어디서 구해",
     "어디서 사",
@@ -53,6 +64,18 @@ def check_user_message(message: str) -> SafetyResult:
             feedback="답변을 입력한 뒤 다시 시도해 주세요."
         )
 
+    # 욕설
+    for pattern in ABUSIVE_PATTERNS:
+        if pattern in text:
+            return SafetyResult(
+                blocked=True,
+                reason="abusive_language",
+                feedback=(
+                    "공격적인 표현 대신 "
+                    "현재 상황에서 자신의 생각이나 "
+                    "행동을 문장으로 표현해 주세요."
+                )
+            )
     # 위험정보 요청
     for pattern in DANGEROUS_PATTERNS:
 

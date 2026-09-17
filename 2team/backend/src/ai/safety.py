@@ -1,17 +1,14 @@
-# 사용자 입력에서 위험한 요청과 프롬프트 조작을 먼저 차단하는 모듈입니다.
 from pydantic import BaseModel
 from typing import Optional
 
 
 class SafetyResult(BaseModel):
-    # 입력 차단 여부와 사용자에게 보여줄 안내 문구를 담습니다.
     blocked: bool
     reason: Optional[str] = None
     feedback: Optional[str] = None
 
 
 def normalize_text(message: str) -> str:
-    # 앞뒤 공백과 중복 공백을 정리해 패턴 검사가 안정적으로 동작하게 합니다.
     return " ".join(
         message
         .strip()
@@ -21,7 +18,6 @@ def normalize_text(message: str) -> str:
 
 
 DANGEROUS_PATTERNS = [
-    # 구매·제조·복용·은폐 방법처럼 안내하면 안 되는 표현 목록입니다.
     "어디서 구해",
     "어디서 사",
     "구매 방법",
@@ -47,7 +43,6 @@ PROMPT_INJECTION_PATTERNS = [
 
 
 def check_user_message(message: str) -> SafetyResult:
-    # 위험 패턴을 발견하면 LLM 호출 전에 즉시 차단합니다.
     text = normalize_text(message)
 
     # 빈 입력

@@ -14,16 +14,16 @@ from langchain_core.messages import (
     HumanMessage
 )
 
-from app.ai.prompts import (
+from ai.prompts import (
     SYSTEM_PROMPT,
     build_user_prompt
 )
 
-from app.ai.evaluator import (
+from ai.evaluator import (
     AIResponse
 )
 
-from app.ai.safety import (
+from ai.safety import (
     check_user_message
 )
 

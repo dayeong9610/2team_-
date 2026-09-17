@@ -1,16 +1,15 @@
-# 에피소드 목록, 상세 정보, Stage 정보를 제공하는 API 모듈입니다.
 from fastapi import (
     APIRouter,
     HTTPException
 )
 
-from app.core.scenario_engine import (
+from core.scenario_engine import (
     load_episode,
     get_stage,
     list_episodes
 )
 
-from app.schemas.episode import (
+from schemas.episode import (
     EpisodeSummary,
     EpisodeDetailResponse,
     StageResponse

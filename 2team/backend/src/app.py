@@ -9,11 +9,10 @@ from fastapi.staticfiles import StaticFiles
 
 from database.connection import conn
 from routes.admin_route import router
-from routes.student_route import student_router
 
-from api.chat import router as chat_router
-from api.episodes import router as episode_router
-from api.sessions import router as session_router
+from routes.chat import router as chat_router
+from routes.episodes import router as episode_router
+from routes.sessions import router as session_router
 
 
 # Resolve paths from this file instead of from the shell's current directory.
@@ -44,7 +43,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(router)
-app.include_router(student_router)
 app.include_router(chat_router, prefix="/api")
 app.include_router(session_router, prefix="/api")
 app.include_router(episode_router, prefix="/api")

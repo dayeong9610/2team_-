@@ -3,7 +3,8 @@ import asyncio
 
 from fastapi import (
     APIRouter,
-    HTTPException
+    HTTPException,
+    status
 )
 
 from schemas.chat import (
@@ -44,7 +45,7 @@ async def chat(
 
     if session is None:
         raise HTTPException(
-            status_code=404,
+            status_code = status.HTTP_404_NOT_FOUND,
             detail="Session not found"
         )
 
@@ -55,7 +56,7 @@ async def chat(
         != request.episode_id
     ):
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Episode does not match session"
         )
 
@@ -63,7 +64,7 @@ async def chat(
     # 3. 이미 Episode가 완료됐는지 확인
     if session["is_complete"]:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Episode already completed"
         )
 
@@ -74,7 +75,7 @@ async def chat(
         in session["completed_stages"]
     ):
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Stage already completed"
         )
 
@@ -87,7 +88,7 @@ async def chat(
         expected_prefix
     ):
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Stage does not belong to episode"
         )
 
@@ -98,7 +99,7 @@ async def chat(
         != request.stage_id
     ):
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid stage"
         )
 
@@ -111,7 +112,7 @@ async def chat(
 
     if stage is None:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Stage not found"
         )
 
@@ -136,7 +137,7 @@ async def chat(
     except asyncio.TimeoutError:
 
         raise HTTPException(
-            status_code=504,
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail="AI response timeout"
         )
 
@@ -149,7 +150,7 @@ async def chat(
         )
 
         raise HTTPException(
-            status_code=503,
+            status_code= status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=(
                 "AI service temporarily "
                 "unavailable"

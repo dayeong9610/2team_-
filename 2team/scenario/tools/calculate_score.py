@@ -1,10 +1,9 @@
-def calculate_episode_score(stage_scores):
-
-    stage1 = stage_scores["EP01_STAGE01"]
-    stage2 = stage_scores["EP01_STAGE02"]
-    stage3 = stage_scores["EP01_STAGE03"]
-    stage4 = stage_scores["EP01_STAGE04"]
-    stage5 = stage_scores["EP01_STAGE05"]
+def calculate_episode_score(stage_scores, episode_id):
+    stage1 = stage_scores[f"{episode_id}_STAGE01"]
+    stage2 = stage_scores[f"{episode_id}_STAGE02"]
+    stage3 = stage_scores[f"{episode_id}_STAGE03"]
+    stage4 = stage_scores[f"{episode_id}_STAGE04"]
+    stage5 = stage_scores[f"{episode_id}_STAGE05"]
 
     risk_awareness = round(
         stage1 / 3 * 100
@@ -28,15 +27,16 @@ def calculate_episode_score(stage_scores):
 if __name__ == "__main__":
 
     test_scores = {
-        "EP01_STAGE01": 2,
-        "EP01_STAGE02": 3,
-        "EP01_STAGE03": 2,
-        "EP01_STAGE04": 3,
-        "EP01_STAGE05": 2
+        "EP02_STAGE01": 2,
+        "EP02_STAGE02": 3,
+        "EP02_STAGE03": 2,
+        "EP02_STAGE04": 3,
+        "EP02_STAGE05": 2
     }
 
     result = calculate_episode_score(
-        test_scores
+        test_scores,
+        "EP02"
     )
 
     print(result)

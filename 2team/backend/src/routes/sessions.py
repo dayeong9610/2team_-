@@ -128,11 +128,14 @@ def session_result(
     "/sessions/{session_id}",
     response_model=SessionStateResponse
 )
+@router.get(
+    "/sessions/{session_id}",
+    response_model=SessionStateResponse
+)
 def session_state(
     session_id: str
 ):
 
-    # 1. Session 존재 확인
     session = (
         session_store.get_session(
             session_id
@@ -145,18 +148,9 @@ def session_state(
             detail="Session not found"
         )
 
-    if not session["is_complete"]:
-        raise HTTPException(
-            status_code=409,
-            detail="Episode is not completed"
-        )
-
-    # 2. 해당 Episode의 전체 Stage 수 조회
     total_stages = (
         get_total_stages(
-            session[
-                "episode_id"
-            ]
+            session["episode_id"]
         )
     )
 
@@ -166,7 +160,6 @@ def session_state(
             detail="Episode has no stages"
         )
 
-    # 3. 진행률 포함 Session 상태 조회
     state = (
         session_store.get_session_state(
             session_id,

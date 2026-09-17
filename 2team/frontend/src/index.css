@@ -271,6 +271,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: bubblePopIn 0.2s ease-out;
 }
 
 .npc-message-content {
@@ -297,16 +298,31 @@
   width: fit-content;
   max-width: 100%;
   padding: 10px 14px;
-  border-radius: 20px;
+  border-radius: 22px;
   background: #EFEFEF;
   color: #1c1c1e;
   font-size: 0.92rem;
   line-height: 1.4;
+  animation: bubblePopIn 0.2s ease-out;
 }
 
 .npc-bubble--me {
-  background: #3D7C71;
+  background: linear-gradient(135deg, #A78BFA, #F472B6);
   color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@keyframes bubblePopIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .npc-bubble--typing {
@@ -364,6 +380,30 @@
   background: #FAFAFA;
 }
 
+.dm-composer-wrapper {
+  flex-shrink: 0;
+  background: #FAFAFA;
+}
+
+
+/* 욕설 입력 경고 */
+
+.chat-input-warning {
+  padding: 8px 14px 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #D94A4A;
+  background: #FAFAFA;
+}
+
+
+/* 욕설 감지된 입력창 */
+
+.dm-composer-input--warning {
+  outline: 1px solid #E79A9A;
+  background: #FFF4F4;
+}
+
 .dm-composer-input {
   flex: 1;
   resize: none;
@@ -389,14 +429,20 @@
   height: 38px;
   border-radius: 50%;
   border: none;
-  background: #3D7C71;
+  background: linear-gradient(135deg, #A78BFA, #F472B6);
+  box-shadow: 0 2px 8px rgba(167, 139, 250, 0.45);
   color: #fff;
   font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease, opacity 0.15s ease;
+  transition: box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dm-composer-send:hover:not(:disabled) {
+  box-shadow: 0 3px 10px rgba(167, 139, 250, 0.6);
+  transform: translateY(-1px);
 }
 
 .dm-composer-send:disabled {
@@ -630,11 +676,12 @@
   width: fit-content;
   max-width: 78%;
   padding: 10px 14px;
-  border-radius: 20px;
+  border-radius: 22px;
   background: #EFEFEF;
   color: #1c1c1e;
   font-size: 0.92rem;
   line-height: 1.4;
+  animation: bubblePopIn 0.2s ease-out;
 }
 
 .ig-bubble--me {

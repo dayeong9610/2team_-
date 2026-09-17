@@ -1,3 +1,5 @@
+# 해당 프로젝트에 필요한 라이브러리와 버전 모음입니다.
+# 해당 파일을 기준으로 라이브러리를 설치해야 작동을 해요
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
@@ -13,6 +15,7 @@ Jinja2==3.1.6
 MarkupSafe==3.0.3
 optional==0.0.1
 passlib==1.7.4
+psycopg2-binary==2.9.13
 pyasn1==0.6.4
 pydantic==2.13.5
 pydantic_core==2.46.5

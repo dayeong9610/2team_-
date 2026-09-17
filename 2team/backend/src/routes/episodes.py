@@ -1,6 +1,7 @@
 from fastapi import (
     APIRouter,
-    HTTPException
+    HTTPException,
+    status
 )
 
 from core.scenario_engine import (
@@ -83,7 +84,7 @@ def get_episode(
     if episode is None:
 
         raise HTTPException(
-            status_code=404,
+            status_code= status.HTTP_404_NOT_FOUND,
             detail="Episode not found"
         )
 
@@ -139,7 +140,7 @@ def get_episode_stage(
     if stage is None:
 
         raise HTTPException(
-            status_code=404,
+            status_code= status.HTTP_404_NOT_FOUND,
             detail="Stage not found"
         )
 

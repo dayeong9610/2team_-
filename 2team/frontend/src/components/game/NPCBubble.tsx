@@ -32,11 +32,16 @@ function groupMessages(messages: DialogueMessage[]): MessageGroup[] {
 
 const TYPING_DELAY_MS = 700;
 
-function NPCMessageGroup({ group }: { group: MessageGroup }) {
-  const [visibleCount, setVisibleCount] = useState(1);
+// 화자가 여러 명이어도 대사 전체를 하나의 순서로 이어서 공개합니다.
+// (화자별로 따로 타이머를 두면 서로 다른 화자가 동시에 "타이핑 중"이
+// 되어버려서, 대화가 한 줄씩 이어지는 느낌이 안 남)
+function useSequentialReveal(totalCount: number) {
+  const [visibleCount, setVisibleCount] = useState(
+    Math.min(1, totalCount)
+  );
 
   useEffect(() => {
-    if (visibleCount >= group.texts.length) {
+    if (visibleCount >= totalCount) {
       return;
     }
 
@@ -45,35 +50,22 @@ function NPCMessageGroup({ group }: { group: MessageGroup }) {
     }, TYPING_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, [visibleCount, group.texts.length]);
+  }, [visibleCount, totalCount]);
 
-  const isTyping = visibleCount < group.texts.length;
+  return visibleCount;
+}
 
-  return (
-    <div className="npc-message">
-      <div className="npc-avatar">{group.sender.charAt(0)}</div>
+// groups 각각이 flat한 messages 배열의 몇 번째 인덱스에서 시작하는지
+// 미리 계산해둡니다. (렌더 콜백 안에서 변수를 누적 재할당하면 안 되므로
+// useMemo 안에서 한 번에 계산)
+function withStartIndex(groups: MessageGroup[]) {
+  let consumed = 0;
 
-      <div className="npc-message-content">
-        <span className="npc-name">{group.sender}</span>
-
-        <div className="npc-bubble-group">
-          {group.texts.slice(0, visibleCount).map((text, textIndex) => (
-            <div className="npc-bubble" key={textIndex}>
-              {text}
-            </div>
-          ))}
-
-          {isTyping && (
-            <div className="npc-bubble npc-bubble--typing">
-              <span className="typing-dot" />
-              <span className="typing-dot" />
-              <span className="typing-dot" />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  return groups.map((group) => {
+    const start = consumed;
+    consumed += group.texts.length;
+    return { group, start };
+  });
 }
 
 export default function NPCBubble({ messages }: NPCBubbleProps) {
@@ -82,11 +74,60 @@ export default function NPCBubble({ messages }: NPCBubbleProps) {
     [messages]
   );
 
+  const groupsWithStart = useMemo(
+    () => withStartIndex(groups),
+    [groups]
+  );
+
+  const visibleCount = useSequentialReveal(messages.length);
+
   return (
     <>
-      {groups.map((group, index) => (
-        <NPCMessageGroup group={group} key={index} />
-      ))}
+      {groupsWithStart.map(({ group, start }, index) => {
+        // 아직 이 화자 차례가 안 됐으면(=이전 화자가 아직 다 안
+        // 끝났으면) 프로필(아바타+이름) 자체를 그리지 않습니다.
+        // 그래야 "프로필 등장 → 대사 → 대사 → 다음 프로필 등장"처럼
+        // 화자가 바뀌는 순간에만 새 프로필이 나타나는 것처럼 보입니다.
+        if (visibleCount < start) {
+          return null;
+        }
+
+        const visibleInGroup = Math.min(
+          group.texts.length,
+          Math.max(0, visibleCount - start)
+        );
+
+        const isTypingHere =
+          visibleCount < messages.length &&
+          visibleCount >= start &&
+          visibleCount < start + group.texts.length;
+
+        return (
+          <div className="npc-message" key={index}>
+            <div className="npc-avatar">{group.sender.charAt(0)}</div>
+
+            <div className="npc-message-content">
+              <span className="npc-name">{group.sender}</span>
+
+              <div className="npc-bubble-group">
+                {group.texts.slice(0, visibleInGroup).map((text, textIndex) => (
+                  <div className="npc-bubble" key={textIndex}>
+                    {text}
+                  </div>
+                ))}
+
+                {isTypingHere && (
+                  <div className="npc-bubble npc-bubble--typing">
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </>
   );
 }

@@ -742,7 +742,7 @@ export default function PlayPage() {
                       </div>
                     ) : (
                       <div className="npc-message npc-message--me">
-                        <div className="npc-bubble npc-bubble--typing">
+                        <div className="npc-bubble npc-bubble--me">
                           <span className="typing-dot" />
                           <span className="typing-dot" />
                           <span className="typing-dot" />

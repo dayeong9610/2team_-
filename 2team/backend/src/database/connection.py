@@ -3,7 +3,7 @@ from pydantic.v1 import BaseSettings
 from sqlmodel import SQLModel, Session, create_engine
 from model import Admin, ChatRoom, Chatting, LlmRole
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 class Settings(BaseSettings):

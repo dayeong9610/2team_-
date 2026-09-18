@@ -36,7 +36,13 @@ class MemorySessionStore:
                 "help_request": 0
             },
 
-            "is_complete": False
+            "is_complete": False,
+
+            # 모든 Stage가 AI 분석으로 평가됐는지 여부.
+            # 한 번이라도 fallback이 사용되면 False로 유지합니다.
+            "analysis_available": True,
+
+            "fallback_mode": False
         }
 
         self._sessions[
@@ -130,7 +136,19 @@ class MemorySessionStore:
             "is_complete":
                 session[
                     "is_complete"
-                ]
+                ],
+
+            "fallback_mode":
+                session.get(
+                    "fallback_mode",
+                    False
+                ),
+
+            "analysis_available":
+                session.get(
+                    "analysis_available",
+                    True
+                )
         }
 
 
@@ -143,7 +161,8 @@ class MemorySessionStore:
         stage_id: str,
         feedback: str,
         scores: dict,
-        next_stage: Optional[str]
+        next_stage: Optional[str],
+        analysis_available: bool = True
     ) -> bool:
         # 한 Stage의 피드백과 점수를 저장하고 다음 Stage로 상태를 이동합니다.
         session = self._sessions.get(
@@ -223,7 +242,10 @@ class MemorySessionStore:
                             "help_request",
                             0
                         )
-                }
+                },
+
+                "analysis_available":
+                    analysis_available
             }
         )
 
@@ -254,6 +276,10 @@ class MemorySessionStore:
         ] = (
             next_stage is None
         )
+
+        if not analysis_available:
+            session["analysis_available"] = False
+            session["fallback_mode"] = True
 
         return True
 
@@ -303,7 +329,19 @@ class MemorySessionStore:
             "is_complete":
                 session[
                     "is_complete"
-                ]
+                ],
+
+            "fallback_mode":
+                session.get(
+                    "fallback_mode",
+                    False
+                ),
+
+            "analysis_available":
+                session.get(
+                    "analysis_available",
+                    True
+                )
         }
 
 

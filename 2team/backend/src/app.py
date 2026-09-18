@@ -14,6 +14,7 @@ from routes.admin_route import router
 from routes.chat import router as chat_router
 from routes.episodes import router as episode_router
 from routes.sessions import router as session_router
+from core.flow_trace import print_route_map
 
 
 # Resolve paths from this file instead of from the shell's current directory.
@@ -25,6 +26,9 @@ FRONTEND_INDEX = FRONTEND_DIST / "index.html"
 
 @asynccontextmanager
 async def lifespan(app_instance: FastAPI):
+    # 개발/DB 연동 확인용: 실제 등록된 API 경로와 함수명을 서버 시작 시 출력합니다.
+    print_route_map(app_instance)
+
     # DB 연결은 학생용 FastAPI가 뜨기 위한 선행조건이 아닙니다.
     # 별도 background task에서 확인하므로 PostgreSQL이 멈춰 있어도
     # /api/sessions, /api/chat 등 학생용 API는 즉시 서비스됩니다.

@@ -26,4 +26,7 @@ export interface ChatResponse {
 
   // false면 숫자 점수는 신뢰 가능한 AI 평가 결과가 아니므로 결과 화면에서 숨깁니다.
   analysis_available?: boolean;
+
+  // true면 현재 입력은 평가 가능한 답변이 아니므로 같은 Stage에서 다시 입력합니다.
+  retry_required?: boolean;
 }

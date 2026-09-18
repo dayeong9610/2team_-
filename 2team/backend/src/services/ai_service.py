@@ -5,6 +5,8 @@ from functools import lru_cache
 
 from dotenv import load_dotenv
 
+from langchain_openai import ChatOpenAI
+
 from langchain_google_genai import (
     ChatGoogleGenerativeAI
 )
@@ -39,8 +41,12 @@ def get_structured_llm():
     )
 
     api_key = os.getenv(
-        "GOOGLE_API_KEY"
-    )
+            "OPENAI_API_KEY"
+        )
+
+    # api_key = os.getenv(
+    #     "GOOGLE_API_KEY"
+    # )
 
     if not model:
         # 모델명이 없으면 잘못된 외부 API 호출을 막고 설정 오류를 알립니다.
@@ -51,14 +57,21 @@ def get_structured_llm():
     if not api_key:
         # API 키가 없으면 인증되지 않은 요청을 보내지 않습니다.
         raise RuntimeError(
-            "GOOGLE_API_KEY is not configured"
+            "OPENAI_API_KEY is not configured"
         )
 
-    llm = ChatGoogleGenerativeAI(
+    #  재미나이용
+    # llm = ChatGoogleGenerativeAI(
+    #     model=model,
+    #     google_api_key=api_key,
+    #     temperature=0.3
+    # )
+
+    llm = ChatOpenAI(
         model=model,
-        google_api_key=api_key,
-        temperature=0.3
+        api_key=api_key
     )
+
 
     return llm.with_structured_output(
         AIResponse
@@ -80,25 +93,36 @@ async def evaluate_response(
     )
 
     if safety_result.blocked:
-        # 위험 입력은 LLM에 보내지 않고 고정된 안전 안내를 반환합니다.
-        return {
-            "npc_response": (
+        # 평가할 수 없는/안전하지 않은 입력은 Stage를 완료 처리하지 않습니다.
+        # 특히 "ㅇㅇ", "ㅋㅋ" 같은 짧은 반응을 실제 대응으로 오해해
+        # NPC가 부자연스럽게 다음 반응을 만드는 문제를 막습니다.
+        if safety_result.reason == "insufficient_response":
+            npc_response = (
+                "응? 어떻게 하겠다는 건지 잘 모르겠어. "
+                "조금 더 구체적으로 말해줄래?"
+            )
+        else:
+            npc_response = (
                 "그 내용보다는 지금 상황에서 "
-                "어떻게 안전하게 행동할지 "
-                "생각해보자."
-            ),
+                "어떻게 안전하게 행동할지 생각해보자."
+            )
 
+        return {
+            "npc_response": npc_response,
             "feedback": (
                 safety_result.feedback
                 or
                 "안전한 대응 방법을 생각해보세요."
             ),
-
             "scores": {
                 "risk_awareness": 0,
                 "refusal": 0,
                 "help_request": 0
-            }
+            },
+            # True이면 /chat 라우터가 Stage 결과를 저장하거나
+            # 다음 Stage로 이동시키지 않습니다.
+            "retry_required": True,
+            "retry_reason": safety_result.reason,
         }
 
     # 2. Prompt 구성
@@ -138,4 +162,31 @@ async def evaluate_response(
         )
     )
 
-    return validated.model_dump()
+    payload = validated.model_dump()
+
+    # LLM이 현재 질문과 무관하거나 의미를 판단할 수 없는 답변으로 분류했다면
+    # Stage 평가/점수 계산을 하지 않고 같은 장면에서 다시 입력받습니다.
+    if payload.get("retry_required") is True:
+        return {
+            "npc_response": (
+                "방금 말만으로는 어떻게 하겠다는 건지 잘 모르겠어. "
+                "조금 더 구체적으로 말해줄래?"
+            ),
+            "feedback": (
+                "현재 상황에서 무엇이 걱정되는지, 무엇을 하지 않을지, "
+                "또는 누구에게 도움을 요청할지 실제로 말하듯 표현해보세요."
+            ),
+            "scores": {
+                "risk_awareness": 0,
+                "refusal": 0,
+                "help_request": 0
+            },
+            "retry_required": True,
+            "retry_reason": (
+                payload.get("retry_reason")
+                or "irrelevant_or_unclear_response"
+            ),
+        }
+
+    payload["retry_required"] = False
+    return payload

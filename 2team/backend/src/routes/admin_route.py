@@ -1,4 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
+from pathlib import Path
+
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+    Request,
+    Form
+)
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
@@ -12,9 +21,24 @@ from database.connection import get_session
 from model.admin import Admin
 from model.llm_role import LlmRole, WriteLlmRole
 
-router = APIRouter(prefix="/admins", tags=["Admins"])
 
-template = Jinja2Templates("templates/")
+router = APIRouter(
+    prefix="/admins",
+    tags=["Admins"]
+)
+
+
+# admin_route.py 위치:
+# backend/src/routes/admin_route.py
+#
+# templates 위치:
+# backend/src/templates
+SRC_DIR = Path(__file__).resolve().parents[1]
+TEMPLATE_DIR = SRC_DIR / "templates"
+
+template = Jinja2Templates(
+    directory=str(TEMPLATE_DIR)
+)
 
 password_encoder = HashPassword()
 

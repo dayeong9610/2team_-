@@ -1,0 +1,92 @@
+-- ========================================================
+-- Schema Creation Script for PostgreSQL based on SQLModel
+-- ========================================================
+
+
+-- 0. ENUM 타입 생성 (CHATTING.chatter 컬럼용)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'chatter_type') THEN
+        CREATE TYPE chatter_type AS ENUM ('AI', 'USER');
+    END IF;
+END$$;
+
+
+
+-- 1. ADMIN_TABLE 생성
+CREATE TABLE IF NOT EXISTS ADMIN_TABLE (
+    admin_id     VARCHAR(20) NOT NULL,
+    admin_pw     VARCHAR(255) NOT NULL,
+    teacher_num  INT NOT NULL,
+    enabled      INT NOT NULL DEFAULT 1
+                 CONSTRAINT CHK_ADMIN_ENABLED CHECK (enabled >= 0 AND enabled <= 1),
+    admin_name   VARCHAR(100) NOT NULL,
+    contact      VARCHAR(14) NOT NULL,
+    created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (admin_id)
+);
+
+-- 2. LLM_ROLE 생성
+CREATE TABLE IF NOT EXISTS LLM_ROLE (
+    lr_num      BIGSERIAL NOT NULL,
+    title       VARCHAR(30) DEFAULT NULL,
+    admin_id    VARCHAR(20) DEFAULT NULL,
+    category    VARCHAR(50) DEFAULT NULL,
+    content     TEXT DEFAULT NULL,
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (lr_num),
+    CONSTRAINT FK_LLM_ROLE_ADMIN_ID FOREIGN KEY (admin_id)
+        REFERENCES ADMIN_TABLE (admin_id),
+    CONSTRAINT CHK_LLM_ROLE_CATEGORY CHECK (
+        category = 'user_defined' OR category = 'school' OR category = 'trip' OR category = 'club'
+    )
+);
+
+-- 3. CHAT_ROOM 생성
+CREATE TABLE IF NOT EXISTS CHAT_ROOM (
+    room_id         BIGSERIAL NOT NULL,
+    title           VARCHAR(255) NOT NULL,
+    admin_id        VARCHAR(20) NOT NULL,
+    limits          INT NOT NULL,
+    status          VARCHAR(10) NOT NULL,
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    room_requester  VARCHAR(50) NOT NULL,
+    lr_num          BIGINT NOT NULL,
+    PRIMARY KEY (room_id),
+    CONSTRAINT FK_CHAT_ROOM_ADMIN_ID FOREIGN KEY (admin_id)
+        REFERENCES ADMIN_TABLE (admin_id)
+        ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT FK_CHAT_ROOM_LR_NUM FOREIGN KEY (lr_num)
+        REFERENCES LLM_ROLE (lr_num)
+        ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+-- 4. CHATTING 생성
+CREATE TABLE IF NOT EXISTS CHATTING (
+    chat_id     BIGSERIAL NOT NULL,
+    room_id     BIGINT NOT NULL,
+    chatter     chatter_type NOT NULL,
+    created_at  TIMESTAMP NOT NULL,
+    PRIMARY KEY (chat_id),
+    CONSTRAINT FK_CHATTING_ROOM_ID FOREIGN KEY (room_id)
+        REFERENCES CHAT_ROOM (room_id)
+        ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
+-- 5. SCORE 생성
+CREATE TABLE IF NOT EXISTS SCORE (
+    score_id  BIGSERIAL NOT NULL,
+    chat_id   BIGINT NOT NULL,
+    category  VARCHAR(50) NOT NULL,
+    score     INT NOT NULL,
+    PRIMARY KEY (score_id),
+    CONSTRAINT FK_SCORE_CHAT_ID FOREIGN KEY (chat_id)
+        REFERENCES CHATTING (chat_id),
+    CONSTRAINT UK_SCORE_CHAT_CATEGORY UNIQUE (chat_id, category),
+    CONSTRAINT CHK_SCORE_CATEGORY CHECK (
+        category = 'risk_awareness' OR category = 'refusal' OR category = 'help_request'
+    ),
+    CONSTRAINT CHK_SCORE_RANGE CHECK (
+        score >= 0 AND score <= 3
+    )
+);

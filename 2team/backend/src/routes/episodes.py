@@ -1,147 +1,206 @@
+from uuid import uuid4
+
 from fastapi import (
     APIRouter,
-    HTTPException,
-    status
+    HTTPException
+)
+
+from schemas.session import (
+    SessionCreateRequest,
+    SessionCreateResponse,
+    SessionResultResponse,
+    SessionStateResponse
+)
+
+from core.session_store import (
+    session_store
 )
 
 from core.scenario_engine import (
     load_episode,
-    get_stage,
-    list_episodes
+    get_total_stages
 )
 
-from schemas.episode import (
-    EpisodeSummary,
-    EpisodeDetailResponse,
-    StageResponse
-)
 
-# 첫 번째 API: 사용 가능한 에피소드의 요약 정보를 반환합니다.
 router = APIRouter(
-    tags=["Episodes"]
+    tags=["Sessions"]
 )
 
-@router.get(
-    "/episodes",
-    response_model=list[EpisodeSummary]
+
+# =========================
+# Session 생성
+# =========================
+
+@router.post(
+    "/sessions",
+    response_model=SessionCreateResponse
 )
-def get_episodes():
-    # 시나리오 폴더의 전체 에피소드를 읽어 목록 형태로 변환합니다.
-    episodes = list_episodes()
+def start_session(
+    request: SessionCreateRequest
+):
 
-    result = []
+    # 1. Episode 조회
+    episode = load_episode(
+        request.episode_id
+    )
 
-    for episode in episodes:
-
-        background = episode.get(
-            "background",
-            {}
+    if episode is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Episode not found"
         )
 
-        result.append(
-            {
-                "episode_id":
-                    episode[
-                        "episode_id"
-                    ],
+    # 2. Episode Stage 확인
+    stages = episode.get(
+        "stages",
+        []
+    )
 
-                "title":
-                    episode[
-                        "title"
-                    ],
+    if not stages:
+        raise HTTPException(
+            status_code=500,
+            detail="Episode has no stages"
+        )
 
-                "description":
-                    background.get(
-                        "situation",
-                        ""
-                    ),
+    # 3. 첫 Stage 결정
+    first_stage = stages[0][
+        "stage_id"
+    ]
 
-                "total_stages":
-                    len(
-                        episode.get(
-                            "stages",
-                            []
-                        )
-                    )
-            }
+    # 4. Session ID 생성
+    session_id = str(
+        uuid4()
+    )
+
+    # 5. Session 생성
+    session = (
+        session_store.create_session(
+            session_id=session_id,
+            episode_id=request.episode_id,
+            first_stage=first_stage
+        )
+    )
+
+    return {
+        "session_id":
+            session_id,
+
+        "episode_id":
+            request.episode_id,
+
+        "current_stage":
+            session["current_stage"]
+    }
+
+
+# =========================
+# Session 결과 조회
+# =========================
+
+@router.get(
+    "/sessions/{session_id}/result",
+    response_model=SessionResultResponse
+)
+def session_result(
+    session_id: str
+):
+
+    result = (
+        session_store.get_result(
+            session_id
+        )
+    )
+
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found"
         )
 
     return result
 
-# 두 번째 API: 특정 에피소드의 상세 정보와 Stage 목록을 반환합니다.
+
+# =========================
+# Session 현재 상태 조회
+# =========================
+
 @router.get(
-    "/episodes/{episode_id}",
-    response_model=EpisodeDetailResponse
+    "/sessions/{session_id}",
+    response_model=SessionStateResponse
 )
-def get_episode(
-    episode_id: str
+@router.get(
+    "/sessions/{session_id}",
+    response_model=SessionStateResponse
+)
+def session_state(
+    session_id: str
 ):
-    # 요청한 에피소드 ID에 해당하는 JSON 시나리오를 조회합니다.
-    episode = load_episode(
-        episode_id
+
+    session = (
+        session_store.get_session(
+            session_id
+        )
     )
 
-    if episode is None:
-
+    if session is None:
         raise HTTPException(
-            status_code= status.HTTP_404_NOT_FOUND,
-            detail="Episode not found"
+            status_code=404,
+            detail="Session not found"
         )
 
-    background = episode.get(
-        "background",
-        {}
+    total_stages = (
+        get_total_stages(
+            session["episode_id"]
+        )
     )
+
+    if total_stages <= 0:
+        raise HTTPException(
+            status_code=500,
+            detail="Episode has no stages"
+        )
+
+    state = (
+        session_store.get_session_state(
+            session_id,
+            total_stages
+        )
+    )
+
+    if state is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found"
+        )
+
+    return state
+
+
+# =========================
+# Session 종료
+# =========================
+
+@router.delete(
+    "/sessions/{session_id}"
+)
+def end_session(
+    session_id: str
+):
+
+    deleted = (
+        session_store.delete_session(
+            session_id
+        )
+    )
+
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found"
+        )
 
     return {
-        "episode_id":
-            episode["episode_id"],
-
-        "title":
-            episode["title"],
-
-        "description":
-            background.get(
-                "situation",
-                ""
-            ),
-
-        "total_stages":
-            len(
-                episode.get(
-                    "stages",
-                    []
-                )
-            ),
-
-        "stages":
-            episode.get(
-                "stages",
-                []
-            )
+        "message":
+            "Session deleted"
     }
 
-
-# Stage 조회 API: 특정 에피소드 안의 한 장면을 반환합니다.
-@router.get(
-    "/episodes/{episode_id}/stages/{stage_id}",
-    response_model=StageResponse
-)
-def get_episode_stage(
-    episode_id: str,
-    stage_id: str
-):
-    # 시나리오 엔진에서 Stage를 찾고 없으면 404를 반환합니다.
-    stage = get_stage(
-        episode_id,
-        stage_id
-    )
-
-    if stage is None:
-
-        raise HTTPException(
-            status_code= status.HTTP_404_NOT_FOUND,
-            detail="Stage not found"
-        )
-
-    return stage

@@ -36,3 +36,6 @@ htmlcov/
 
 # Test files
 2team/backend/tests/manual_test_episode01_ai.py
+
+# Backend environment example
+2team/backend/.env.example

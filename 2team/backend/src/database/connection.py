@@ -16,11 +16,11 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-engine_url = create_engine(settings.DATABASE_URL, echo=True)
+engine_url = create_engine(settings.DATABASE_URL, echo=True, pool_pre_ping=True)
 
 
 def conn():
-    SQLModel.metadata.create_all(engine_url)
+    SQLModel.metadata.create_all(bind=engine_url)
 
 def get_session():
     with Session(engine_url) as session:

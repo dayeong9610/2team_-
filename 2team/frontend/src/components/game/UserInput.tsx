@@ -7,6 +7,7 @@ interface UserInputProps {
   onSubmit: (message: string) => void;
   onChange?: (value: string) => void;
   disabled?: boolean;
+  placeholder?: string;
 }
 
 
@@ -14,6 +15,7 @@ export default function UserInput({
   onSubmit,
   onChange,
   disabled = false,
+  placeholder = "내 생각을 직접 말해보세요...",
 }: UserInputProps) {
 
   const [message, setMessage] =
@@ -135,7 +137,7 @@ export default function UserInput({
 
           disabled={disabled}
 
-          placeholder="메시지 보내기..."
+          placeholder={placeholder}
 
           onChange={
             (e) =>

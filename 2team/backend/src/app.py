@@ -24,7 +24,15 @@ FRONTEND_INDEX = FRONTEND_DIST / "index.html"
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    conn()
+    # 관리자 DB가 아직 준비되지 않았더라도 학생용 에피소드/AI API까지
+    # 함께 죽지 않도록 DB 초기화 실패를 분리합니다.
+    # DB 기능을 사용할 때는 PostgreSQL 연결을 반드시 정상화해야 합니다.
+    try:
+        conn()
+        print("[DB] connection ready")
+    except Exception as exc:
+        print(f"[DB] startup warning: {type(exc).__name__}: {exc}")
+
     yield
 
 
@@ -36,7 +44,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "http://localhost:5173"
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],

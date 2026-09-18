@@ -3,7 +3,7 @@ export interface DialogueMessage {
   text: string;
   // 지정하면 텍스트 대신 이미지로 표시 (Instagram DM 연출용)
   // "product": 상품 사진(DietPillPhoto) / "review": 후기 인증샷(DietReviewPhoto)
-  image?: "product" | "review";
+  image?: "product" | "review" | "pill";
 }
 
 
@@ -39,12 +39,13 @@ export const episode01Stages: GameStage[] = [
     messages: [
       { sender: "지우", text: "나 요즘 이거 먹고 공부하는데 잠이 하나도 안 온다." },
       { sender: "지우", text: "집중도 엄청 잘 됨." },
+      { sender: "지우", text: "", image: "pill" },
       { sender: "주원", text: "나도 써봄." },
       { sender: "주원", text: "효과 좋음." },
     ],
 
     question:
-      "포장지가 없는 알약 사진이 올라왔습니다. 이 상황에서 어떤 점이 가장 신경 쓰이나요?",
+      "포장지가 없는 알약 사진이 올라왔습니다. 이 상황에서는 어떻게 대응하시겠습니까?",
 
     evaluation: [
       "알약의 출처를 의심하는가?",

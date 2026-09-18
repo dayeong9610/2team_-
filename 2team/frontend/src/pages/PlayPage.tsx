@@ -22,7 +22,6 @@ import {
   sendChat,
   getSessionState,
 } from "../services/api";
-import { getResilienceMode } from "../services/resilience";
 
 import type { Scores } from "../types/chat";
 import useGameSound from "../hooks/useGameSound";
@@ -76,21 +75,14 @@ export default function PlayPage() {
     help_request: 0,
   });
   const [nextStageId, setNextStageId] = useState<string | null>(null);
+  const [retryRequired, setRetryRequired] = useState(false);
   const [showStageIntro, setShowStageIntro] = useState(true);
-  const [isFallbackMode, setIsFallbackMode] = useState(false);
 
   const conversationRef = useRef<HTMLDivElement>(null);
   const { enabled: soundEnabled, toggle: toggleSound, play: playSound } =
     useGameSound();
 
   const currentStage = stages[stageIndex];
-
-  // 에피소드 목록에서 내려간 스크롤 위치가 그대로 유지되면
-  // 플레이 화면 상단(에피소드 제목/진행도)이 잘려 보일 수 있으므로
-  // 플레이 화면 진입 시 항상 맨 위에서 시작합니다.
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [episodeId]);
 
   useEffect(() => {
     const el = conversationRef.current;
@@ -125,10 +117,6 @@ export default function PlayPage() {
 
             setSessionId(savedSessionId);
             setScores(sessionState.scores);
-            setIsFallbackMode(
-              sessionState.fallback_mode === true ||
-              getResilienceMode(savedSessionId) === "fallback"
-            );
 
             const restoredIndex = stages.findIndex(
               (stage) => stage.stageid === sessionState.current_stage
@@ -148,10 +136,6 @@ export default function PlayPage() {
 
         if (!cancelled) {
           setSessionId(result.session_id);
-          setIsFallbackMode(
-            result.fallback_mode === true ||
-            getResilienceMode(result.session_id) === "fallback"
-          );
           sessionStorage.setItem(sessionStorageKey, result.session_id);
         }
       } catch (error) {
@@ -196,6 +180,12 @@ export default function PlayPage() {
       playSound("tap");
       setIsSubmitting(true);
       setErrorMessage("");
+
+      // 재입력 후 새 답변을 보내는 순간에는 이전의 "다시 답해보세요" 상태를
+      // 잠시 해제합니다. 새 응답이 다시 불충분하면 아래 결과 처리에서
+      // retryRequired=true로 돌아가고, 의미 있는 답변이면 정상 완료됩니다.
+      setRetryRequired(false);
+
       setAnswersByStage((prev) => ({
         ...prev,
         [currentStage.id]: message,
@@ -217,19 +207,21 @@ export default function PlayPage() {
         [currentStage.id]: result.feedback,
       }));
       setNextStageId(result.next_stage);
-      setIsFallbackMode(
-        result.fallback_mode === true ||
-        result.analysis_available === false ||
-        getResilienceMode(sessionId) === "fallback"
-      );
+      setDraftMessage("");
 
+      if (result.retry_required) {
+        // "ㅇㅇ", "ㅋㅋ"처럼 평가하기 어려운 답변은 같은 장면에서 다시 입력받습니다.
+        // 사용자 입력과 NPC 안내는 채팅에 보여주되 STEP 완료/다음 버튼은 만들지 않습니다.
+        setRetryRequired(true);
+        setAnswered(false);
+        playSound("feedback");
+        return;
+      }
+
+      setRetryRequired(false);
       const sessionState = await getSessionState(sessionId);
       setScores(sessionState.scores);
-      if (sessionState.fallback_mode) {
-        setIsFallbackMode(true);
-      }
       setAnswered(true);
-      setDraftMessage("");
       playSound(result.is_episode_complete ? "complete" : "feedback");
     } catch (error) {
       setErrorMessage(
@@ -261,6 +253,7 @@ export default function PlayPage() {
 
     setStageIndex(nextIndex);
     setAnswered(false);
+    setRetryRequired(false);
     setDraftMessage("");
     setSceneLineIndex(0);
     setNextStageId(null);
@@ -289,17 +282,7 @@ export default function PlayPage() {
           />
         </div>
 
-        <div className="play-topbar-actions">
-          {isFallbackMode && (
-            <span
-              className="service-mode-pill"
-              title="서버 연결이 불안정해 검수된 기본 학습 흐름으로 진행 중입니다."
-            >
-              기본 학습 모드
-            </span>
-          )}
-          <SoundToggle enabled={soundEnabled} onToggle={toggleSound} />
-        </div>
+        <SoundToggle enabled={soundEnabled} onToggle={toggleSound} />
       </div>
 
       <section className="stage-header stage-header--focus">
@@ -475,7 +458,7 @@ export default function PlayPage() {
             )}
           </section>
 
-          {answered && feedbackByStage[currentStage.id] && (
+          {(answered || retryRequired) && feedbackByStage[currentStage.id] && (
             <section className="coach-dock" aria-label="마냥이 코칭">
               <div className="skill-focus-pill">
                 <span aria-hidden="true">{skillIcon}</span>
@@ -486,12 +469,14 @@ export default function PlayPage() {
               <ManyangCoach feedback={feedbackByStage[currentStage.id]} />
 
               <p className="coach-dock-note">
-                정확한 3축 점수는 에피소드가 끝난 뒤 결과 화면에서 확인할 수 있어요.
+                {retryRequired
+                  ? "이번 답변은 단계 완료로 처리하지 않았어요. 아래 입력창에서 다시 답해보세요."
+                  : "정확한 3축 점수는 에피소드가 끝난 뒤 결과 화면에서 확인할 수 있어요."}
               </p>
             </section>
           )}
 
-          {answered && (
+          {answered && !retryRequired && (
             <button className="next-button next-button--game" onClick={handleNext}>
               {currentStage.id === stages.length ? "결과 확인하기" : "계속하기"}
               <span aria-hidden="true">→</span>

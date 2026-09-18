@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 
-interface DialogueMessage {
-  sender: string;
-  text: string;
-}
+import LoosePillPhoto from "./LoosePillPhoto";
+import type { DialogueMessage } from "../../data/episode01stages";
+
 
 interface NPCBubbleProps {
   messages: DialogueMessage[];
@@ -11,19 +10,19 @@ interface NPCBubbleProps {
 
 interface MessageGroup {
   sender: string;
-  texts: string[];
+  items: DialogueMessage[];
 }
 
 function groupMessages(messages: DialogueMessage[]): MessageGroup[] {
   const groups: MessageGroup[] = [];
 
-  messages.forEach(({ sender, text }) => {
+  messages.forEach((message) => {
     const lastGroup = groups[groups.length - 1];
 
-    if (lastGroup && lastGroup.sender === sender) {
-      lastGroup.texts.push(text);
+    if (lastGroup && lastGroup.sender === message.sender) {
+      lastGroup.items.push(message);
     } else {
-      groups.push({ sender, texts: [text] });
+      groups.push({ sender: message.sender, items: [message] });
     }
   });
 
@@ -63,7 +62,7 @@ function withStartIndex(groups: MessageGroup[]) {
 
   return groups.map((group) => {
     const start = consumed;
-    consumed += group.texts.length;
+    consumed += group.items.length;
     return { group, start };
   });
 }
@@ -93,14 +92,14 @@ export default function NPCBubble({ messages }: NPCBubbleProps) {
         }
 
         const visibleInGroup = Math.min(
-          group.texts.length,
+          group.items.length,
           Math.max(0, visibleCount - start)
         );
 
         const isTypingHere =
           visibleCount < messages.length &&
           visibleCount >= start &&
-          visibleCount < start + group.texts.length;
+          visibleCount < start + group.items.length;
 
         return (
           <div className="npc-message" key={index}>
@@ -110,10 +109,20 @@ export default function NPCBubble({ messages }: NPCBubbleProps) {
               <span className="npc-name">{group.sender}</span>
 
               <div className="npc-bubble-group">
-                {group.texts.slice(0, visibleInGroup).map((text, textIndex) => (
-                  <div className="npc-bubble" key={textIndex}>
-                    {text}
-                  </div>
+                {group.items.slice(0, visibleInGroup).map((item, itemIndex) => (
+                  <Fragment key={itemIndex}>
+                    {item.image === "pill" && (
+                      <div className="npc-bubble npc-bubble--image">
+                        <LoosePillPhoto />
+                      </div>
+                    )}
+
+                    {item.text.trim() && (
+                      <div className="npc-bubble">
+                        {item.text}
+                      </div>
+                    )}
+                  </Fragment>
                 ))}
 
                 {isTypingHere && (

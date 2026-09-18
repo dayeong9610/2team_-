@@ -61,3 +61,7 @@ class ChatResponse(BaseModel):
 
     # False이면 숫자 점수는 AI 기반 분석 결과가 아니므로 UI에서 숨김
     analysis_available: bool = True
+
+    # True이면 현재 답변은 평가 가능한 대응으로 보지 않고 같은 Stage에서
+    # 다시 입력받습니다. (예: "ㅇㅇ", "ㅋㅋ", 욕설/위험정보 요청 등)
+    retry_required: bool = False

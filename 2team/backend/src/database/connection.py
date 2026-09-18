@@ -2,13 +2,9 @@ from pathlib import Path
 from pydantic.v1 import BaseSettings
 from sqlmodel import SQLModel, Session, create_engine
 from sqlalchemy import text
-from model import Admin, ChatRoom, Chatting, LlmRole
-
-from core.flow_trace import trace_flow
-
+from model import Admin, AiEvaluation, ChatRoom, Chatting, LlmRole, Score
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-FILE = "backend/src/database/connection.py"
 
 
 class Settings(BaseSettings):
@@ -21,61 +17,18 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-engine_url = create_engine(
-    settings.DATABASE_URL,
-    echo=True,
-    pool_pre_ping=True,
-)
-
-
-# =====================================================================
-# DB 담당 참고
-# ---------------------------------------------------------------------
-# conn()         : SQLModel 테이블 생성/초기화 진입점
-# get_session()  : 관리자 등 실제 SQLModel CRUD에서 사용하는 DB Session
-# database_is_available(): FastAPI가 DB 장애와 무관하게 뜰 수 있도록 상태 확인
-#
-# 중요: 학생용 /api/sessions, /api/chat 흐름은 현재 이 get_session()을 사용하지
-# 않고 core/session_store.py 메모리 저장소를 사용합니다.
-# =====================================================================
+engine_url = create_engine(settings.DATABASE_URL, echo=True, pool_pre_ping=True)
 
 
 def conn():
-    trace_flow(
-        FILE,
-        "conn",
-        "IN",
-        {"action": "SQLModel.metadata.create_all"},
-    )
-
+    # 기존 테이블은 유지하고, 없는 테이블만 생성합니다.
+    # 이번 패치의 ai_evaluation 테이블도 여기서 최초 1회 자동 생성됩니다.
     SQLModel.metadata.create_all(bind=engine_url)
-
-    trace_flow(
-        FILE,
-        "conn",
-        "OUT",
-        {"tables_ready": True},
-    )
 
 
 def get_session():
-    trace_flow(
-        FILE,
-        "get_session",
-        "OPEN",
-        {"session": "SQLModel Session"},
-    )
-
     with Session(engine_url) as session:
-        try:
-            yield session
-        finally:
-            trace_flow(
-                FILE,
-                "get_session",
-                "CLOSE",
-                {"session": "SQLModel Session"},
-            )
+        yield session
 
 
 def database_is_available() -> bool:
@@ -83,22 +36,6 @@ def database_is_available() -> bool:
     try:
         with engine_url.connect() as connection:
             connection.execute(text("SELECT 1"))
-
-        trace_flow(
-            FILE,
-            "database_is_available",
-            "OUT",
-            {"available": True},
-        )
         return True
-    except Exception as exc:
-        trace_flow(
-            FILE,
-            "database_is_available",
-            "OUT",
-            {
-                "available": False,
-                "error_type": type(exc).__name__,
-            },
-        )
+    except Exception:
         return False

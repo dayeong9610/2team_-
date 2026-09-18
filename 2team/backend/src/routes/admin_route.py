@@ -1,13 +1,6 @@
 from pathlib import Path
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException,
-    status,
-    Request,
-    Form
-)
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
@@ -19,26 +12,13 @@ from auth.jwt_handler import create_access_token
 from auth.authenticate import authenticate, optional_authenticate
 from database.connection import get_session
 from model.admin import Admin
+from model.ai_evaluation import AiEvaluation
 from model.llm_role import LlmRole, WriteLlmRole
 
+router = APIRouter(prefix="/admins", tags=["Admins"])
 
-router = APIRouter(
-    prefix="/admins",
-    tags=["Admins"]
-)
-
-
-# admin_route.py 위치:
-# backend/src/routes/admin_route.py
-#
-# templates 위치:
-# backend/src/templates
-SRC_DIR = Path(__file__).resolve().parents[1]
-TEMPLATE_DIR = SRC_DIR / "templates"
-
-template = Jinja2Templates(
-    directory=str(TEMPLATE_DIR)
-)
+TEMPLATE_DIR = Path(__file__).resolve().parents[1] / "templates"
+template = Jinja2Templates(directory=str(TEMPLATE_DIR))
 
 password_encoder = HashPassword()
 
@@ -46,11 +26,129 @@ password_encoder = HashPassword()
 async def admin_index(
     request: Request,
     current_user: str | None = Depends(optional_authenticate),
+    session=Depends(get_session),
 ):
+    # 로그인 전에는 기존처럼 로그인/회원가입 메뉴만 보여줍니다.
+    context = {
+        "is_authenticated": current_user is not None,
+        "current_user": current_user,
+        "dashboard": None,
+        "dashboard_error": None,
+    }
+
+    if current_user is not None:
+        try:
+            # -------------------------
+            # 콘텐츠 / 관리자 기본 현황
+            # -------------------------
+            total_scenarios = session.exec(
+                select(func.count(LlmRole.lr_num))
+            ).one() or 0
+
+            my_scenarios = session.exec(
+                select(func.count(LlmRole.lr_num)).where(
+                    LlmRole.admin_id == current_user
+                )
+            ).one() or 0
+
+            total_admins = session.exec(
+                select(func.count(Admin.admin_id))
+            ).one() or 0
+
+            active_admins = session.exec(
+                select(func.count(Admin.admin_id)).where(
+                    Admin.enabled == True  # noqa: E712
+                )
+            ).one() or 0
+
+            category_rows = session.exec(
+                select(
+                    LlmRole.category,
+                    func.count(LlmRole.lr_num),
+                ).group_by(LlmRole.category)
+            ).all()
+
+            category_map = {
+                row[0]: int(row[1])
+                for row in category_rows
+                if row[0] is not None
+            }
+
+            categories = [
+                {"key": "school", "label": "교내", "count": category_map.get("school", 0)},
+                {"key": "trip", "label": "해외여행", "count": category_map.get("trip", 0)},
+                {"key": "club", "label": "클럽마약", "count": category_map.get("club", 0)},
+                {"key": "user_defined", "label": "사용자 정의", "count": category_map.get("user_defined", 0)},
+            ]
+
+            recent_scenarios = session.exec(
+                select(LlmRole)
+                .order_by(LlmRole.created_at.desc())
+                .limit(5)
+            ).all()
+
+            dashboard = {
+                "total_scenarios": int(total_scenarios),
+                "my_scenarios": int(my_scenarios),
+                "total_admins": int(total_admins),
+                "active_admins": int(active_admins),
+                "categories": categories,
+                "recent_scenarios": recent_scenarios,
+                "ai_evaluation": {
+                    "available": True,
+                    "count": 0,
+                    "avg_risk_awareness": 0.0,
+                    "avg_refusal": 0.0,
+                    "avg_help_request": 0.0,
+                },
+            }
+
+            # -------------------------
+            # 실제 AI 평가 저장 현황
+            # -------------------------
+            # ai_evaluation 테이블이 아직 생성되지 않았거나 DB 권한 문제로
+            # 조회가 실패해도 콘텐츠/관리자 대시보드는 계속 표시합니다.
+            try:
+                evaluation_stats = session.exec(
+                    select(
+                        func.count(AiEvaluation.evaluation_id),
+                        func.avg(AiEvaluation.risk_awareness),
+                        func.avg(AiEvaluation.refusal),
+                        func.avg(AiEvaluation.help_request),
+                    )
+                ).one()
+
+                dashboard["ai_evaluation"] = {
+                    "available": True,
+                    "count": int(evaluation_stats[0] or 0),
+                    "avg_risk_awareness": float(evaluation_stats[1] or 0),
+                    "avg_refusal": float(evaluation_stats[2] or 0),
+                    "avg_help_request": float(evaluation_stats[3] or 0),
+                }
+            except Exception as exc:
+                session.rollback()
+                dashboard["ai_evaluation"]["available"] = False
+                print(
+                    "[ADMIN DASHBOARD WARNING] "
+                    f"AI evaluation statistics unavailable: {type(exc).__name__}"
+                )
+
+            context["dashboard"] = dashboard
+
+        except Exception as exc:
+            session.rollback()
+            context["dashboard_error"] = (
+                "DB 현황을 불러오지 못했습니다. DB 연결 상태를 확인해주세요."
+            )
+            print(
+                "[ADMIN DASHBOARD WARNING] "
+                f"dashboard query failed: {type(exc).__name__}: {exc}"
+            )
+
     return template.TemplateResponse(
         request,
         "admin/admin_index.html",
-        {"is_authenticated": current_user is not None},
+        context,
     )
 
 @router.get("/signup")

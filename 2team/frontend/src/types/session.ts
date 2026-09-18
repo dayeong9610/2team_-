@@ -10,6 +10,8 @@ export interface SessionCreateResponse {
   session_id: string;
   episode_id: string;
   current_stage: string;
+  fallback_mode?: boolean;
+  analysis_available?: boolean;
 }
 
 
@@ -26,6 +28,9 @@ export interface SessionStateResponse {
   progress: number;
 
   is_complete: boolean;
+
+  fallback_mode?: boolean;
+  analysis_available?: boolean;
 }
 
 
@@ -33,6 +38,7 @@ export interface StageResult {
   stage_id: string;
   feedback: string;
   scores: Scores;
+  analysis_available?: boolean;
 }
 
 
@@ -46,4 +52,7 @@ export interface SessionResultResponse {
   completed_stages: string[];
 
   is_complete: boolean;
+
+  fallback_mode?: boolean;
+  analysis_available?: boolean;
 }

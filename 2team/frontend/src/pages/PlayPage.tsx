@@ -22,6 +22,7 @@ import {
   sendChat,
   getSessionState,
 } from "../services/api";
+import { getResilienceMode } from "../services/resilience";
 
 import type { Scores } from "../types/chat";
 import useGameSound from "../hooks/useGameSound";
@@ -76,6 +77,7 @@ export default function PlayPage() {
   });
   const [nextStageId, setNextStageId] = useState<string | null>(null);
   const [showStageIntro, setShowStageIntro] = useState(true);
+  const [isFallbackMode, setIsFallbackMode] = useState(false);
 
   const conversationRef = useRef<HTMLDivElement>(null);
   const { enabled: soundEnabled, toggle: toggleSound, play: playSound } =
@@ -123,6 +125,10 @@ export default function PlayPage() {
 
             setSessionId(savedSessionId);
             setScores(sessionState.scores);
+            setIsFallbackMode(
+              sessionState.fallback_mode === true ||
+              getResilienceMode(savedSessionId) === "fallback"
+            );
 
             const restoredIndex = stages.findIndex(
               (stage) => stage.stageid === sessionState.current_stage
@@ -142,6 +148,10 @@ export default function PlayPage() {
 
         if (!cancelled) {
           setSessionId(result.session_id);
+          setIsFallbackMode(
+            result.fallback_mode === true ||
+            getResilienceMode(result.session_id) === "fallback"
+          );
           sessionStorage.setItem(sessionStorageKey, result.session_id);
         }
       } catch (error) {
@@ -207,9 +217,17 @@ export default function PlayPage() {
         [currentStage.id]: result.feedback,
       }));
       setNextStageId(result.next_stage);
+      setIsFallbackMode(
+        result.fallback_mode === true ||
+        result.analysis_available === false ||
+        getResilienceMode(sessionId) === "fallback"
+      );
 
       const sessionState = await getSessionState(sessionId);
       setScores(sessionState.scores);
+      if (sessionState.fallback_mode) {
+        setIsFallbackMode(true);
+      }
       setAnswered(true);
       setDraftMessage("");
       playSound(result.is_episode_complete ? "complete" : "feedback");
@@ -271,7 +289,17 @@ export default function PlayPage() {
           />
         </div>
 
-        <SoundToggle enabled={soundEnabled} onToggle={toggleSound} />
+        <div className="play-topbar-actions">
+          {isFallbackMode && (
+            <span
+              className="service-mode-pill"
+              title="서버 연결이 불안정해 검수된 기본 학습 흐름으로 진행 중입니다."
+            >
+              기본 학습 모드
+            </span>
+          )}
+          <SoundToggle enabled={soundEnabled} onToggle={toggleSound} />
+        </div>
       </div>
 
       <section className="stage-header stage-header--focus">

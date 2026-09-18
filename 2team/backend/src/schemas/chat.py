@@ -55,3 +55,9 @@ class ChatResponse(BaseModel):
     next_stage: Optional[str] = None
 
     is_episode_complete: bool = False
+
+    # 외부 AI/서버 일부 장애로 검수된 fallback 응답을 사용했는지 표시
+    fallback_mode: bool = False
+
+    # False이면 숫자 점수는 AI 기반 분석 결과가 아니므로 UI에서 숨김
+    analysis_available: bool = True

@@ -1938,3 +1938,70 @@
     transition: none !important;
   }
 }
+
+/* =====================================================================
+   Resilience / fallback mode
+   - Backend/AI 장애 시 학생 학습 흐름을 중단하지 않고 기본 학습 모드 표시
+   ===================================================================== */
+.play-topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.service-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid #d7e4df;
+  border-radius: 999px;
+  background: #f4faf8;
+  color: #356c62;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* 이전 UX 패치에서 토글이 표시 전용이 되지 않도록 실제 클릭 허용 */
+.sound-toggle {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.result-fallback-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 22px;
+  border: 1px solid #d8e8e2;
+  border-radius: 20px;
+  background: #f5fbf9;
+  color: #34413e;
+}
+
+.result-fallback-card strong {
+  color: #2f6c61;
+  font-size: 0.98rem;
+}
+
+.result-fallback-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: #5a6663;
+}
+
+@media (max-width: 700px) {
+  .play-topbar-actions {
+    gap: 6px;
+  }
+
+  .service-mode-pill {
+    max-width: 108px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

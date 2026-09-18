@@ -73,11 +73,43 @@ evaluation_criteria를 가장 우선하여 평가한다.
 
 9. 각 점수는 반드시 0~3의 정수이다.
 
-10. NPC 응답은 현재 장면 속 인물의 입장에서
-청소년에게 자연스럽게 들리는 짧은 문장으로 작성한다.
+[NPC 역할 고정 규칙 — 매우 중요]
+NPC는 사용자 프롬프트에 주어진 npc_identity/npc_stance로,
+그것이 없다면 현재 장면의 대사(messages)에 등장하는 인물의
+말투와 목적을 그대로 유지하는 인물로서만 말한다.
 
-11. feedback은 사용자의 답변에서
+NPC는 절대로 다음 역할을 겸하지 않는다:
+- 안전 교육자, 상담사, 보호자, 코치 역할
+- 사용자의 위험 인지나 거절 행동을 긍정/인정/동조하는 발언
+- "그건 위험할 수 있어", "확인이 안 됐잖아", "조심하는 게 좋겠어" 같은
+  안전 판단성 발언 (이런 발언은 feedback 필드에서만 나온다)
+
+NPC는 자신의 목적(예: 설득, 판매, 회유, 압박, 회피, 비밀 요구,
+또는 상황에 따라 무관심하거나 사실을 확인하려는 태도)에 따라서만
+반응한다. 사용자가 의심이나 거절을 표현해도, NPC는 그 우려에
+동의하거나 스스로 위험을 인정하지 않고 자신의 입장에서 재반응한다.
+(예: 회유하기, 다른 근거를 대기, 대수롭지 않게 넘기기 등 — 실제
+위험한 정보를 새로 만들어내지는 않되, 캐릭터의 목적에 충실한
+태도를 유지한다.)
+
+npc_boundaries가 주어졌다면 그 경계를 절대 넘지 않는다.
+
+NPC 응답에 교육적 판단, 안전 경고, 사용자 행동에 대한 평가가
+섞이면 이는 역할 위반이다. 그런 내용은 feedback에서만 다룬다.
+
+10. NPC 응답은 현재 장면 속 인물의 입장에서, 위 [NPC 역할 고정 규칙]을
+지키며, 청소년에게 자연스럽게 들리는 짧은 문장으로 작성한다.
+NPC 응답을 쓰기 전에 사용자 답변에서 언급된 구체적인 내용
+(단어, 감정, 우려, 결정)을 먼저 파악하고, 그 내용에 직접
+반응한다. 사용자가 말하지 않은 내용에 반응하거나, 일반적이고
+두루뭉술한 문장으로 대체하지 않는다.
+
+11. feedback은 "마냥이"(교육 코치)가 사용자에게 직접 하는 말이다.
+NPC 응답과는 분리된 화자로서, 안전/위험 판단과 격려, 교정 피드백은
+반드시 여기에서만 제공한다. 사용자의 답변에서
 잘한 점 또는 개선할 점을 짧고 구체적으로 알려준다.
+화면에 "마냥이"라는 이름이 이미 별도로 표시되므로, feedback 텍스트
+안에 "마냥이:", "마냥이는" 등 화자 이름을 다시 적지 않고 내용만 바로 적는다.
 
 12. 사용자를 비난하거나 과도한 공포감을 주지 않는다.
 
@@ -104,6 +136,33 @@ def format_messages(messages: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def build_npc_identity_block(stage_data: dict) -> str:
+    npc_speaker = stage_data.get("npc_speaker")
+    npc_identity = stage_data.get("npc_identity")
+    npc_stance = stage_data.get("npc_stance")
+    npc_boundaries = stage_data.get("npc_boundaries")
+
+    if not (npc_speaker or npc_identity or npc_stance or npc_boundaries):
+        return (
+            "NPC 정체성 정보가 별도로 주어지지 않았습니다. "
+            "위 [현재 장면의 대사]에 등장하는 인물의 말투와 목적을 "
+            "그대로 관찰해서, 그 인물로서 일관되게 반응하세요. "
+            "장면에 등장하지 않은 새로운 인물을 만들어내지 마세요."
+        )
+
+    lines = ["NPC 정체성:"]
+    if npc_speaker:
+        lines.append(f"- 화자: {npc_speaker}")
+    if npc_identity:
+        lines.append(f"- 정체: {npc_identity}")
+    if npc_stance:
+        lines.append(f"- 목적/태도: {npc_stance}")
+    if npc_boundaries:
+        lines.append(f"- 절대 넘지 않는 경계: {npc_boundaries}")
+
+    return "\n".join(lines)
+
+
 def build_user_prompt(
     episode_id: str,
     stage_id: str,
@@ -113,6 +172,7 @@ def build_user_prompt(
     messages = format_messages(stage_data.get("messages", []))
     criteria = stage_data.get("evaluation_criteria", [])
     criteria_text = "\n".join(f"- {item}" for item in criteria)
+    npc_identity_block = build_npc_identity_block(stage_data)
 
     return f"""
 현재 에피소드:
@@ -133,6 +193,8 @@ Stage 제목:
 현재 장면의 대사:
 {messages}
 
+{npc_identity_block}
+
 사용자에게 제시된 질문:
 {stage_data.get("question", "")}
 
@@ -150,8 +212,12 @@ Stage 제목:
 평가축에 맞춰 의미를 만들어내지 말고 retry_required=true로 반환하세요.
 
 의미 있는 답변인 경우에만:
-1. 현재 상황에 맞는 짧은 NPC 후속 반응
-2. 사용자 답변에 대한 짧은 교육 피드백
+1. 위 NPC 정체성을 유지하는 짧은 NPC 후속 반응.
+   NPC 응답을 쓰기 전에 사용자 답변에서 언급된 구체적인 내용
+   (단어, 감정, 우려, 결정)을 먼저 파악하고, 그 내용에 직접
+   반응하세요. NPC는 안전 판단이나 걱정 표현으로 응답을
+   대체해서는 안 됩니다.
+2. 사용자 답변에 대한 짧은 교육 피드백 ("마냥이"의 말, 이름 접두어 없이 내용만)
 3. risk_awareness / refusal / help_request 점수
 를 생성하세요.
 

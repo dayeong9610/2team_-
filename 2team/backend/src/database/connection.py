@@ -1,6 +1,7 @@
 from pathlib import Path
 from pydantic.v1 import BaseSettings
 from sqlmodel import SQLModel, Session, create_engine
+from sqlalchemy import text
 from model import Admin, ChatRoom, Chatting, LlmRole
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -25,3 +26,13 @@ def conn():
 def get_session():
     with Session(engine_url) as session:
         yield session
+
+
+def database_is_available() -> bool:
+    """DB 장애 여부를 빠르게 확인. 실패를 밖으로 전파하지 않습니다."""
+    try:
+        with engine_url.connect() as connection:
+            connection.execute(text("SELECT 1"))
+        return True
+    except Exception:
+        return False

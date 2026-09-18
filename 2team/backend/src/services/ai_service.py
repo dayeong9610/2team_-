@@ -5,6 +5,8 @@ from functools import lru_cache
 
 from dotenv import load_dotenv
 
+from langchain_openai import ChatOpenAI
+
 from langchain_google_genai import (
     ChatGoogleGenerativeAI
 )
@@ -39,8 +41,12 @@ def get_structured_llm():
     )
 
     api_key = os.getenv(
-        "GOOGLE_API_KEY"
-    )
+            "OPENAI_API_KEY"
+        )
+
+    # api_key = os.getenv(
+    #     "GOOGLE_API_KEY"
+    # )
 
     if not model:
         # 모델명이 없으면 잘못된 외부 API 호출을 막고 설정 오류를 알립니다.
@@ -51,14 +57,21 @@ def get_structured_llm():
     if not api_key:
         # API 키가 없으면 인증되지 않은 요청을 보내지 않습니다.
         raise RuntimeError(
-            "GOOGLE_API_KEY is not configured"
+            "OPENAI_API_KEY is not configured"
         )
 
-    llm = ChatGoogleGenerativeAI(
+    #  재미나이용
+    # llm = ChatGoogleGenerativeAI(
+    #     model=model,
+    #     google_api_key=api_key,
+    #     temperature=0.3
+    # )
+
+    llm = ChatOpenAI(
         model=model,
-        google_api_key=api_key,
-        temperature=0.3
+        api_key=api_key
     )
+
 
     return llm.with_structured_output(
         AIResponse

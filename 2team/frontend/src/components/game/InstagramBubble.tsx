@@ -2,12 +2,8 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 
 import DietPillPhoto from "./DietPillPhoto";
 import DietReviewPhoto from "./DietReviewPhoto";
+import type { DialogueMessage } from "../../data/episode01stages";
 
-interface DialogueMessage {
-  sender: string;
-  text: string;
-  image?: "product" | "review";
-}
 
 interface InstagramBubbleProps {
   messages: DialogueMessage[];

@@ -38,6 +38,57 @@ const ZERO_SCORES: Scores = {
   help_request: 0,
 };
 
+const INSUFFICIENT_INPUTS = new Set([
+  "ㅇ", "ㅇㅇ", "응", "응응", "웅", "어", "네", "넵", "예",
+  "ㅇㅋ", "오케이", "ok", "okay", "ㄴ", "ㄴㄴ", "몰라", "모름",
+  "글쎄", "그냥", "아무거나", "음", "흠", "ㅋㅋ", "ㅋㅋㅋ",
+  "ㅎㅎ", "ㅎㅎㅎ",
+]);
+
+function isInsufficientResponse(message: string) {
+  const compact = message.trim().toLowerCase().replace(/\s+/g, "");
+
+  if (!compact) return true;
+  if (INSUFFICIENT_INPUTS.has(compact)) return true;
+
+  return /^[ㅇㅋㅎㅠㅜㄴ.!?~]+$/.test(compact);
+}
+
+
+const FALLBACK_MEANINGFUL_MARKERS = [
+  // 중요: '올바른 답' 목록이 아니라 '행동/판단 의도가 있는 답' 목록입니다.
+  // 위험한 선택을 말해도 의미가 분명하면 평가/피드백을 받아야 합니다.
+
+  // 거절 / 회피 / 안전 행동
+  "싫", "안 먹", "먹지", "거절", "안 할", "하지 않", "필요 없",
+  "그만", "됐어", "괜찮아", "자리", "떠날", "나갈", "피할", "차단",
+
+  // 수락 / 위험한 선택도 의미 있는 대응
+  "먹을래", "먹을게", "먹겠다", "먹어볼", "먹어 보", "먹어야",
+  "써볼", "사용할", "해볼", "해 볼", "마실래", "마실게",
+  "받을래", "받을게", "따라할", "같이 할", "나도 먹", "나만 먹",
+
+  // 위험 인지
+  "위험", "수상", "이상", "출처", "정체", "성분", "안전", "모르",
+  "확인", "불분명", "의심", "걱정", "약", "알약", "사진", "포장",
+  "처방", "약국", "병원", "믿", "문제",
+
+  // 도움 요청
+  "선생", "교사", "부모", "보호자", "어른", "상담", "신고", "도움",
+  "119", "112", "보건", "알리", "말할", "말하", "연락", "구급", "도와",
+
+  // 판단 / 행동 의사
+  "아닌 것", "하지 말", "해야", "하겠", "할래", "할게",
+  "생각", "같아", "보여", "왜", "좋아", "싫어",
+];
+
+function isFallbackMeaningfulResponse(message: string) {
+  if (isInsufficientResponse(message)) return false;
+
+  const text = message.trim().toLowerCase().replace(/\s+/g, " ");
+  return FALLBACK_MEANINGFUL_MARKERS.some((marker) => text.includes(marker));
+}
+
 function storageKey(sessionId: string) {
   return `${STORAGE_PREFIX}${sessionId}`;
 }
@@ -208,6 +259,11 @@ export function applyRemoteChatResult(
     return;
   }
 
+  // 재입력이 필요한 답변은 Stage 완료/점수/진행 상태에 절대 반영하지 않습니다.
+  if (response.retry_required) {
+    return;
+  }
+
   // 서버가 안전 fallback으로 응답한 경우에도 이후 단계는 로컬 미러를
   // 기준으로 이어갈 수 있도록 degraded 상태를 기억합니다.
   if (response.fallback_mode || response.analysis_available === false) {
@@ -255,6 +311,26 @@ export function createFallbackChat(request: ChatRequest): ChatResponse {
     throw new Error("현재 학습 단계를 찾을 수 없습니다.");
   }
 
+  // Backend가 완전히 내려간 fallback 상황에서도 "ㅇㅇ", "ㅋㅋ" 같은 입력을
+  // 정상 답변으로 간주해 다음 단계로 넘기지 않습니다.
+  if (!isFallbackMeaningfulResponse(request.message)) {
+    writeSession(record);
+
+    return {
+      npc_response:
+        "응? 어떻게 하겠다는 건지 잘 모르겠어. 조금 더 구체적으로 말해줄래?",
+      feedback:
+        "현재 상황에서 무엇이 걱정되는지, 무엇을 하지 않을지, " +
+        "또는 누구에게 도움을 요청할지 실제로 말하듯 표현해보세요.",
+      scores: { ...ZERO_SCORES },
+      next_stage: request.stage_id,
+      is_episode_complete: false,
+      fallback_mode: true,
+      analysis_available: false,
+      retry_required: true,
+    };
+  }
+
   const next = nextStageId(request.episode_id, request.stage_id);
   const feedback = fallbackFeedback(stage);
   const scores = { ...ZERO_SCORES };
@@ -282,6 +358,7 @@ export function createFallbackChat(request: ChatRequest): ChatResponse {
     is_episode_complete: next === null,
     fallback_mode: true,
     analysis_available: false,
+    retry_required: false,
   };
 }
 

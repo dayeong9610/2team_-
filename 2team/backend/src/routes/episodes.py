@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+import logging
 from fastapi import (
     APIRouter,
     HTTPException
@@ -26,6 +27,16 @@ router = APIRouter(
     tags=["Sessions"]
 )
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+if not logger.handlers:
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    console_handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(message)s")
+    )
+    logger.addHandler(console_handler)
+logger.propagate = False
 
 # =========================
 # Session 생성
@@ -38,11 +49,13 @@ router = APIRouter(
 def start_session(
     request: SessionCreateRequest
 ):
-
+    logger.debug("episode.py start_session() 실행")
     # 1. Episode 조회
     episode = load_episode(
         request.episode_id
     )
+
+    logger.debug(f"episode : {episode}")
 
     if episode is None:
         raise HTTPException(
@@ -55,7 +68,7 @@ def start_session(
         "stages",
         []
     )
-
+    logger.debug(f"stages : {stages}")
     if not stages:
         raise HTTPException(
             status_code=500,
@@ -66,7 +79,7 @@ def start_session(
     first_stage = stages[0][
         "stage_id"
     ]
-
+    logger.debug(f"first_stage : {first_stage}")
     # 4. Session ID 생성
     session_id = str(
         uuid4()
@@ -80,6 +93,7 @@ def start_session(
             first_stage=first_stage
         )
     )
+    logger.debug(f"session : {session}")
 
     return {
         "session_id":
@@ -110,6 +124,7 @@ def session_result(
             session_id
         )
     )
+    logger.debug(f"result : {result}")
 
     if result is None:
         raise HTTPException(

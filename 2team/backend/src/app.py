@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 import asyncio
+import logging
 
 import uvicorn
 from fastapi import FastAPI
@@ -23,6 +24,17 @@ from core.flow_trace import print_route_map
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 FRONTEND_DIST = FRONTEND_DIR / "dist"
 FRONTEND_INDEX = FRONTEND_DIST / "index.html"
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+if not logger.handlers:
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    console_handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(message)s")
+    )
+    logger.addHandler(console_handler)
+logger.propagate = False
 
 @asynccontextmanager
 async def lifespan(app_instance: FastAPI):
@@ -95,7 +107,7 @@ app.include_router(episode_router, prefix="/api")
 def health():
     """학생용 API 프로세스와 DB 상태를 분리해서 확인합니다."""
     db_ok = bool(getattr(app.state, "db_available", False))
-
+    logger.debug("app.health()")
     return {
         "api": "ok",
         "database": "ok" if db_ok else "unavailable",
@@ -111,6 +123,7 @@ if (FRONTEND_DIST / "assets").is_dir():
 
 @app.get("/")
 async def frontend_index():
+    logger.debug("app.frontend_index 실행")
     if not FRONTEND_INDEX.is_file():
         return {
             "message": "Frontend build not found. Run `npm run build` in frontend/ first."
@@ -120,6 +133,7 @@ async def frontend_index():
 
 @app.get("/{path:path}")
 async def frontend_spa_fallback(path: str):
+    logger.debug("app.frontend_spa_fallback 실행")
     """Let React Router handle client-side routes after a page refresh."""
     if not FRONTEND_INDEX.is_file():
         return {

@@ -7,6 +7,7 @@ import type { DialogueMessage } from "../../data/episode01stages";
 
 interface InstagramBubbleProps {
   messages: DialogueMessage[];
+  onRevealComplete?: () => void;
 }
 
 interface MessageGroup {
@@ -69,7 +70,10 @@ function withStartIndex(groups: MessageGroup[]) {
 
 // EP03 인스타그램 DM 연출용 - 상단에 상대 계정명이 이미 나오므로
 // 말풍선마다 이름을 반복하지 않는, 실제 DM에 가까운 모양입니다.
-export default function InstagramBubble({ messages }: InstagramBubbleProps) {
+export default function InstagramBubble({
+  messages,
+  onRevealComplete,
+}: InstagramBubbleProps) {
   const groups = useMemo(
     () => groupMessages(messages),
     [messages]
@@ -81,6 +85,12 @@ export default function InstagramBubble({ messages }: InstagramBubbleProps) {
   );
 
   const visibleCount = useSequentialReveal(messages.length);
+
+  useEffect(() => {
+    if (messages.length > 0 && visibleCount >= messages.length) {
+      onRevealComplete?.();
+    }
+  }, [messages.length, onRevealComplete, visibleCount]);
 
   return (
     <>

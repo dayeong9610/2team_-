@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import ProgressBar from "../components/common/ProgressBar";
@@ -11,6 +11,7 @@ import UserInput from "../components/game/UserInput";
 import ManyangCoach from "../components/game/ManyangCoach";
 import SoundToggle from "../components/game/SoundToggle";
 import SceneTransition from "../components/game/SceneTransition";
+import StageSupportPanel from "../components/game/StageSupportPanel";
 
 import type { GameStage } from "../data/episode01stages";
 import { episode01Stages } from "../data/episode01stages";
@@ -21,9 +22,12 @@ import {
   createSession,
   sendChat,
   getSessionState,
+  getEpisodeDetail,
 } from "../services/api";
 
 import type { Scores } from "../types/chat";
+import type { EpisodeDetailResponse, EpisodeStageResponse } from "../types/episode";
+import { registerFallbackEpisode } from "../services/resilience";
 import useGameSound from "../hooks/useGameSound";
 
 const EPISODE_META: Record<
@@ -41,6 +45,32 @@ const STAGES_BY_EPISODE: Record<string, GameStage[]> = {
   EP03: episode03Stages,
 };
 
+const AXIS_LABEL: Record<string, string> = {
+  risk_awareness: "위험 인지",
+  refusal: "거절 대응",
+  help_request: "도움 요청",
+};
+
+function backendStageToGameStage(stage: EpisodeStageResponse): GameStage {
+  const isAdvanced = stage.type.endsWith("_advanced");
+  const baseLabel = AXIS_LABEL[stage.evaluation_axis] ?? stage.evaluation_axis;
+
+  return {
+    id: stage.stage_number,
+    stageid: stage.stage_id,
+    title: stage.title,
+    location: stage.location,
+    description: stage.description,
+    messages: stage.messages.map((message) => ({
+      sender: message.speaker,
+      text: message.text,
+    })),
+    question: stage.question,
+    evaluation: stage.evaluation_criteria,
+    scoreType: isAdvanced ? `${baseLabel} 심화` : baseLabel,
+  };
+}
+
 const SKILL_ICON: Record<string, string> = {
   "위험 인지": "🛡️",
   "거절 대응": "💬",
@@ -51,11 +81,65 @@ const SKILL_ICON: Record<string, string> = {
 
 export default function PlayPage() {
   const { episodeId = "EP01" } = useParams();
-  const stages = useMemo(
-    () => STAGES_BY_EPISODE[episodeId] ?? [],
+  const localStages = useMemo(
+    () => STAGES_BY_EPISODE[episodeId] ?? null,
     [episodeId]
   );
-  const episodeMeta = EPISODE_META[episodeId] ?? EPISODE_META.EP01;
+  const [remoteEpisode, setRemoteEpisode] = useState<EpisodeDetailResponse | null>(null);
+  const [episodeLoadError, setEpisodeLoadError] = useState("");
+  const [isEpisodeLoading, setIsEpisodeLoading] = useState(localStages === null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (localStages) {
+      setRemoteEpisode(null);
+      setEpisodeLoadError("");
+      setIsEpisodeLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setIsEpisodeLoading(true);
+    setEpisodeLoadError("");
+
+    getEpisodeDetail(episodeId)
+      .then((episode) => {
+        if (cancelled) return;
+        setRemoteEpisode(episode);
+
+        const mappedStages = episode.stages.map(backendStageToGameStage);
+        registerFallbackEpisode(episode.episode_id, mappedStages);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error("DB Episode load failed", error);
+        setEpisodeLoadError(
+          "에피소드 정보를 불러오지 못했습니다. 공개 상태와 /api/episodes/" +
+            episodeId +
+            " 응답을 확인해주세요."
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setIsEpisodeLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [episodeId, localStages]);
+
+  const stages = useMemo(() => {
+    if (localStages) return localStages;
+    return remoteEpisode?.stages.map(backendStageToGameStage) ?? [];
+  }, [localStages, remoteEpisode]);
+
+  const episodeMeta = EPISODE_META[episodeId] ?? {
+    num: episodeId.replace(/^EP/i, "") || episodeId,
+    title: remoteEpisode?.title ?? "새 에피소드",
+    layout: "chat" as const,
+  };
   const isScene = episodeMeta.layout === "scene";
   const sessionStorageKey = `manyang_session_${episodeId}`;
 
@@ -77,10 +161,16 @@ export default function PlayPage() {
   const [nextStageId, setNextStageId] = useState<string | null>(null);
   const [retryRequired, setRetryRequired] = useState(false);
   const [showStageIntro, setShowStageIntro] = useState(true);
+  const [npcIntroComplete, setNpcIntroComplete] = useState(false);
+  const [sceneConfirmed, setSceneConfirmed] = useState(false);
 
   const conversationRef = useRef<HTMLDivElement>(null);
   const { enabled: soundEnabled, toggle: toggleSound, play: playSound } =
     useGameSound();
+
+  const handleNpcIntroComplete = useCallback(() => {
+    setNpcIntroComplete(true);
+  }, []);
 
   const currentStage = stages[stageIndex];
 
@@ -96,6 +186,8 @@ export default function PlayPage() {
       return;
     }
 
+    setNpcIntroComplete(currentStage.messages.length === 0);
+    setSceneConfirmed(!currentStage.supportPanel);
     setShowStageIntro(true);
     const timer = window.setTimeout(() => setShowStageIntro(false), 950);
 
@@ -103,6 +195,8 @@ export default function PlayPage() {
   }, [stageIndex, currentStage]);
 
   useEffect(() => {
+    if (isEpisodeLoading || stages.length === 0) return;
+
     let cancelled = false;
 
     async function restoreOrCreateSession() {
@@ -152,12 +246,20 @@ export default function PlayPage() {
     return () => {
       cancelled = true;
     };
-  }, [episodeId, sessionStorageKey, stages]);
+  }, [episodeId, sessionStorageKey, stages, isEpisodeLoading]);
+
+  if (isEpisodeLoading) {
+    return (
+      <div className="play-page">
+        <p>에피소드를 불러오는 중이에요...</p>
+      </div>
+    );
+  }
 
   if (!currentStage) {
     return (
       <div className="play-page">
-        <p>아직 준비 중인 에피소드입니다.</p>
+        <p>{episodeLoadError || "아직 준비 중인 에피소드입니다."}</p>
       </div>
     );
   }
@@ -167,6 +269,7 @@ export default function PlayPage() {
   const sceneNpcDone = sceneLineIndex >= sceneMessages.length;
   const sceneCurrentMessage = sceneMessages[sceneLineIndex];
   const skillIcon = SKILL_ICON[currentStage.scoreType] ?? "✨";
+  const responseReady = isScene ? sceneNpcDone : npcIntroComplete;
 
   const handleSceneAdvance = () => {
     playSound("tap");
@@ -256,11 +359,20 @@ export default function PlayPage() {
     setRetryRequired(false);
     setDraftMessage("");
     setSceneLineIndex(0);
+    setNpcIntroComplete(false);
     setNextStageId(null);
   };
 
   return (
-    <main className="play-page play-page--immersive">
+    <main
+      className={`play-page play-page--immersive${
+        currentStage.supportPanel
+          ? sceneConfirmed
+            ? " play-page--scene-collapsed"
+            : " play-page--scene-view"
+          : ""
+      }`}
+    >
       {showStageIntro && (
         <SceneTransition
           step={currentStage.id}
@@ -301,16 +413,25 @@ export default function PlayPage() {
         </div>
       </section>
 
+      {currentStage.supportPanel && (
+        <StageSupportPanel
+          panel={currentStage.supportPanel}
+          compact={sceneConfirmed}
+          onConfirm={() => {
+            playSound("tap");
+            setSceneConfirmed(true);
+            setNpcIntroComplete(false);
+          }}
+          onReopen={() => {
+            playSound("tap");
+            setSceneConfirmed(false);
+          }}
+        />
+      )}
+
+      {(!currentStage.supportPanel || sceneConfirmed) && (
       <div className="play-layout play-layout--focused">
         <section className="play-chat play-chat--focused">
-          <div className="question-banner">
-            <span className="question-banner-icon" aria-hidden="true">💭</span>
-            <div>
-              <strong>어떻게 대응할까?</strong>
-              <p>{currentStage.question}</p>
-            </div>
-          </div>
-
           <section
             className={
               isScene
@@ -340,12 +461,6 @@ export default function PlayPage() {
                     />
                   )}
 
-                  {sceneNpcDone && !answered && (
-                    <div className="vn-line vn-line--prompt">
-                      <p className="vn-line-text">내 생각을 직접 말해보세요.</p>
-                    </div>
-                  )}
-
                   {answered && (
                     <div className="vn-line vn-line--me">
                       <span className="vn-line-name">나</span>
@@ -370,9 +485,17 @@ export default function PlayPage() {
               ) : (
                 <>
                   {isCurrentStageDM ? (
-                    <InstagramBubble messages={currentStage.messages} />
+                    <InstagramBubble
+                      key={`intro-${currentStage.stageid}`}
+                      messages={currentStage.messages}
+                      onRevealComplete={handleNpcIntroComplete}
+                    />
                   ) : (
-                    <NPCBubble messages={currentStage.messages} />
+                    <NPCBubble
+                      key={`intro-${currentStage.stageid}`}
+                      messages={currentStage.messages}
+                      onRevealComplete={handleNpcIntroComplete}
+                    />
                   )}
 
                   {answersByStage[currentStage.id] &&
@@ -448,13 +571,37 @@ export default function PlayPage() {
 
             {errorMessage && <div className="api-error">{errorMessage}</div>}
 
-            {!answered && (!isScene || sceneNpcDone) && (
-              <UserInput
-                onSubmit={handleAnswer}
-                onChange={setDraftMessage}
-                disabled={isSubmitting || !sessionId}
-                placeholder="내가 실제로 말하듯 직접 답해보세요..."
-              />
+            {!answered && responseReady && (
+              <section
+                className={`response-focus-card${retryRequired ? " response-focus-card--retry" : ""}`}
+                aria-label="내 대응 입력"
+              >
+                <div className="response-focus-card__lead">
+                  <span className="response-focus-card__eyebrow">
+                    {retryRequired ? "한 번 더 말해볼까?" : "✨ 이제 네 차례야"}
+                  </span>
+                  <strong>{currentStage.question}</strong>
+                  <p>
+                    정답을 고르는 대신, 이 상황의 상대에게 실제로 말하듯 직접 입력해보세요.
+                  </p>
+                </div>
+
+                <UserInput
+                  onSubmit={handleAnswer}
+                  onChange={setDraftMessage}
+                  disabled={isSubmitting || !sessionId}
+                  placeholder="상대에게 실제로 뭐라고 말할래?"
+                />
+              </section>
+            )}
+
+            {!answered && !responseReady && (
+              <div className="response-focus-wait" role="status" aria-live="polite">
+                <span className="typing-dot" />
+                <span className="typing-dot" />
+                <span className="typing-dot" />
+                <span>상대의 말을 먼저 들어보세요.</span>
+              </div>
             )}
           </section>
 
@@ -484,6 +631,7 @@ export default function PlayPage() {
           )}
         </section>
       </div>
+      )}
     </main>
   );
 }

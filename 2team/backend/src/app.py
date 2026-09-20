@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 import asyncio
+import logging
 
 import uvicorn
 from fastapi import FastAPI
@@ -24,6 +25,12 @@ FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 FRONTEND_DIST = FRONTEND_DIR / "dist"
 FRONTEND_INDEX = FRONTEND_DIST / "index.html"
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
 @asynccontextmanager
 async def lifespan(app_instance: FastAPI):
     # 개발/DB 연동 확인용: 실제 등록된 API 경로와 함수명을 서버 시작 시 출력합니다.
@@ -44,15 +51,17 @@ async def lifespan(app_instance: FastAPI):
                 if db_ok and not initialized:
                     await asyncio.to_thread(conn)
                     initialized = True
-                    print("[DB] connection ready")
+                    logger.info("DB connection ready")
 
                 app_instance.state.db_available = db_ok
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 app_instance.state.db_available = False
-                print(
-                    f"[DB] background warning: {type(exc).__name__}: {exc}"
+                logger.warning(
+                    "DB background warning: %s: %s",
+                    type(exc).__name__,
+                    exc,
                 )
 
             await asyncio.sleep(15)
@@ -81,6 +90,10 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
     ],
+    # Cloudflare Quick Tunnel로 모바일/외부 QA를 할 때 브라우저가
+    # 백엔드를 직접 호출하는 경우도 허용합니다. Vite proxy를 쓰면
+    # 같은 origin이므로 이 정규식은 사용되지 않습니다.
+    allow_origin_regex=r"https://[a-z0-9-]+\.trycloudflare\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -95,7 +108,7 @@ app.include_router(episode_router, prefix="/api")
 def health():
     """학생용 API 프로세스와 DB 상태를 분리해서 확인합니다."""
     db_ok = bool(getattr(app.state, "db_available", False))
-
+    logger.debug("app.health()")
     return {
         "api": "ok",
         "database": "ok" if db_ok else "unavailable",
@@ -111,6 +124,7 @@ if (FRONTEND_DIST / "assets").is_dir():
 
 @app.get("/")
 async def frontend_index():
+    logger.debug("app.frontend_index 실행")
     if not FRONTEND_INDEX.is_file():
         return {
             "message": "Frontend build not found. Run `npm run build` in frontend/ first."
@@ -120,6 +134,7 @@ async def frontend_index():
 
 @app.get("/{path:path}")
 async def frontend_spa_fallback(path: str):
+    logger.debug("app.frontend_spa_fallback 실행")
     """Let React Router handle client-side routes after a page refresh."""
     if not FRONTEND_INDEX.is_file():
         return {

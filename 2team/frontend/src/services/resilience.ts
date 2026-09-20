@@ -16,6 +16,12 @@ const STAGES_BY_EPISODE: Record<string, GameStage[]> = {
   EP03: episode03Stages,
 };
 
+export function registerFallbackEpisode(episodeId: string, stages: GameStage[]) {
+  const normalized = episodeId.trim().toUpperCase();
+  if (!normalized || stages.length === 0) return;
+  STAGES_BY_EPISODE[normalized] = stages;
+}
+
 const STORAGE_PREFIX = "manyang_resilient_session_";
 
 export type ResilienceMode = "remote" | "fallback";

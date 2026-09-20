@@ -1,5 +1,6 @@
 # 사용자 답변을 평가하고 다음 Stage로 진행시키는 API 모듈입니다.
 import asyncio
+import logging
 
 from fastapi import (
     APIRouter,
@@ -35,6 +36,8 @@ from ai.safety import (
 router = APIRouter(
     tags=["Chat"]
 )
+
+logger = logging.getLogger(__name__)
 
 
 @router.post(
@@ -121,11 +124,11 @@ async def chat(
             timeout=20
         )
 
-    except (asyncio.TimeoutError, Exception) as exc:
+    except Exception as exc:
         # 사용자 message 원문은 로그에 남기지 않음
-        print(
-            "AI evaluation unavailable - fallback enabled:",
-            type(exc).__name__
+        logger.warning(
+            "AI evaluation unavailable - fallback enabled: %s",
+            type(exc).__name__,
         )
 
         # AI가 내려간 상황에서는 장면의 의미를 추론할 수 없으므로

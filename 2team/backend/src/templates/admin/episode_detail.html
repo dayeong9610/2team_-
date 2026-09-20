@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ episode_id }} · 에피소드 JSON</title>
+    <style>
+        * { box-sizing:border-box; }
+        body { margin:0; padding:28px 18px 50px; background:#f5f5f5; color:#222; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic",sans-serif; }
+        .wrap { max-width:1050px; margin:0 auto; }
+        .head { display:flex; justify-content:space-between; gap:14px; align-items:flex-end; margin-bottom:16px; }
+        h1 { margin:0 0 5px; font-size:1.45rem; }
+        p { margin:0; color:#666; font-size:.85rem; }
+        a { color:#27685d; font-weight:700; text-decoration:none; }
+        .actions { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+        .btn, button.btn { min-height:40px; display:inline-flex; align-items:center; justify-content:center; padding:0 13px; border:1px solid #ccc; border-radius:8px; background:#fff; color:#222; font:inherit; font-size:.82rem; text-decoration:none; cursor:pointer; }
+        .btn.publish { background:#e8f5f1; border-color:#bddbd2; color:#25685c; font-weight:800; }
+        .btn.warn { background:#fff7e9; border-color:#ead7b5; color:#825d20; }
+        .btn.danger { background:#fff0f0; border-color:#e7c0c0; color:#a13b3b; }
+        form { margin:0; }
+        .notice { margin:0 0 14px; padding:11px 13px; border-radius:9px; background:#eef7f4; border:1px solid #cfe3dc; color:#45665f; font-size:.82rem; line-height:1.5; }
+        pre { margin:0; padding:18px; overflow:auto; border:1px solid #ddd; border-radius:12px; background:white; font:13px/1.55 Consolas,"Courier New",monospace; white-space:pre; }
+        @media(max-width:640px){ body{padding:20px 10px 40px}.head{align-items:flex-start;flex-direction:column}pre{font-size:12px;padding:12px}.actions .btn,.actions button.btn{flex:1 1 120px} }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="head">
+        <div>
+            <h1>{{ episode_id }}</h1>
+            <p>상태: {{ status }} · 소스: {{ source }} · 작성자: {{ owner }}</p>
+        </div>
+        <a href="/admins/episodes">← 목록으로</a>
+    </div>
+
+    {% if is_db and is_owner %}
+    <div class="actions">
+        <a class="btn" href="/admins/episodes/{{ episode_id }}/edit">수정</a>
+        {% if status == 'draft' %}
+        <form method="post" action="/admins/episodes/{{ episode_id }}/publish">
+            <button class="btn publish" type="submit">공개하고 게임에 표시</button>
+        </form>
+        {% else %}
+        <a class="btn publish" href="/play/{{ episode_id }}">게임에서 테스트</a>
+        <a class="btn" href="/episodes">학생용 목록 보기</a>
+        <form method="post" action="/admins/episodes/{{ episode_id }}/unpublish">
+            <button class="btn warn" type="submit">초안으로 전환</button>
+        </form>
+        {% endif %}
+        <form method="post" action="/admins/episodes/{{ episode_id }}/delete" onsubmit="return confirm('{{ episode_id }}를 DB에서 완전히 삭제할까요?');">
+            <button class="btn danger" type="submit">삭제</button>
+        </form>
+    </div>
+    {% if status == 'draft' %}<p class="notice">현재 초안이라 학생용 에피소드 목록에는 표시되지 않습니다. <strong>공개하고 게임에 표시</strong>를 누르면 <code>/episodes</code>에서 바로 테스트할 수 있습니다.</p>{% endif %}
+    {% endif %}
+
+    <pre>{{ scenario_json }}</pre>
+</div>
+</body>
+</html>

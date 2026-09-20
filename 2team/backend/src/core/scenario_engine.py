@@ -8,6 +8,9 @@ from typing import (
 )
 
 from core.flow_trace import trace_flow
+from sqlmodel import Session, select
+from database.connection import engine_url
+from model.episode_scenario import EpisodeScenario
 
 
 PROJECT_ROOT = (
@@ -23,6 +26,45 @@ SCENARIO_DIR = (
 )
 
 FILE = "backend/src/core/scenario_engine.py"
+
+
+def _load_episode_from_db(episode_id: str) -> Optional[Dict[str, Any]]:
+    """공개된 관리자 작성 에피소드를 DB에서 조회합니다. DB 장애 시 파일 방식으로 fallback."""
+    try:
+        with Session(engine_url) as session:
+            row = session.exec(
+                select(EpisodeScenario).where(
+                    EpisodeScenario.episode_id == episode_id.upper(),
+                    EpisodeScenario.status == "published",
+                )
+            ).first()
+        if row is None:
+            return None
+        episode = json.loads(row.scenario_json)
+        if episode.get("episode_id") != episode_id.upper():
+            return None
+        return episode
+    except Exception:
+        return None
+
+
+def _list_db_episodes() -> List[dict]:
+    try:
+        with Session(engine_url) as session:
+            rows = session.exec(
+                select(EpisodeScenario)
+                .where(EpisodeScenario.status == "published")
+                .order_by(EpisodeScenario.episode_id)
+            ).all()
+        result = []
+        for row in rows:
+            try:
+                result.append(json.loads(row.scenario_json))
+            except json.JSONDecodeError:
+                continue
+        return result
+    except Exception:
+        return []
 
 
 # DB 담당 참고:
@@ -80,17 +122,27 @@ def load_episode(
         {"episode_id": episode_id},
     )
 
+    db_episode = _load_episode_from_db(episode_id)
+    if db_episode is not None:
+        trace_flow(
+            FILE,
+            "load_episode",
+            "OUT",
+            {
+                "episode_id": db_episode.get("episode_id"),
+                "stage_count": len(db_episode.get("stages", [])),
+                "source": "database",
+            },
+        )
+        return db_episode
+
     file_path = get_episode_path(episode_id)
 
     if file_path is None or not file_path.exists():
         trace_flow(FILE, "load_episode", "OUT", None)
         return None
 
-    with open(
-        file_path,
-        "r",
-        encoding="utf-8"
-    ) as file:
+    with open(file_path, "r", encoding="utf-8") as file:
         episode = json.load(file)
 
     if episode.get("episode_id") != episode_id.upper():
@@ -171,43 +223,31 @@ def get_total_stages(
 
 
 def list_episodes() -> List[dict]:
-    trace_flow(
-        FILE,
-        "list_episodes",
-        "IN",
-        {"scenario_dir": str(SCENARIO_DIR)},
-    )
+    trace_flow(FILE, "list_episodes", "IN", {"scenario_dir": str(SCENARIO_DIR)})
 
-    if not SCENARIO_DIR.exists():
-        trace_flow(FILE, "list_episodes", "OUT", {"count": 0})
-        return []
+    # DB에서 publish된 에피소드를 우선 사용하고, 같은 episode_id의 파일은 중복 노출하지 않습니다.
+    merged: dict[str, dict] = {}
+    for episode in _list_db_episodes():
+        episode_id = episode.get("episode_id")
+        if episode_id:
+            merged[episode_id] = episode
 
-    episodes = []
+    if SCENARIO_DIR.exists():
+        for file_path in sorted(SCENARIO_DIR.glob("episode*.json")):
+            try:
+                with open(file_path, "r", encoding="utf-8") as file:
+                    episode = json.load(file)
+                episode_id = episode.get("episode_id")
+                if episode_id and episode_id not in merged:
+                    merged[episode_id] = episode
+            except (json.JSONDecodeError, OSError):
+                continue
 
-    for file_path in sorted(SCENARIO_DIR.glob("episode*.json")):
-        try:
-            with open(
-                file_path,
-                "r",
-                encoding="utf-8"
-            ) as file:
-                episode = json.load(file)
-
-            episodes.append(episode)
-
-        except (
-            json.JSONDecodeError,
-            OSError
-        ):
-            continue
-
+    episodes = [merged[key] for key in sorted(merged)]
     trace_flow(
         FILE,
         "list_episodes",
         "OUT",
-        {
-            "count": len(episodes),
-            "episode_ids": [ep.get("episode_id") for ep in episodes],
-        },
+        {"count": len(episodes), "episode_ids": [ep.get("episode_id") for ep in episodes]},
     )
     return episodes

@@ -17,8 +17,12 @@ class ChatRoom(SQLModel, table=True):
         default=None,
         sa_column=Column(BigInteger, primary_key=True, autoincrement=True),
     )
-    title: str = Field(max_length=255)
-    admin_id: str = Field(
+    session_id: str = Field(
+        max_length=36,
+        unique=True,
+        index=True,
+    )
+    admin_id: str | None = Field(
         sa_column=Column(
             String(20),
             ForeignKey(
@@ -26,11 +30,10 @@ class ChatRoom(SQLModel, table=True):
                 ondelete="RESTRICT",
                 onupdate="RESTRICT",
             ),
-            nullable=False,
+            nullable=True,
         )
     )
     limits: int
-    status: str = Field(max_length=10)
     created_at: datetime = Field(
         sa_column=Column(
             DateTime(timezone=True),
@@ -38,7 +41,6 @@ class ChatRoom(SQLModel, table=True):
             server_default=func.now(),
         )
     )
-    room_requester: str = Field(max_length=50)
     lr_num: int = Field(
         sa_column=Column(
             BigInteger,

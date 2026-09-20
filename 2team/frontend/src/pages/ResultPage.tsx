@@ -356,8 +356,9 @@ function ResultPage() {
 
       <footer className="home-footer">
         <p>
-          청소년 상담전화 <strong>1388</strong> · 마약류 중독관리센터{" "}
-          <strong>1899-0893</strong>
+         청소년 사이버상담센터 <strong>1388</strong> · 24시 마약류 상담센터{" "}
+          <strong>1899-0893</strong> · 한국마약퇴치운동본부{" "}
+          <strong>1342-1342</strong>
         </p>
       </footer>
     </main>

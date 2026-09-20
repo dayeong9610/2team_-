@@ -1,5 +1,5 @@
 from uuid import uuid4
-
+import logging
 from fastapi import (
     APIRouter,
     HTTPException
@@ -31,6 +31,8 @@ router = APIRouter(
     tags=["Sessions"]
 )
 
+logger = logging.getLogger(__name__)
+
 FILE = "backend/src/routes/sessions.py"
 
 
@@ -60,6 +62,7 @@ FILE = "backend/src/routes/sessions.py"
 def start_session(
     request: SessionCreateRequest
 ):
+    logger.info("Session create requested episode_id=%s", request.episode_id)
     trace_flow(
         FILE,
         "start_session",
@@ -157,6 +160,7 @@ def start_session(
 def session_result(
     session_id: str
 ):
+    logger.debug("Session result requested session_id=%s", session_id)
     trace_flow(
         FILE,
         "session_result",
@@ -210,6 +214,7 @@ def session_result(
 def session_state(
     session_id: str
 ):
+    logger.debug("Session state requested session_id=%s", session_id)
     trace_flow(
         FILE,
         "session_state",
@@ -288,6 +293,7 @@ def session_state(
 def end_session(
     session_id: str
 ):
+    logger.info("Session delete requested session_id=%s", session_id)
     trace_flow(
         FILE,
         "end_session",

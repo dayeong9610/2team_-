@@ -288,6 +288,31 @@
             grid-template-columns: 1fr;
         }
 
+
+        .status-badge {
+            display: inline-flex;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #EEF5F2;
+            color: #35675E;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .mini-title {
+            margin: 0 0 10px;
+            color: #555;
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+
         @media (max-width: 820px) {
             .summary-grid,
             .ai-summary {
@@ -299,9 +324,19 @@
             }
         }
 
+        @media (max-width: 820px) {
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .analytics-grid > div {
+                min-width: 0;
+            }
+        }
+
         @media (max-width: 560px) {
             body {
-                padding: 24px 14px 40px;
+                padding: 18px 12px 36px;
             }
 
             .admin-header {
@@ -317,6 +352,71 @@
 
             .recent-table-wrap {
                 overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                max-width: 100%;
+            }
+
+            .analytics-grid .recent-table-wrap {
+                overflow: visible;
+            }
+
+            .analytics-grid table,
+            .analytics-grid tbody,
+            .analytics-grid tr,
+            .analytics-grid td {
+                display: block;
+                width: 100%;
+            }
+
+            .analytics-grid thead {
+                display: none;
+            }
+
+            .analytics-grid tbody {
+                display: grid;
+                gap: 10px;
+            }
+
+            .analytics-grid tr {
+                padding: 10px 12px;
+                border: 1px solid #E3E3E3;
+                border-radius: 10px;
+                background: #FAFAFA;
+            }
+
+            .analytics-grid td {
+                display: grid;
+                grid-template-columns: 82px minmax(0, 1fr);
+                gap: 10px;
+                padding: 7px 0;
+                border: 0;
+                font-size: 0.84rem;
+                word-break: keep-all;
+            }
+
+            .analytics-grid td::before {
+                content: attr(data-label);
+                color: #777;
+                font-size: 0.76rem;
+                font-weight: 700;
+            }
+
+            .analytics-grid .category-list {
+                gap: 8px;
+            }
+
+            .analytics-grid .category-row {
+                min-height: 48px;
+                padding: 12px;
+            }
+
+            .panel.ai-panel {
+                padding: 16px 12px;
+            }
+
+            .mini-title {
+                font-size: 0.92rem;
+                line-height: 1.4;
             }
         }
     </style>
@@ -341,11 +441,11 @@
             {% if dashboard %}
                 <div class="summary-grid">
                     <div class="summary-card">
-                        <div class="summary-label">전체 시츄에이션</div>
+                        <div class="summary-label">DB 등록 Episode</div>
                         <div class="summary-value">{{ dashboard.total_scenarios }}<span class="summary-unit">개</span></div>
                     </div>
                     <div class="summary-card">
-                        <div class="summary-label">내가 작성한 시츄에이션</div>
+                        <div class="summary-label">내가 작성한 Episode</div>
                         <div class="summary-value">{{ dashboard.my_scenarios }}<span class="summary-unit">개</span></div>
                     </div>
                     <div class="summary-card">
@@ -381,16 +481,16 @@
                                             <th>제목</th>
                                             <th>카테고리</th>
                                             <th>작성자</th>
-                                            <th>등록일</th>
+                                            <th>상태</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for role in dashboard.recent_scenarios %}
                                             <tr>
-                                                <td><a href="/admins/llmRole/{{ role.lr_num }}">{{ role.title or '-' }}</a></td>
+                                                <td><strong>{{ role.episode_id }}</strong> · {{ role.title or '-' }}</td>
                                                 <td>{{ role.category or '-' }}</td>
                                                 <td>{{ role.admin_id or '-' }}</td>
-                                                <td>{{ role.created_at.strftime('%Y-%m-%d') if role.created_at else '-' }}</td>
+                                                <td><span class="status-badge">{{ '공개' if role.status == 'published' else '초안' }}</span></td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>
@@ -424,8 +524,45 @@
                             </div>
                         </div>
                         <p class="ai-note">
-                            GPT가 정상적으로 평가한 Stage만 집계합니다. fallback 응답과 재입력 요청은 AI 평가 데이터에 포함하지 않습니다.
+                            각 평균은 해당 평가축을 실제로 평가하는 Stage만 대상으로 계산합니다. 다른 축의 0점은 평균에 포함하지 않습니다.
+                            fallback 응답과 재입력 요청도 제외합니다.
                         </p>
+
+                        <div class="analytics-grid">
+                            <div>
+                                <p class="mini-title">Episode / Stage별 개발자 피드백용 점수</p>
+                                {% if dashboard.ai_evaluation.stage_stats %}
+                                    <div class="recent-table-wrap">
+                                        <table>
+                                            <thead>
+                                                <tr><th>Episode</th><th>Stage</th><th>평가축</th><th>평균</th><th>건수</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for stat in dashboard.ai_evaluation.stage_stats %}
+                                                    <tr>
+                                                        <td data-label="Episode">{{ stat.episode_id }}</td>
+                                                        <td data-label="Stage">{{ stat.title }}</td>
+                                                        <td data-label="평가축">{{ {'risk_awareness':'위험 인지','refusal':'거절','help_request':'도움 요청'}.get(stat.axis, stat.axis) }}</td>
+                                                        <td data-label="평균"><strong>{{ '%.2f'|format(stat.average) }} / 3</strong></td>
+                                                        <td data-label="건수">{{ stat.count }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="empty-text">Stage별 평가 데이터가 없습니다.</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="mini-title">평가축별 유효 표본</p>
+                                <div class="category-list">
+                                    <div class="category-row"><span>위험 인지</span><strong>{{ dashboard.ai_evaluation.axis_counts.risk_awareness if dashboard.ai_evaluation.axis_counts else 0 }}건</strong></div>
+                                    <div class="category-row"><span>거절</span><strong>{{ dashboard.ai_evaluation.axis_counts.refusal if dashboard.ai_evaluation.axis_counts else 0 }}건</strong></div>
+                                    <div class="category-row"><span>도움 요청</span><strong>{{ dashboard.ai_evaluation.axis_counts.help_request if dashboard.ai_evaluation.axis_counts else 0 }}건</strong></div>
+                                </div>
+                            </div>
+                        </div>
                     {% else %}
                         <p class="empty-text">AI 평가 로그 테이블을 아직 조회할 수 없습니다. 백엔드 재시작 후 DB 연결 상태를 확인해주세요.</p>
                     {% endif %}
@@ -435,9 +572,9 @@
             <div class="admin-card">
                 <h2>시츄에이션 관리</h2>
                 <div class="admin-actions">
-                    <a class="primary" href="/admins/writeform">새 시츄에이션 작성</a>
-                    <a href="/admins/llmRoleList">전체 시츄에이션 목록</a>
-                    <a href="/admins/myRoles">내가 작성한 시츄에이션</a>
+                    <a class="primary" href="/admins/writeform">새 Episode JSON 작성</a>
+                    <a href="/admins/episodes">전체 에피소드 목록</a>
+                    <a href="/admins/episodes?mine=1">내가 작성한 에피소드 목록</a>
                     <a href="/admins/update">회원정보 수정</a>
                 </div>
 

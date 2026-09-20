@@ -2,10 +2,22 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 
 import LoosePillPhoto from "./LoosePillPhoto";
 import type { DialogueMessage } from "../../data/episode01stages";
+import joowonAvatar from "../../assets/avatars/joowon.svg";
+import jiwooAvatar from "../../assets/avatars/jiwoo.svg";
+import friendAvatar from "../../assets/avatars/friend.svg";
+import studentAvatar from "../../assets/avatars/student.svg";
+import otherStudentAvatar from "../../assets/avatars/other-student.svg";
+import nearbyStudentAvatar from "../../assets/avatars/nearby-student.svg";
+import academyStaffAvatar from "../../assets/avatars/academy-staff.svg";
+import unknownPersonAvatar from "../../assets/avatars/unknown-person.svg";
+import unknownAccountAvatar from "../../assets/avatars/unknown-account.svg";
+import snsPostAvatar from "../../assets/avatars/sns-post.svg";
+import genericAvatar from "../../assets/avatars/generic.svg";
 
 
 interface NPCBubbleProps {
   messages: DialogueMessage[];
+  onRevealComplete?: () => void;
 }
 
 interface MessageGroup {
@@ -27,6 +39,24 @@ function groupMessages(messages: DialogueMessage[]): MessageGroup[] {
   });
 
   return groups;
+}
+
+const NPC_AVATARS: Record<string, string> = {
+  주원: joowonAvatar,
+  지우: jiwooAvatar,
+  친구: friendAvatar,
+  학생: studentAvatar,
+  "다른 학생": otherStudentAvatar,
+  "주변 학생": nearbyStudentAvatar,
+  "학원 관계자": academyStaffAvatar,
+  "모르는 사람": unknownPersonAvatar,
+  "모르는 계정": unknownAccountAvatar,
+  "SNS 게시물": snsPostAvatar,
+  "후기 게시물": snsPostAvatar,
+};
+
+function getNpcAvatar(sender: string) {
+  return NPC_AVATARS[sender] ?? genericAvatar;
 }
 
 const TYPING_DELAY_MS = 700;
@@ -67,7 +97,10 @@ function withStartIndex(groups: MessageGroup[]) {
   });
 }
 
-export default function NPCBubble({ messages }: NPCBubbleProps) {
+export default function NPCBubble({
+  messages,
+  onRevealComplete,
+}: NPCBubbleProps) {
   const groups = useMemo(
     () => groupMessages(messages),
     [messages]
@@ -79,6 +112,12 @@ export default function NPCBubble({ messages }: NPCBubbleProps) {
   );
 
   const visibleCount = useSequentialReveal(messages.length);
+
+  useEffect(() => {
+    if (messages.length > 0 && visibleCount >= messages.length) {
+      onRevealComplete?.();
+    }
+  }, [messages.length, onRevealComplete, visibleCount]);
 
   return (
     <>
@@ -103,7 +142,13 @@ export default function NPCBubble({ messages }: NPCBubbleProps) {
 
         return (
           <div className="npc-message" key={index}>
-            <div className="npc-avatar">{group.sender.charAt(0)}</div>
+            <div className="npc-avatar" aria-hidden="true">
+              <img
+                src={getNpcAvatar(group.sender)}
+                alt=""
+                className="npc-avatar-image"
+              />
+            </div>
 
             <div className="npc-message-content">
               <span className="npc-name">{group.sender}</span>

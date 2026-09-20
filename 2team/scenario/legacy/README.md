@@ -379,25 +379,27 @@ next_stage = Scenario 흐름 결정
 
 새로운 Episode를 추가할 때 기존 Scenario 규칙을 변경하지 않는다.
 
-예를 들어 `EP06`을 추가한다면:
+기본 콘텐츠는:
 
-```text
-episodes/episode06.json
-rubrics/episode06-rubric.json
-branches/episode06-branches.json
-```
+EP01~EP03
+→ scenario/episodes/*.json
 
-을 추가하고 다음과 같은 구조를 사용한다.
+관리자가 만든 콘텐츠는:
 
-```text
-EP06_STAGE01
-→ EP06_STAGE02
-→ ...
-→ EP06_STAGE{N}
-→ RESULT
-```
+관리자
+↓
+episode_scenario DB
+↓
+status = draft
+↓
+published
+↓
+/api/episodes
+↓
+학생 게임
 
 Episode마다 Stage 수나 제목, 평가 축, Branch 내용은 달라질 수 있다.
+“Runtime에서는 사용하지 않음”
 
 단, 다음 원칙은 모든 Episode에 공통으로 적용한다.
 

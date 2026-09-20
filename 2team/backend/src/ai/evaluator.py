@@ -3,6 +3,7 @@ from pydantic import (
     BaseModel,
     Field
 )
+from typing import Optional
 
 
 class Scores(BaseModel):
@@ -41,3 +42,12 @@ class AIResponse(BaseModel):
     )
 
     scores: Scores
+
+    # 현재 입력이 장면의 질문에 대한 실제 대응으로 해석 가능한지 표시합니다.
+    # 무의미한 단어 나열, 추임새, 장면과 무관한 말이라면 True입니다.
+    retry_required: bool = False
+
+    retry_reason: Optional[str] = Field(
+        default=None,
+        max_length=120
+    )

@@ -1451,3 +1451,998 @@
   font-size: 0.78rem;
   color: #B4AFA1;
 }
+/* =====================================================================
+   2026-09 UX refresh — 청소년 게임형 시뮬레이션 플레이 화면
+   - 한 화면 한 행동: 플레이 중 점수 %는 숨기고 현재 상황/대화/코칭에 집중
+   - 장면 전환, 효과음 토글, 마냥이 코칭 존재감 강화
+   - 기존 API/시나리오 구조는 변경하지 않음
+   ===================================================================== */
+.play-page--immersive {
+  position: relative;
+  width: 100%;
+  max-width: 920px;
+  min-height: calc(100dvh - var(--header-h));
+  height: auto;
+  margin: 0 auto;
+  padding: 22px 20px 48px;
+  overflow: visible;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(144, 116, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 0% 24%, rgba(61, 124, 113, 0.08), transparent 30%),
+    #fff;
+}
+
+.play-topbar--game {
+  position: relative;
+  top: auto;
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid #eee9de;
+  background: transparent;
+}
+
+.game-header--compact {
+  margin-bottom: 12px;
+}
+
+.game-header--compact h1 {
+  margin: 4px 0 0;
+  font-size: clamp(1.55rem, 3vw, 2.15rem);
+  line-height: 1.18;
+  letter-spacing: -0.035em;
+  color: #20252a;
+}
+
+.episode-eyebrow,
+.stage-kicker,
+.scene-brief-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #3d7c71;
+}
+
+.play-topbar--game .progress-wrapper {
+  margin: 0;
+}
+
+.play-topbar--game .progress-info {
+  margin-bottom: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #625f59;
+}
+
+.play-topbar--game .progress-track {
+  height: 9px;
+  border-radius: 999px;
+  background: #ece9e3;
+}
+
+.play-topbar--game .progress-fill {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3d7c71 0%, #5f9f8f 55%, #8d77d9 100%);
+  box-shadow: 0 0 0 1px rgba(61, 124, 113, 0.05);
+}
+
+.sound-toggle {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  margin-top: 2px;
+  padding: 8px 12px;
+  border: 1px solid #dedad0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #4f5554;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.sound-toggle:hover {
+  transform: translateY(-1px);
+  border-color: #8bb7ac;
+  box-shadow: 0 5px 16px rgba(61, 124, 113, 0.12);
+}
+
+.stage-header--focus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 22px 0 12px;
+}
+
+.stage-header--focus h2 {
+  margin: 3px 0 0;
+  font-size: 1.35rem;
+  letter-spacing: -0.025em;
+  color: #20252a;
+}
+
+.stage-header--focus .stage-location {
+  border: 1px solid #e8e3d8;
+  background: #faf8f3;
+  color: #686359;
+}
+
+.scene-brief {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid #e7eee9;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f4faf8 0%, #fbfaf7 100%);
+}
+
+.scene-brief-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #e4f1ed;
+  font-size: 1.05rem;
+}
+
+.scene-brief p {
+  margin: 4px 0 0;
+  color: #4e5553;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.play-layout--focused {
+  display: block;
+  min-height: 0;
+}
+
+.play-chat--focused {
+  width: 100%;
+  min-width: 0;
+}
+
+.question-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #242a2e;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(31, 39, 43, 0.1);
+}
+
+.question-banner-icon {
+  font-size: 1.15rem;
+}
+
+.question-banner strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 0.92rem;
+}
+
+.question-banner p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.chat-window--focused {
+  min-height: 350px;
+  max-height: 470px;
+  border: 1px solid #e6e6e3;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 14px 38px rgba(30, 38, 41, 0.07);
+}
+
+.conversation--focused {
+  min-height: 265px;
+  padding: 22px 20px;
+}
+
+.chat-window--focused .npc-bubble {
+  border-radius: 18px;
+  background: #f1f1ef;
+}
+
+.chat-window--focused .npc-bubble--me {
+  background: linear-gradient(135deg, #7367d8 0%, #9d6dd7 48%, #d36dac 100%);
+}
+
+.chat-window--focused .dm-composer-wrapper,
+.chat-window--focused .dm-composer {
+  background: #fff;
+}
+
+.chat-window--focused .dm-composer {
+  padding: 12px 14px;
+}
+
+.chat-window--focused .dm-composer-input {
+  min-height: 44px;
+  border: 1px solid #e6e4df;
+  border-radius: 15px;
+  background: #f8f8f6;
+  padding: 11px 14px;
+}
+
+.chat-window--focused .dm-composer-input:focus {
+  border-color: #78a99d;
+  box-shadow: 0 0 0 3px rgba(61, 124, 113, 0.1);
+}
+
+.chat-window--focused .dm-composer-send {
+  width: 42px;
+  height: 42px;
+  background: #3d7c71;
+  box-shadow: 0 5px 14px rgba(61, 124, 113, 0.25);
+}
+
+.chat-window--focused .dm-composer-send:hover:not(:disabled) {
+  box-shadow: 0 7px 18px rgba(61, 124, 113, 0.32);
+}
+
+.ai-loading--game {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  border-top: 1px solid #efede8;
+  background: #fafaf8;
+  color: #5e6664;
+  font-size: 0.8rem;
+}
+
+.ai-loading-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3d7c71;
+  animation: pulseDot 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes pulseDot {
+  from { opacity: 0.35; transform: scale(0.75); }
+  to { opacity: 1; transform: scale(1.15); }
+}
+
+.coach-dock {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #cfe2dc;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eff8f5 0%, #fbfaf7 100%);
+  box-shadow: 0 10px 28px rgba(61, 124, 113, 0.08);
+  animation: coachDockIn 0.34s ease-out both;
+}
+
+@keyframes coachDockIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.skill-focus-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: #5b625f;
+  font-size: 0.75rem;
+  box-shadow: inset 0 0 0 1px #dfe9e5;
+}
+
+.skill-focus-pill strong {
+  color: #2f6b60;
+}
+
+.coach-dock .manyang-coach {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.coach-dock .manyang-character {
+  width: 58px;
+  height: 58px;
+  border: 2px solid #fff;
+  box-shadow: 0 6px 18px rgba(61, 124, 113, 0.16);
+}
+
+.coach-dock .manyang-coach strong {
+  font-size: 0.9rem;
+  color: #2c5f56;
+}
+
+.coach-dock .manyang-coach p {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #3f4745;
+}
+
+.coach-dock-note {
+  margin: 10px 0 0 66px;
+  color: #7a807e;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.next-button--game {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  margin-top: 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #3d7c71 0%, #4d9183 100%);
+  box-shadow: 0 8px 20px rgba(61, 124, 113, 0.2);
+  font-size: 0.96rem;
+  font-weight: 800;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.next-button--game:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #356e64 0%, #438277 100%);
+  box-shadow: 0 10px 24px rgba(61, 124, 113, 0.26);
+}
+
+.scene-transition {
+  position: fixed;
+  inset: var(--header-h) 0 0;
+  z-index: 29;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  pointer-events: none;
+  background: rgba(28, 34, 37, 0.82);
+  backdrop-filter: blur(8px);
+  animation: sceneCurtain 0.95s ease both;
+}
+
+.scene-transition-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: min(440px, 88vw);
+  padding: 28px 30px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+  animation: sceneCardIn 0.72s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.scene-transition-step {
+  color: #bde1d7;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.scene-transition-card strong {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  letter-spacing: -0.04em;
+}
+
+.scene-transition-location {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.85rem;
+}
+
+@keyframes sceneCurtain {
+  0% { opacity: 0; }
+  14%, 76% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes sceneCardIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 700px) {
+  .play-page--immersive {
+    padding: 16px 14px 36px;
+  }
+
+  .play-topbar--game {
+    gap: 10px;
+  }
+
+  .sound-toggle-label {
+    display: none;
+  }
+
+  .sound-toggle {
+    width: 40px;
+    min-width: 40px;
+    padding: 8px;
+    justify-content: center;
+  }
+
+  .stage-header--focus {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .scene-brief {
+    padding: 12px 13px;
+  }
+
+  .question-banner {
+    padding: 13px 14px;
+  }
+
+  .chat-window--focused {
+    min-height: 390px;
+    max-height: 56dvh;
+  }
+
+  .conversation--focused {
+    padding: 18px 14px;
+  }
+
+  .coach-dock .manyang-character {
+    width: 50px;
+    height: 50px;
+  }
+
+  .coach-dock-note {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-transition,
+  .scene-transition-card,
+  .coach-dock,
+  .npc-avatar,
+  .npc-bubble,
+  .ig-bubble,
+  .ai-loading-dot {
+    animation: none !important;
+  }
+
+  .progress-fill,
+  .sound-toggle,
+  .next-button--game {
+    transition: none !important;
+  }
+}
+
+/* =====================================================================
+   Resilience / fallback mode
+   - Backend/AI 장애 시 학생 학습 흐름을 중단하지 않고 기본 학습 모드 표시
+   ===================================================================== */
+.play-topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.service-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid #d7e4df;
+  border-radius: 999px;
+  background: #f4faf8;
+  color: #356c62;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* 이전 UX 패치에서 토글이 표시 전용이 되지 않도록 실제 클릭 허용 */
+.sound-toggle {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.result-fallback-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 22px;
+  border: 1px solid #d8e8e2;
+  border-radius: 20px;
+  background: #f5fbf9;
+  color: #34413e;
+}
+
+.result-fallback-card strong {
+  color: #2f6c61;
+  font-size: 0.98rem;
+}
+
+.result-fallback-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: #5a6663;
+}
+
+@media (max-width: 700px) {
+  .play-topbar-actions {
+    gap: 6px;
+  }
+
+  .service-mode-pill {
+    max-width: 108px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* =====================================================================
+   2026-09-18 Play viewport fit patch
+   - 플레이 페이지 자체 스크롤 제거
+   - 브라우저 한 화면(헤더 제외) 안에 Stage UI를 고정
+   - 대화가 길어질 때는 채팅 영역 내부에서만 스크롤
+   - 피드백/다음 버튼이 나타나도 전체 페이지 높이가 늘어나지 않도록 flex 구조 보강
+   ===================================================================== */
+
+/* 최신 Chrome/Edge에서는 플레이 페이지가 열려 있을 때 body 스크롤 자체를 막습니다. */
+@supports selector(body:has(.play-page--immersive)) {
+  body:has(.play-page--immersive) {
+    overflow: hidden;
+  }
+}
+
+.play-page.play-page--immersive {
+  width: 100%;
+  max-width: 920px;
+  height: calc(100dvh - var(--header-h));
+  min-height: 0;
+  margin: 0 auto;
+  padding: 10px 14px 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 상단 에피소드 제목 + 진행도 영역을 더 압축 */
+.play-page--immersive .play-topbar--game {
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0 0 9px;
+}
+
+.play-page--immersive .game-header--compact {
+  margin-bottom: 5px;
+}
+
+.play-page--immersive .game-header--compact h1 {
+  margin-top: 2px;
+  font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+  line-height: 1.12;
+}
+
+.play-page--immersive .play-topbar--game .progress-info {
+  margin-bottom: 5px;
+}
+
+.play-page--immersive .play-topbar--game .progress-track {
+  height: 8px;
+}
+
+.play-page--immersive .sound-toggle,
+.play-page--immersive .service-mode-pill {
+  min-height: 34px;
+}
+
+/* STEP 제목 영역 */
+.play-page--immersive .stage-header--focus {
+  flex: 0 0 auto;
+  margin: 9px 0 7px;
+  gap: 10px;
+}
+
+.play-page--immersive .stage-header--focus h2 {
+  margin-top: 2px;
+  font-size: 1.18rem;
+  line-height: 1.15;
+}
+
+.play-page--immersive .stage-location {
+  padding: 5px 10px;
+  font-size: 0.76rem;
+}
+
+/* 현재 상황 설명은 두 줄 안에서 보이도록 압축 */
+.play-page--immersive .scene-brief {
+  flex: 0 0 auto;
+  gap: 10px;
+  margin-bottom: 7px;
+  padding: 9px 11px;
+  border-radius: 14px;
+}
+
+.play-page--immersive .scene-brief-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.play-page--immersive .scene-brief p {
+  margin-top: 2px;
+  font-size: 0.82rem;
+  line-height: 1.38;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* 남은 높이를 게임/채팅 영역이 전부 사용 */
+.play-page--immersive .play-layout--focused {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.play-page--immersive .play-chat--focused {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 질문 영역은 고정, 채팅창만 남은 높이를 사용 */
+.play-page--immersive .question-banner {
+  flex: 0 0 auto;
+  gap: 10px;
+  margin-bottom: 7px;
+  padding: 9px 12px;
+  border-radius: 14px;
+}
+
+.play-page--immersive .question-banner strong {
+  margin-bottom: 2px;
+  font-size: 0.86rem;
+}
+
+.play-page--immersive .question-banner p {
+  font-size: 0.81rem;
+  line-height: 1.4;
+}
+
+.play-page--immersive .chat-window--focused {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* 페이지가 아니라 대화 내용만 내부 스크롤 */
+.play-page--immersive .conversation--focused {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 12px 14px;
+  gap: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.play-page--immersive .conversation-turn {
+  gap: 10px;
+}
+
+.play-page--immersive .npc-message {
+  gap: 8px;
+}
+
+.play-page--immersive .npc-avatar {
+  width: 32px;
+  height: 32px;
+}
+
+.play-page--immersive .npc-bubble {
+  padding: 8px 12px;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+/* 입력창은 채팅 하단에 항상 보이도록 고정 */
+.play-page--immersive .dm-composer {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+}
+
+.play-page--immersive .dm-composer-input {
+  min-height: 38px;
+  max-height: 72px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.play-page--immersive .dm-composer-send {
+  width: 38px;
+  height: 38px;
+}
+
+/* 답변 후 코칭 카드와 다음 버튼도 화면 내부에 머물도록 제한 */
+.play-page--immersive .coach-dock {
+  flex: 0 1 auto;
+  max-height: 150px;
+  margin-top: 7px;
+  padding: 9px 11px;
+  overflow-y: auto;
+}
+
+.play-page--immersive .skill-focus-pill {
+  margin-bottom: 6px;
+  padding: 5px 8px;
+}
+
+.play-page--immersive .coach-dock .manyang-character {
+  width: 44px;
+  height: 44px;
+}
+
+.play-page--immersive .coach-dock .manyang-coach p {
+  font-size: 0.82rem;
+  line-height: 1.42;
+}
+
+.play-page--immersive .coach-dock-note {
+  margin: 6px 0 0 52px;
+  font-size: 0.68rem;
+}
+
+.play-page--immersive .next-button--game {
+  flex: 0 0 auto;
+  min-height: 44px;
+  margin-top: 7px;
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+/* 높이가 작은 노트북에서도 한 화면에 맞도록 한 번 더 압축 */
+@media (max-height: 760px) {
+  :root {
+    --header-h: 64px;
+  }
+
+  .site-header {
+    padding: 0 16px;
+  }
+
+  .site-header-logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .play-page.play-page--immersive {
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+
+  .play-page--immersive .episode-eyebrow,
+  .play-page--immersive .stage-kicker,
+  .play-page--immersive .scene-brief-label {
+    font-size: 0.66rem;
+  }
+
+  .play-page--immersive .game-header--compact h1 {
+    font-size: 1.25rem;
+  }
+
+  .play-page--immersive .stage-header--focus {
+    margin: 6px 0 5px;
+  }
+
+  .play-page--immersive .scene-brief {
+    margin-bottom: 5px;
+    padding: 7px 9px;
+  }
+
+  .play-page--immersive .scene-brief p {
+    -webkit-line-clamp: 1;
+  }
+
+  .play-page--immersive .question-banner {
+    margin-bottom: 5px;
+    padding: 7px 10px;
+  }
+
+  .play-page--immersive .conversation--focused {
+    padding: 9px 12px;
+    gap: 8px;
+  }
+
+  .play-page--immersive .coach-dock {
+    max-height: 118px;
+  }
+
+  .play-page--immersive .next-button--game {
+    min-height: 40px;
+    margin-top: 5px;
+  }
+}
+
+/* 기존 700px 이하 규칙의 height:auto / min-height:390px를 다시 덮어써서
+   작은 화면에서도 페이지 자체는 늘어나지 않고 채팅 내부만 스크롤되게 합니다. */
+@media (max-width: 700px) {
+  .play-page.play-page--immersive {
+    height: calc(100dvh - var(--header-h));
+    min-height: 0;
+    padding: 8px 10px;
+    overflow: hidden;
+  }
+
+  .play-page--immersive .play-topbar--game {
+    gap: 8px;
+    padding-bottom: 7px;
+  }
+
+  .play-page--immersive .stage-header--focus {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .play-page--immersive .stage-location {
+    max-width: 44%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .play-page--immersive .scene-brief {
+    padding: 8px 10px;
+  }
+
+  .play-page--immersive .question-banner {
+    padding: 8px 10px;
+  }
+
+  .play-page--immersive .chat-window--focused {
+    min-height: 0;
+    height: auto;
+    max-height: none;
+  }
+
+  .play-page--immersive .conversation--focused {
+    min-height: 0;
+    padding: 10px 12px;
+  }
+
+  .play-page--immersive .coach-dock-note {
+    margin-left: 0;
+  }
+}
+
+/* =====================================================================
+   EP01 STEP 1 — 포장지 없는 알약 이미지 메시지
+   - 1번 viewport 고정 패치를 유지한 채 채팅 안에만 이미지 스타일을 추가
+   ===================================================================== */
+.chat-window--focused .npc-bubble--image {
+  padding: 6px;
+  background: transparent;
+}
+
+.loose-pill-photo {
+  position: relative;
+  width: 156px;
+  height: 136px;
+  overflow: hidden;
+  border-radius: 16px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.9), rgba(221,224,228,0.95)),
+    #e4e5e7;
+  border: 1px solid #e1e2e4;
+  box-shadow: 0 5px 16px rgba(73, 79, 86, 0.12);
+}
+
+.loose-pill-photo::before {
+  content: "포장지 없는 알약";
+  position: absolute;
+  z-index: 3;
+  left: 10px;
+  bottom: 8px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(25, 29, 32, 0.66);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.loose-pill-photo-surface {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0) 24%),
+    linear-gradient(180deg, rgba(255,255,255,0.18), rgba(0,0,0,0.04));
+}
+
+.pill-dot {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  width: 42px;
+  height: 20px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fffdfa 0%, #f1eee7 100%);
+  border: 1px solid rgba(187, 182, 171, 0.76);
+  box-shadow: 0 4px 10px rgba(91, 96, 103, 0.16);
+}
+
+.pill-dot::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: rgba(185, 180, 169, 0.82);
+}
+
+.pill-dot--a { top: 24px; left: 18px; transform: rotate(-18deg); }
+.pill-dot--b { top: 22px; right: 18px; transform: rotate(22deg); }
+.pill-dot--c { top: 55px; left: 55px; transform: rotate(8deg); }
+.pill-dot--d { top: 57px; right: 25px; transform: rotate(-28deg); }
+.pill-dot--e { bottom: 27px; left: 24px; transform: rotate(16deg); }
+.pill-dot--f { bottom: 24px; right: 23px; transform: rotate(-8deg); }
+
+@media (max-height: 760px) {
+  .loose-pill-photo {
+    width: 132px;
+    height: 104px;
+  }
+
+  .pill-dot {
+    width: 36px;
+    height: 17px;
+  }
+
+  .pill-dot--a { top: 20px; left: 14px; }
+  .pill-dot--b { top: 18px; right: 14px; }
+  .pill-dot--c { top: 44px; left: 46px; }
+  .pill-dot--d { top: 47px; right: 20px; }
+  .pill-dot--e { bottom: 24px; left: 20px; }
+  .pill-dot--f { bottom: 22px; right: 19px; }
+}

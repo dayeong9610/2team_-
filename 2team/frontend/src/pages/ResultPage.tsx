@@ -176,6 +176,8 @@ function ResultPage() {
     scoreLimits[result?.episode_id ?? episodeId] ??
     scoreLimits.EP01;
 
+  const analysisAvailable = result?.analysis_available !== false;
+
   const toPercent = (value: number, limit: number) => {
     if (limit <= 0) {
       return 0;
@@ -184,7 +186,7 @@ function ResultPage() {
     return Math.min(100, Math.round((value / limit) * 100));
   };
 
-  const statItems = result
+  const statItems = result && analysisAvailable
     ? [
         {
           key: "riskAwareness",
@@ -262,6 +264,18 @@ function ResultPage() {
 
       {result && (
         <>
+          {!analysisAvailable && (
+            <section className="result-fallback-card" aria-label="기본 학습 모드 결과">
+              <strong>기본 학습 모드로 끝까지 완료했어요.</strong>
+              <p>
+                서버 또는 AI 연결이 일시적으로 불안정해 검수된 시나리오와
+                코칭으로 학습을 진행했습니다. 이 경우 숫자 점수는 정확한 AI
+                평가가 아니므로 표시하지 않습니다.
+              </p>
+            </section>
+          )}
+
+          {analysisAvailable && (
           <section className="result-stats">
             <p className="result-stats-title">오늘의 기록</p>
 
@@ -286,6 +300,7 @@ function ResultPage() {
               </div>
             ))}
           </section>
+          )}
 
           {result.stage_results.length > 0 && (
             <section className="result-stage-feedback">
@@ -301,11 +316,13 @@ function ResultPage() {
                       "오늘의 기록"이 전체 Stage 누적 총점이라면, 이건
                       "이 한 Stage에서 어느 항목을 얼마나 잘했는지"를
                       보여줍니다. */}
-                  <div className="result-stage-scores">
-                    <span>위험 인지 {stage.scores.risk_awareness}</span>
-                    <span>거절 대응 {stage.scores.refusal}</span>
-                    <span>도움 요청 {stage.scores.help_request}</span>
-                  </div>
+                  {analysisAvailable && stage.analysis_available !== false && (
+                    <div className="result-stage-scores">
+                      <span>위험 인지 {stage.scores.risk_awareness}</span>
+                      <span>거절 대응 {stage.scores.refusal}</span>
+                      <span>도움 요청 {stage.scores.help_request}</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </section>

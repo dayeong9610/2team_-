@@ -7,6 +7,8 @@ from typing import (
     List
 )
 
+from core.flow_trace import trace_flow
+
 
 PROJECT_ROOT = (
     Path(__file__)
@@ -20,11 +22,25 @@ SCENARIO_DIR = (
     / "episodes"
 )
 
+FILE = "backend/src/core/scenario_engine.py"
+
+
+# DB 담당 참고:
+# 현재 에피소드/Stage 원본은 DB가 아니라 scenario/episodes/episodeXX.json 입니다.
+# 향후 시나리오까지 DB 관리한다면 이 파일의 load_episode()/get_stage()가
+# JSON 조회 -> DB SELECT로 바뀌는 핵심 지점입니다.
+
 
 def get_episode_path(
     episode_id: str
 ) -> Optional[Path]:
-    # EP01 같은 ID를 검증한 뒤 대응하는 JSON 파일 경로를 반환합니다.
+    trace_flow(
+        FILE,
+        "get_episode_path",
+        "IN",
+        {"episode_id": episode_id},
+    )
+
     normalized = (
         episode_id
         .strip()
@@ -32,6 +48,7 @@ def get_episode_path(
     )
 
     if not normalized.startswith("EP"):
+        trace_flow(FILE, "get_episode_path", "OUT", None)
         return None
 
     number = normalized[2:]
@@ -40,26 +57,33 @@ def get_episode_path(
         len(number) == 2
         and number.isdigit()
     ):
+        trace_flow(FILE, "get_episode_path", "OUT", None)
         return None
 
-    return (
-        SCENARIO_DIR
-        / f"episode{number}.json"
+    result = SCENARIO_DIR / f"episode{number}.json"
+    trace_flow(
+        FILE,
+        "get_episode_path",
+        "OUT",
+        {"path": str(result)},
     )
+    return result
 
 
 def load_episode(
     episode_id: str
 ) -> Optional[Dict[str, Any]]:
-    # 에피소드 JSON을 읽고 내부 episode_id까지 확인합니다.
-    file_path = get_episode_path(
-        episode_id
+    trace_flow(
+        FILE,
+        "load_episode",
+        "IN",
+        {"episode_id": episode_id},
     )
 
-    if file_path is None:
-        return None
+    file_path = get_episode_path(episode_id)
 
-    if not file_path.exists():
+    if file_path is None or not file_path.exists():
+        trace_flow(FILE, "load_episode", "OUT", None)
         return None
 
     with open(
@@ -67,17 +91,22 @@ def load_episode(
         "r",
         encoding="utf-8"
     ) as file:
+        episode = json.load(file)
 
-        episode = json.load(
-            file
-        )
-
-    if (
-        episode.get("episode_id")
-        != episode_id.upper()
-    ):
+    if episode.get("episode_id") != episode_id.upper():
+        trace_flow(FILE, "load_episode", "OUT", None)
         return None
 
+    trace_flow(
+        FILE,
+        "load_episode",
+        "OUT",
+        {
+            "episode_id": episode.get("episode_id"),
+            "stage_count": len(episode.get("stages", [])),
+            "source": str(file_path),
+        },
+    )
     return episode
 
 
@@ -85,75 +114,86 @@ def get_stage(
     episode_id: str,
     stage_id: str
 ) -> Optional[Dict[str, Any]]:
-    # 에피소드의 Stage 목록에서 요청한 Stage ID를 검색합니다.
-    episode = load_episode(
-        episode_id
+    trace_flow(
+        FILE,
+        "get_stage",
+        "IN",
+        {
+            "episode_id": episode_id,
+            "stage_id": stage_id,
+        },
     )
 
+    episode = load_episode(episode_id)
+
     if episode is None:
+        trace_flow(FILE, "get_stage", "OUT", None)
         return None
 
-    for stage in episode.get(
-        "stages",
-        []
-    ):
-
-        if (
-            stage.get("stage_id")
-            == stage_id
-        ):
+    for stage in episode.get("stages", []):
+        if stage.get("stage_id") == stage_id:
+            trace_flow(
+                FILE,
+                "get_stage",
+                "OUT",
+                {
+                    "stage_id": stage.get("stage_id"),
+                    "evaluation_axis": stage.get("evaluation_axis"),
+                    "type": stage.get("type"),
+                    "next_stage": stage.get("next_stage"),
+                },
+            )
             return stage
 
+    trace_flow(FILE, "get_stage", "OUT", None)
     return None
 
 
 def get_total_stages(
     episode_id: str
 ) -> int:
-    # 에피소드에 포함된 전체 Stage 개수를 반환합니다.
-    episode = load_episode(
-        episode_id
-    )
+    episode = load_episode(episode_id)
 
     if episode is None:
         return 0
 
-    return len(
-        episode.get(
-            "stages",
-            []
-        )
+    count = len(episode.get("stages", []))
+    trace_flow(
+        FILE,
+        "get_total_stages",
+        "OUT",
+        {
+            "episode_id": episode_id,
+            "total_stages": count,
+        },
     )
+    return count
 
 
 def list_episodes() -> List[dict]:
-    # 시나리오 디렉터리의 모든 episode*.json을 읽어 목록으로 반환합니다.
+    trace_flow(
+        FILE,
+        "list_episodes",
+        "IN",
+        {"scenario_dir": str(SCENARIO_DIR)},
+    )
+
     if not SCENARIO_DIR.exists():
+        trace_flow(FILE, "list_episodes", "OUT", {"count": 0})
         return []
 
     episodes = []
 
-    for file_path in sorted(
-        SCENARIO_DIR.glob(
-            "episode*.json"
-        )
-    ):
-        # 파일 하나가 손상되어도 다른 에피소드 조회는 계속 진행합니다.
+    for file_path in sorted(SCENARIO_DIR.glob("episode*.json")):
         try:
-
             with open(
                 file_path,
                 "r",
                 encoding="utf-8"
             ) as file:
+                episode = json.load(file)
 
-                episode = json.load(
-                    file
-                )
-
-            episodes.append(
-                episode
-            )
+            episodes.append(episode)
 
         except (
             json.JSONDecodeError,
@@ -161,4 +201,13 @@ def list_episodes() -> List[dict]:
         ):
             continue
 
+    trace_flow(
+        FILE,
+        "list_episodes",
+        "OUT",
+        {
+            "count": len(episodes),
+            "episode_ids": [ep.get("episode_id") for ep in episodes],
+        },
+    )
     return episodes

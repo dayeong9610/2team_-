@@ -1,9 +1,22 @@
-import react from '@vitejs/plugin-react' // JSX/Fast Refresh 지원을 위한 공식 React 플러그인
+import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-// https://vite.dev/config/
 export default defineConfig({
-  // React 플러그인만 사용하는 기본 설정
   plugins: [react()],
-})
 
+  server: {
+    proxy: {
+      // 학생용 API
+      '/api': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+
+      // 관리자 페이지
+      '/admins': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+})

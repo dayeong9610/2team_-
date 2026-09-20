@@ -1,0 +1,5 @@
++@ 익명이용자인 학생들이 이용할 경로들은 prefix = "/students"가 기본이에요. 
+localhost:8000/ =>  홈화면
+localhost:8000/students/tutorial
+localhost:8000/students/episode
+이런 형식으로 요청이 들어와야해요.

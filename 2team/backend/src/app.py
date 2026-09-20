@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
+import asyncio
 
 import uvicorn
 from fastapi import FastAPI
@@ -7,12 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from database.connection import conn
+from database.connection import conn, database_is_available
 from routes.admin_route import router
 
 from routes.chat import router as chat_router
 from routes.episodes import router as episode_router
 from routes.sessions import router as session_router
+from core.flow_trace import print_route_map
 
 
 # Resolve paths from this file instead of from the shell's current directory.
@@ -23,9 +25,48 @@ FRONTEND_DIST = FRONTEND_DIR / "dist"
 FRONTEND_INDEX = FRONTEND_DIST / "index.html"
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
-    conn()
-    yield
+async def lifespan(app_instance: FastAPI):
+    # 개발/DB 연동 확인용: 실제 등록된 API 경로와 함수명을 서버 시작 시 출력합니다.
+    print_route_map(app_instance)
+
+    # DB 연결은 학생용 FastAPI가 뜨기 위한 선행조건이 아닙니다.
+    # 별도 background task에서 확인하므로 PostgreSQL이 멈춰 있어도
+    # /api/sessions, /api/chat 등 학생용 API는 즉시 서비스됩니다.
+    app_instance.state.db_available = False
+
+    async def database_monitor():
+        initialized = False
+
+        while True:
+            try:
+                db_ok = await asyncio.to_thread(database_is_available)
+
+                if db_ok and not initialized:
+                    await asyncio.to_thread(conn)
+                    initialized = True
+                    print("[DB] connection ready")
+
+                app_instance.state.db_available = db_ok
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                app_instance.state.db_available = False
+                print(
+                    f"[DB] background warning: {type(exc).__name__}: {exc}"
+                )
+
+            await asyncio.sleep(15)
+
+    monitor_task = asyncio.create_task(database_monitor())
+
+    try:
+        yield
+    finally:
+        monitor_task.cancel()
+        try:
+            await monitor_task
+        except asyncio.CancelledError:
+            pass
 
 
 app = FastAPI(title="2Team API", lifespan=lifespan)
@@ -36,7 +77,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "http://localhost:5173"
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -46,6 +89,18 @@ app.include_router(router)
 app.include_router(chat_router, prefix="/api")
 app.include_router(session_router, prefix="/api")
 app.include_router(episode_router, prefix="/api")
+
+
+@app.get("/api/health")
+def health():
+    """학생용 API 프로세스와 DB 상태를 분리해서 확인합니다."""
+    db_ok = bool(getattr(app.state, "db_available", False))
+
+    return {
+        "api": "ok",
+        "database": "ok" if db_ok else "unavailable",
+        "student_service": "available"
+    }
 
 if (FRONTEND_DIST / "assets").is_dir():
     app.mount(

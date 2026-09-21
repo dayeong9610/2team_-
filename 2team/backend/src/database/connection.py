@@ -2,7 +2,7 @@ from pathlib import Path
 from pydantic.v1 import BaseSettings
 from sqlmodel import SQLModel, Session, create_engine
 from sqlalchemy import text
-from model import Admin, AiEvaluation, ChatRoom, Chatting, LlmRole, Score
+from model import Admin, AiEvaluation, ChatRoom, Chatting, EpisodeScenario, LlmRole, Score
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 

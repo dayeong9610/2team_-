@@ -1,63 +1,53 @@
 {
   "episode_id": "EP02",
   "title": "SNS에서 시작된 유혹",
-
   "background": {
     "character": "중학교 1학년 학생",
     "situation": "SNS를 이용하던 중 다이어트와 기분 전환에 도움이 된다는 출처 불명의 약물 게시물을 접하고, 이후 모르는 계정으로부터 약물을 권유받는 상황을 경험한다."
   },
-
   "total_stages": 5,
-
   "stages": [
     {
       "stage_id": "EP02_STAGE01",
       "stage_number": 1,
       "title": "SNS 속 유혹 인지",
       "type": "risk_awareness",
-
       "location": "SNS 피드",
-
-      "description": "SNS를 보던 중 먹으면 살이 빠지고 기분이 좋아진다는 출처 불명의 약물을 소개하는 게시물을 발견한다. 게시물의 내용과 광고 방식에서 위험 요소를 판단해야 한다.",
-
+      "description": "SNS를 보던 중 먹으면 살이 빠지고 기분이 좋아진다는 출처 불명의 약물을 소개하는 게시물을 발견한다.",
       "messages": [
         {
-          "speaker": "SNS 게시물",
+          "speaker": "후기 게시물",
           "text": "요즘 이거 먹고 살 빠졌다는 사람 많음."
         },
         {
-          "speaker": "SNS 게시물",
-          "text": "식단이나 운동 힘들면 이걸로 관리해봐."
+          "speaker": "후기 게시물",
+          "text": "식단이나 운동 힘들면 이걸로 체중 관리해봐."
         },
         {
-          "speaker": "SNS 게시물",
-          "text": "기분도 한결 편해지고 스트레스도 덜함."
+          "speaker": "후기 게시물",
+          "text": "다이어트 중인데 기분도 한결 편해지고 스트레스도 덜함."
         }
       ],
-
       "question": "이 게시물에서 어떤 점이 가장 신경 쓰이나요?",
-
       "evaluation_axis": "risk_awareness",
-
       "evaluation_criteria": [
         "약물의 출처와 성분이 불분명하다는 점을 인식하는가",
         "SNS의 홍보 내용만으로 약물의 안전성을 판단하지 않는가",
         "다이어트나 기분 개선을 이유로 약물을 사용하는 것의 위험성을 인식하는가"
       ],
-
-      "next_stage": "EP02_STAGE02"
+      "next_stage": "EP02_STAGE02",
+      "npc_speaker": "후기 게시물",
+      "npc_identity": "효과만 강조하는 출처 불명의 SNS 후기/홍보 게시물 작성자다.",
+      "npc_stance": "효과를 좋게 보이게 말하고 출처·성분 문제는 스스로 지적하지 않는다.",
+      "npc_boundaries": "안전 교육자처럼 위험성을 설명하지 않는다."
     },
-
     {
       "stage_id": "EP02_STAGE02",
       "stage_number": 2,
       "title": "개인 메시지 유혹",
       "type": "refusal",
-
       "location": "SNS 개인 메시지",
-
       "description": "SNS를 이용하던 중 모르는 계정에서 개인 메시지가 도착한다. 상대방은 체중 감량이나 기분 개선에 도움이 된다는 약물을 보내주겠다고 제안한다. 사용자의 답변과 관계없이 상황은 다음 단계로 이어진다.",
-
       "messages": [
         {
           "speaker": "모르는 계정",
@@ -72,30 +62,26 @@
           "text": "처음이면 조금만 먹어봐."
         }
       ],
-
       "question": "이 메시지를 받은 당신은 어떻게 답하겠습니까?",
-
       "evaluation_axis": "refusal",
-
       "evaluation_criteria": [
         "약물을 받거나 사용하지 않겠다는 의사를 명확하게 표현하는가",
         "모르는 사람이 권하는 약물을 쉽게 받지 않으려 하는가",
         "다이어트나 기분 개선을 이유로 약물을 사용하지 않으려 하는가"
       ],
-
-      "next_stage": "EP02_STAGE03"
+      "next_stage": "EP02_STAGE03",
+      "npc_speaker": "모르는 계정",
+      "npc_identity": "SNS DM으로 약물을 보내주겠다고 접근한 익명 계정이다.",
+      "npc_stance": "사용자의 관심을 끌고 약물을 받아보도록 회유한다.",
+      "npc_boundaries": "안전성을 경고하거나 사용자의 거절을 칭찬하지 않는다."
     },
-
     {
       "stage_id": "EP02_STAGE03",
       "stage_number": 3,
       "title": "반복되는 권유와 압박",
       "type": "refusal_advanced",
-
       "location": "SNS 개인 메시지",
-
       "description": "모르는 계정에서 다시 메시지가 온다. 상대방은 약물을 사용하는 사람이 많다는 말과 외모 및 스트레스에 대한 이야기를 이용해 약물 사용을 권유한다. 앞선 Stage에서 사용자가 어떤 답변을 했는지와 관계없이 새로운 권유 상황이 발생한다.",
-
       "messages": [
         {
           "speaker": "모르는 계정",
@@ -114,30 +100,26 @@
           "text": "힘들 때 이거 먹으면 기분도 좀 괜찮아질 수 있어."
         }
       ],
-
       "question": "상대방이 계속 약물을 권유한다면 어떻게 행동하겠습니까?",
-
       "evaluation_axis": "refusal",
-
       "evaluation_criteria": [
         "반복적인 권유와 감정적 설득에도 약물을 사용하지 않겠다는 입장을 유지하는가",
         "외모나 감정적인 고민을 이유로 약물을 사용하지 않는가",
         "추가적인 권유를 거절하거나 대화를 중단하는 등 접촉을 줄이려 하는가"
       ],
-
-      "next_stage": "EP02_STAGE04"
+      "next_stage": "EP02_STAGE04",
+      "npc_speaker": "모르는 계정",
+      "npc_identity": "반복 메시지로 약물을 권하며 외모와 스트레스를 이용해 설득하는 익명 계정이다.",
+      "npc_stance": "반복 권유와 감정적 설득을 이어간다.",
+      "npc_boundaries": "교사·상담사·코치 역할을 하지 않는다."
     },
-
     {
       "stage_id": "EP02_STAGE04",
       "stage_number": 4,
       "title": "친구의 호기심",
       "type": "help_request",
-
       "location": "학교 복도",
-
       "description": "다음 날 학교에서 친구와 이야기를 나누던 중 친구가 SNS에서 본 약물에 관심을 보인다. 친구는 체중과 스트레스에 대한 고민을 이야기하며 약물을 사용해보고 싶다고 말한다. 앞선 Stage에서 사용자가 어떤 선택을 했는지와 관계없이 친구의 호기심으로 새로운 상황이 발생한다.",
-
       "messages": [
         {
           "speaker": "친구",
@@ -152,30 +134,26 @@
           "text": "SNS에서 봤는데 그렇게 위험한 건 아닌 것 같던데?"
         }
       ],
-
       "question": "친구가 그 약물을 사용해보고 싶다고 한다면 당신은 어떻게 행동하겠습니까?",
-
       "evaluation_axis": "help_request",
-
       "evaluation_criteria": [
         "친구가 출처 불명의 약물을 사용하는 것이 위험할 수 있음을 알리는가",
         "친구에게 약물을 사용하지 말라고 이야기하는가",
         "보호자나 교사 등 신뢰할 수 있는 어른에게 도움을 요청하도록 권하는가"
       ],
-
-      "next_stage": "EP02_STAGE05"
+      "next_stage": "EP02_STAGE05",
+      "npc_speaker": "친구",
+      "npc_identity": "SNS 약물에 호기심을 보이며 한번 써보고 싶다고 말하는 친구다.",
+      "npc_stance": "효과에 호기심을 보이고 위험성을 가볍게 보는 태도를 유지한다.",
+      "npc_boundaries": "사용자에게 정답을 가르치거나 안전 코칭하지 않는다."
     },
-
     {
       "stage_id": "EP02_STAGE05",
       "stage_number": 5,
       "title": "비밀 요구와 최종 판단",
       "type": "help_request_advanced",
-
       "location": "그날 밤 SNS 개인 메시지",
-
       "description": "그날 밤 모르는 계정에서 다시 메시지가 온다. 상대방은 약물을 보내주는 대신 다른 사람에게 알리지 말고 비밀로 해달라고 요구한다. 이전 Stage에서 사용자가 어떤 선택을 했는지와 관계없이 마지막 위험 상황이 발생하며, 사용자는 자신의 안전을 위해 어떻게 대응할지 판단해야 한다.",
-
       "messages": [
         {
           "speaker": "모르는 계정",
@@ -190,19 +168,19 @@
           "text": "괜히 부모님이나 선생님한테 이야기할 필요 없어."
         }
       ],
-
       "question": "이 상황에서 당신은 어떻게 대응하겠습니까?",
-
       "evaluation_axis": "help_request",
-
       "evaluation_criteria": [
         "상대방의 비밀 유지 요구를 따르지 않는가",
         "약물을 받거나 사용하지 않는 선택을 하는가",
         "SNS 계정을 차단하거나 신고하는 등 위험한 접촉을 중단하려 하는가",
         "보호자나 교사 등 신뢰할 수 있는 어른에게 상황을 알리려 하는가"
       ],
-
-      "next_stage": null
+      "next_stage": null,
+      "npc_speaker": "모르는 계정",
+      "npc_identity": "약물을 보내주는 대신 비밀로 하라고 요구하는 익명 계정이다.",
+      "npc_stance": "비밀 유지와 접촉 지속을 요구한다.",
+      "npc_boundaries": "사용자에게 부모·교사에게 알리라고 권하지 않는다."
     }
   ]
 }

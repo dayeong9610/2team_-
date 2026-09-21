@@ -1,22 +1,8 @@
-import manyangImg from "../assets/마냥_기본.png";
+import { useEffect, useState } from "react";
 
-// =====================================================================
-// EpisodeListPage (에피소드 선택 목록) — 라우트: "/episodes"
-// ---------------------------------------------------------------------
-// TutorialPage 다음에 오는 화면으로, 플레이할 에피소드(EP01~EP03)를
-// 고르는 목록입니다. 카드를 클릭하면 /play/{episode.id}로 이동합니다.
-//
-// [Backend 연동 참고]
-// - 아래 `episodes` 배열(제목/설명)은 프론트에 하드코딩된 화면 표시용
-//   데이터입니다. Backend의 GET /api/episodes 같은 API는 아직 호출하지
-//   만 화면에 보여줄 에피소드 목록(episodes 배열)이 코드 안에 직접 텍스트로 박혀 있는 하드코딩된 상태.
-// - 다만 `episode.id`("EP01", "EP02", "EP03")는 실제로 Backend에
-//   보내는 값과 동일한 규칙이에요. 이 화면 이후 PlayPage에서
-//   POST /api/sessions 호출 시 body의 episode_id로 이 값이 그대로
-//   전달되고, Backend는 이걸로 scenario/episodes/episode{번호}.json을
-//   찾습니다. 즉 새 에피소드를 추가할 땐 이 id 값과 그 JSON 파일명이
-//   반드시 일치해야 합니다.
-// =====================================================================
+import manyangImg from "../assets/마냥_기본.png";
+import { getEpisodes } from "../services/api";
+import type { EpisodeSummaryResponse } from "../types/episode";
 
 interface EpisodeItem {
   id: string;
@@ -26,10 +12,7 @@ interface EpisodeItem {
   locked: boolean;
 }
 
-// 하드코딩된 화면 표시용 데이터 (Backend API 응답 아님).
-// id 값("EP01" 등)만 Backend와의 실제 계약이고, 나머지(num/title/
-// description)는 순수 프론트 문구입니다.
-const episodes: EpisodeItem[] = [
+const FALLBACK_EPISODES: EpisodeItem[] = [
   {
     id: "EP01",
     num: "01",
@@ -53,9 +36,50 @@ const episodes: EpisodeItem[] = [
   },
 ];
 
+function toEpisodeItem(episode: EpisodeSummaryResponse): EpisodeItem {
+  const number = episode.episode_id.replace(/^EP/i, "");
+  return {
+    id: episode.episode_id,
+    num: number || episode.episode_id,
+    title: episode.title,
+    description: episode.description,
+    locked: false,
+  };
+}
+
 function EpisodeListPage() {
-  // 여기서는 세션을 만들지 않고 그냥 /play/{id}로 이동만 함.
-  // 실제 POST /api/sessions 호출은 PlayPage 진입 시 일어남.
+  const [episodes, setEpisodes] = useState<EpisodeItem[]>(FALLBACK_EPISODES);
+  const [isLoading, setIsLoading] = useState(true);
+  const [usingFallback, setUsingFallback] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadEpisodes() {
+      try {
+        const result = await getEpisodes();
+        if (cancelled) return;
+
+        setEpisodes(result.map(toEpisodeItem));
+        setUsingFallback(false);
+      } catch (error) {
+        console.error("Episode list load failed", error);
+        if (cancelled) return;
+
+        setEpisodes(FALLBACK_EPISODES);
+        setUsingFallback(true);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    loadEpisodes();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleEpisodeClick = (id: string, locked: boolean) => {
     if (locked) return;
     window.location.assign(`/play/${id}`);
@@ -78,6 +102,15 @@ function EpisodeListPage() {
         </div>
       </div>
 
+      {isLoading && (
+        <p className="episode-list-status">에피소드를 불러오는 중이에요...</p>
+      )}
+      {!isLoading && usingFallback && (
+        <p className="episode-list-status">
+          서버 목록을 불러오지 못해 기본 에피소드만 표시하고 있어요.
+        </p>
+      )}
+
       <ul className="episode-list">
         {episodes.map((episode) => (
           <li key={episode.id}>
@@ -88,20 +121,12 @@ function EpisodeListPage() {
               disabled={episode.locked}
             >
               <span className="episode-item-text">
-                <span className="episode-item-num">
-                  Episode {episode.num}
-                </span>
-                <strong className="episode-item-title">
-                  {episode.title}
-                </strong>
-                <span className="episode-item-desc">
-                  {episode.description}
-                </span>
+                <span className="episode-item-num">Episode {episode.num}</span>
+                <strong className="episode-item-title">{episode.title}</strong>
+                <span className="episode-item-desc">{episode.description}</span>
               </span>
 
-              <span className="episode-item-arrow" aria-hidden="true">
-                →
-              </span>
+              <span className="episode-item-arrow" aria-hidden="true">→</span>
             </button>
           </li>
         ))}

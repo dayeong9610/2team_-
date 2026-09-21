@@ -1,206 +1,68 @@
-from uuid import uuid4
+"""Episode read API.
 
-from fastapi import (
-    APIRouter,
-    HTTPException
-)
+학생용 프론트가 /api/episodes 를 통해 정적 JSON과 관리자 DB에 공개된
+에피소드를 동일한 계약으로 조회하도록 합니다.
+"""
 
-from schemas.session import (
-    SessionCreateRequest,
-    SessionCreateResponse,
-    SessionResultResponse,
-    SessionStateResponse
-)
+import logging
+from fastapi import APIRouter, HTTPException
 
-from core.session_store import (
-    session_store
-)
-
-from core.scenario_engine import (
-    load_episode,
-    get_total_stages
-)
+from core.scenario_engine import list_episodes, load_episode
+from schemas.episode import EpisodeDetailResponse, EpisodeSummary, StageResponse
 
 
-router = APIRouter(
-    tags=["Sessions"]
-)
+router = APIRouter(tags=["Episodes"])
+logger = logging.getLogger(__name__)
 
 
-# =========================
-# Session 생성
-# =========================
+def _description(episode: dict) -> str:
+    background = episode.get("background")
+    if isinstance(background, dict):
+        return str(background.get("situation") or "")
+    return ""
 
-@router.post(
-    "/sessions",
-    response_model=SessionCreateResponse
-)
-def start_session(
-    request: SessionCreateRequest
-):
 
-    # 1. Episode 조회
-    episode = load_episode(
-        request.episode_id
-    )
+@router.get("/episodes", response_model=list[EpisodeSummary])
+def get_episodes() -> list[EpisodeSummary]:
+    """게임에서 선택 가능한 전체 공개 Episode 목록을 반환합니다."""
+    result: list[EpisodeSummary] = []
 
-    if episode is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Episode not found"
+    for episode in list_episodes():
+        episode_id = str(episode.get("episode_id") or "").strip().upper()
+        if not episode_id:
+            continue
+        stages = episode.get("stages") if isinstance(episode.get("stages"), list) else []
+        result.append(
+            EpisodeSummary(
+                episode_id=episode_id,
+                title=str(episode.get("title") or episode_id),
+                description=_description(episode),
+                total_stages=len(stages),
+            )
         )
 
-    # 2. Episode Stage 확인
-    stages = episode.get(
-        "stages",
-        []
-    )
-
-    if not stages:
-        raise HTTPException(
-            status_code=500,
-            detail="Episode has no stages"
-        )
-
-    # 3. 첫 Stage 결정
-    first_stage = stages[0][
-        "stage_id"
-    ]
-
-    # 4. Session ID 생성
-    session_id = str(
-        uuid4()
-    )
-
-    # 5. Session 생성
-    session = (
-        session_store.create_session(
-            session_id=session_id,
-            episode_id=request.episode_id,
-            first_stage=first_stage
-        )
-    )
-
-    return {
-        "session_id":
-            session_id,
-
-        "episode_id":
-            request.episode_id,
-
-        "current_stage":
-            session["current_stage"]
-    }
-
-
-# =========================
-# Session 결과 조회
-# =========================
-
-@router.get(
-    "/sessions/{session_id}/result",
-    response_model=SessionResultResponse
-)
-def session_result(
-    session_id: str
-):
-
-    result = (
-        session_store.get_result(
-            session_id
-        )
-    )
-
-    if result is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Session not found"
-        )
-
+    logger.info("EPISODE LIST API count=%s", len(result))
     return result
 
 
-# =========================
-# Session 현재 상태 조회
-# =========================
+@router.get("/episodes/{episode_id}", response_model=EpisodeDetailResponse)
+def get_episode(episode_id: str) -> EpisodeDetailResponse:
+    """하나의 공개 Episode와 Stage 전체를 반환합니다."""
+    episode = load_episode(episode_id)
+    if episode is None:
+        raise HTTPException(status_code=404, detail="Episode not found")
 
-@router.get(
-    "/sessions/{session_id}",
-    response_model=SessionStateResponse
-)
-@router.get(
-    "/sessions/{session_id}",
-    response_model=SessionStateResponse
-)
-def session_state(
-    session_id: str
-):
+    stages_raw = episode.get("stages") if isinstance(episode.get("stages"), list) else []
+    try:
+        stages = [StageResponse(**stage) for stage in stages_raw]
+    except Exception as exc:
+        logger.exception("EPISODE DETAIL schema invalid episode_id=%s", episode_id)
+        raise HTTPException(status_code=500, detail="Episode schema is invalid") from exc
 
-    session = (
-        session_store.get_session(
-            session_id
-        )
+    return EpisodeDetailResponse(
+        episode_id=str(episode.get("episode_id") or episode_id).upper(),
+        title=str(episode.get("title") or episode_id),
+        description=_description(episode),
+        total_stages=len(stages),
+        stages=stages,
     )
-
-    if session is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Session not found"
-        )
-
-    total_stages = (
-        get_total_stages(
-            session["episode_id"]
-        )
-    )
-
-    if total_stages <= 0:
-        raise HTTPException(
-            status_code=500,
-            detail="Episode has no stages"
-        )
-
-    state = (
-        session_store.get_session_state(
-            session_id,
-            total_stages
-        )
-    )
-
-    if state is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Session not found"
-        )
-
-    return state
-
-
-# =========================
-# Session 종료
-# =========================
-
-@router.delete(
-    "/sessions/{session_id}"
-)
-def end_session(
-    session_id: str
-):
-
-    deleted = (
-        session_store.delete_session(
-            session_id
-        )
-    )
-
-    if not deleted:
-        raise HTTPException(
-            status_code=404,
-            detail="Session not found"
-        )
-
-    return {
-        "message":
-            "Session deleted"
-    }
-

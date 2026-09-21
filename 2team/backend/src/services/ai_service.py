@@ -92,7 +92,7 @@ async def evaluate_response(
         {
             "episode_id": episode_id,
             "stage_id": stage_id,
-            "user_message": user_message,
+            "message_length": len(user_message),
             "evaluation_axis": stage_data.get("evaluation_axis"),
             "stage_type": stage_data.get("type"),
         },
@@ -112,28 +112,19 @@ async def evaluate_response(
         {
             "blocked": safety_result.blocked,
             "reason": safety_result.reason,
+            "language_violation": safety_result.language_violation,
+            "language_severity": safety_result.language_severity,
         },
     )
 
     if safety_result.blocked:
-        # 평가할 수 없는/안전하지 않은 입력은 Stage를 완료 처리하지 않습니다.
-        if safety_result.reason == "insufficient_response":
-            npc_response = (
-                "응? 어떻게 하겠다는 건지 잘 모르겠어. "
-                "조금 더 구체적으로 말해줄래?"
-            )
-        else:
-            npc_response = (
-                "그 내용보다는 지금 상황에서 "
-                "어떻게 안전하게 행동할지 생각해보자."
-            )
-
+        # 재입력이 필요한 경우에는 NPC가 교사/상담사처럼 안전 코칭하지 않습니다.
+        # NPC 말풍선은 비우고, 안내는 전부 마냥이 feedback에서만 제공합니다.
         response = {
-            "npc_response": npc_response,
+            "npc_response": "",
             "feedback": (
                 safety_result.feedback
-                or
-                "안전한 대응 방법을 생각해보세요."
+                or "현재 상황에서 실제로 어떻게 행동할지 한 문장으로 표현해보세요."
             ),
             "scores": {
                 "risk_awareness": 0,
@@ -148,15 +139,21 @@ async def evaluate_response(
             FILE,
             "evaluate_response",
             "OUT_RETRY",
-            response,
+            {
+                "retry_required": True,
+                "retry_reason": safety_result.reason,
+                "language_violation": safety_result.language_violation,
+            },
         )
         return response
 
     # 2. Prompt 구성
+    # 욕설이 섞였더라도 행동 의도는 보존하고, LLM에는 정제된 문장만 전달합니다.
+    evaluation_message = safety_result.cleaned_message or user_message
     user_prompt = build_user_prompt(
         episode_id=episode_id,
         stage_id=stage_id,
-        user_message=user_message,
+        user_message=evaluation_message,
         stage_data=stage_data
     )
 
@@ -198,6 +195,14 @@ async def evaluate_response(
 
     payload = validated.model_dump()
 
+    # 비속어 탐지와 행동 평가는 서로 분리합니다. 행동 평가는 그대로 살리고,
+    # 언어 사용에 대한 코칭만 마냥이 feedback 앞에 짧게 덧붙입니다.
+    if safety_result.language_violation and safety_result.feedback:
+        payload["feedback"] = (
+            f"{safety_result.feedback} "
+            f"{payload.get('feedback', '').strip()}"
+        ).strip()
+
     trace_flow(
         FILE,
         "evaluate_response",
@@ -213,10 +218,7 @@ async def evaluate_response(
 
     if payload.get("retry_required") is True:
         response = {
-            "npc_response": (
-                "방금 말만으로는 어떻게 하겠다는 건지 잘 모르겠어. "
-                "조금 더 구체적으로 말해줄래?"
-            ),
+            "npc_response": "",
             "feedback": (
                 "현재 상황에서 무엇이 걱정되는지, 무엇을 하지 않을지, "
                 "또는 누구에게 도움을 요청할지 실제로 말하듯 표현해보세요."

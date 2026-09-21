@@ -4,12 +4,16 @@
 또한 사용자 입력 원문, NPC 대사, 피드백 원문은 저장하지 않고 점수와 식별자만 저장합니다.
 """
 
+import logging
 import os
 
 from sqlmodel import Session, select
 
 from database.connection import engine_url
 from model.ai_evaluation import AiEvaluation
+
+
+logger = logging.getLogger(__name__)
 
 
 _SCORE_KEYS = (
@@ -77,16 +81,19 @@ def persist_ai_evaluation(
 
             db_session.commit()
 
-        print(
-            f"[AI EVALUATION DB {action}] "
-            f"session_id={session_id}, episode_id={episode_id}, stage_id={stage_id}"
+        logger.info(
+            "AI evaluation DB %s session_id=%s episode_id=%s stage_id=%s",
+            action,
+            session_id,
+            episode_id,
+            stage_id,
         )
         return True
 
     except Exception as exc:
         # 사용자 답변 원문은 로그에 남기지 않습니다.
-        print(
-            "[AI EVALUATION DB WARNING] "
-            f"save failed: {type(exc).__name__}: {exc}"
+        logger.exception(
+            "AI evaluation DB save failed: %s",
+            type(exc).__name__,
         )
         return False

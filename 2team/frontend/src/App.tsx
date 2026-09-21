@@ -11,6 +11,7 @@ import EpisodeListPage from "./pages/EpisodeListPage";
 import PlayPage from "./pages/PlayPage";
 import ResultPage from "./pages/ResultPage";
 import ProfilePage from "./pages/ProfilePage";
+import ClassJoinPage from "./pages/ClassJoinPage";
 
 function App() {
   return (
@@ -33,6 +34,16 @@ function App() {
         <Route
           path="/episodes"
           element={<EpisodeListPage />}
+        />
+
+        <Route
+          path="/class"
+          element={<ClassJoinPage />}
+        />
+
+        <Route
+          path="/class/:episodeId"
+          element={<ClassJoinPage />}
         />
 
         <Route

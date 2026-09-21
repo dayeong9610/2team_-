@@ -1,10 +1,12 @@
 from pathlib import Path
+import io
 import json
 import logging
+from urllib.parse import urlparse
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 
 from sqlmodel import select, func
 
@@ -240,6 +242,78 @@ async def admin_index(
         request,
         "admin/admin_index.html",
         context,
+    )
+
+
+@router.get("/class-qr")
+async def class_qr_page(
+    request: Request,
+    current_user: str = Depends(authenticate),
+):
+    """DB 저장 없이 Episode 접속용 수업코드/QR을 생성하는 화면입니다."""
+    episodes = []
+    for episode in list_episodes():
+        episode_id = str(episode.get("episode_id") or "").strip().upper()
+        if not episode_id:
+            continue
+        episodes.append({
+            "episode_id": episode_id,
+            "title": str(episode.get("title") or episode_id),
+        })
+
+    return template.TemplateResponse(
+        request,
+        "admin/class_qr.html",
+        {
+            "current_user": current_user,
+            "episodes": episodes,
+        },
+    )
+
+
+@router.get("/class-qr/image")
+async def class_qr_image(
+    episode_id: str,
+    base_url: str,
+    current_user: str = Depends(authenticate),
+):
+    """현재 브라우저 주소 + Episode ID를 QR PNG로 즉석 생성합니다. DB 저장 없음."""
+    normalized = episode_id.strip().upper()
+    episode = load_episode(normalized)
+    if episode is None:
+        raise HTTPException(status_code=404, detail="Episode not found")
+
+    parsed = urlparse(base_url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise HTTPException(status_code=400, detail="Invalid base URL")
+
+    try:
+        import qrcode
+    except ImportError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail='QR 패키지가 없습니다. python -m pip install "qrcode[pil]" 실행 후 재시작해주세요.',
+        ) from exc
+
+    join_url = f"{base_url.rstrip('/')}/class/{normalized}"
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=8,
+        border=3,
+    )
+    qr.add_data(join_url)
+    qr.make(fit=True)
+    image = qr.make_image(fill_color="black", back_color="white")
+
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="image/png",
+        headers={"Cache-Control": "no-store"},
     )
 
 @router.get("/signup")

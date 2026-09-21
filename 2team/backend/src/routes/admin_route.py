@@ -13,10 +13,11 @@ from auth.jwt_handler import create_access_token
 from auth.authenticate import authenticate, optional_authenticate
 from database.connection import get_session
 from model.admin import Admin
-from model.ai_evaluation import AiEvaluation
-from model.episode_scenario import EpisodeScenario
 from model.llm_role import LlmRole, WriteLlmRole
-from core.scenario_engine import get_stage, list_episodes
+from model.chat_room import ChatRoom
+from model.chatting import Chatting, ChatterEnum
+from model.score import Score
+from core.scenario_engine import list_episodes, load_episode
 
 router = APIRouter(prefix="/admins", tags=["Admins"])
 
@@ -33,7 +34,6 @@ async def admin_index(
     current_user: str | None = Depends(optional_authenticate),
     session=Depends(get_session),
 ):
-    # 로그인 전에는 기존처럼 로그인/회원가입 메뉴만 보여줍니다.
     context = {
         "is_authenticated": current_user is not None,
         "current_user": current_user,
@@ -43,22 +43,24 @@ async def admin_index(
 
     if current_user is not None:
         try:
-            # -------------------------
-            # 실제 게임 Episode / 관리자 기본 현황
-            # -------------------------
+            # llm_role이 Episode 저장소 역할을 합니다.
+            episode_filter = LlmRole.episode_id.is_not(None)
+
             total_scenarios = session.exec(
-                select(func.count(EpisodeScenario.scenario_id))
+                select(func.count(LlmRole.lr_num)).where(episode_filter)
             ).one() or 0
 
             my_scenarios = session.exec(
-                select(func.count(EpisodeScenario.scenario_id)).where(
-                    EpisodeScenario.admin_id == current_user
+                select(func.count(LlmRole.lr_num)).where(
+                    episode_filter,
+                    LlmRole.admin_id == current_user,
                 )
             ).one() or 0
 
             published_scenarios = session.exec(
-                select(func.count(EpisodeScenario.scenario_id)).where(
-                    EpisodeScenario.status == "published"
+                select(func.count(LlmRole.lr_num)).where(
+                    episode_filter,
+                    LlmRole.status == "published",
                 )
             ).one() or 0
 
@@ -74,9 +76,11 @@ async def admin_index(
 
             category_rows = session.exec(
                 select(
-                    EpisodeScenario.category,
-                    func.count(EpisodeScenario.scenario_id),
-                ).group_by(EpisodeScenario.category)
+                    LlmRole.category,
+                    func.count(LlmRole.lr_num),
+                )
+                .where(episode_filter)
+                .group_by(LlmRole.category)
             ).all()
 
             category_map = {
@@ -93,8 +97,9 @@ async def admin_index(
             ]
 
             recent_scenarios = session.exec(
-                select(EpisodeScenario)
-                .order_by(EpisodeScenario.created_at.desc())
+                select(LlmRole)
+                .where(episode_filter)
+                .order_by(LlmRole.created_at.desc())
                 .limit(5)
             ).all()
 
@@ -106,23 +111,26 @@ async def admin_index(
                 "published_scenarios": int(published_scenarios),
                 "categories": categories,
                 "recent_scenarios": recent_scenarios,
-                "ai_evaluation": {
+                "score_stats": {
                     "available": True,
                     "count": 0,
                     "avg_risk_awareness": 0.0,
                     "avg_refusal": 0.0,
                     "avg_help_request": 0.0,
+                    "axis_counts": {},
+                    "stage_stats": [],
                 },
             }
 
-            # -------------------------
-            # 실제 AI 평가 저장 현황
-            # -------------------------
-            # ai_evaluation 테이블이 아직 생성되지 않았거나 DB 권한 문제로
-            # 조회가 실패해도 콘텐츠/관리자 대시보드는 계속 표시합니다.
+            # 실제 GPT 평가 결과는 score -> chatting -> chat_room -> llm_role 관계로 집계합니다.
             try:
-                evaluations = session.exec(
-                    select(AiEvaluation).order_by(AiEvaluation.created_at.desc())
+                rows = session.exec(
+                    select(Score, Chatting, ChatRoom, LlmRole)
+                    .join(Chatting, Score.chat_id == Chatting.chat_id)
+                    .join(ChatRoom, Chatting.room_id == ChatRoom.room_id)
+                    .join(LlmRole, ChatRoom.lr_num == LlmRole.lr_num)
+                    .where(Chatting.chatter == ChatterEnum.USER)
+                    .order_by(Chatting.created_at.desc())
                 ).all()
 
                 axis_values = {
@@ -131,23 +139,56 @@ async def admin_index(
                     "help_request": [],
                 }
                 stage_buckets: dict[tuple[str, str], dict] = {}
+                evaluated_chat_ids: set[int] = set()
+                role_stage_cache: dict[tuple[int, str], dict] = {}
 
-                for item in evaluations:
-                    stage = get_stage(item.episode_id, item.stage_id) or {}
-                    axis = stage.get("evaluation_axis")
-                    if axis not in axis_values:
+                for score_row, chat_row, room_row, role_row in rows:
+                    if role_row.episode_id is None or chat_row.chat_id is None:
                         continue
 
-                    value = int(getattr(item, axis, 0))
-                    axis_values[axis].append(value)
+                    cache_key = (int(role_row.lr_num), chat_row.stage_id)
+                    stage = role_stage_cache.get(cache_key)
+                    if stage is None:
+                        stage = {}
 
-                    key = (item.episode_id, item.stage_id)
+                        # 1) DB llm_role.content에 실제 Episode JSON이 있으면 우선 사용합니다.
+                        try:
+                            payload = json.loads(role_row.content or "{}")
+                            for candidate in payload.get("stages", []):
+                                if candidate.get("stage_id") == chat_row.stage_id:
+                                    stage = candidate
+                                    break
+                        except (TypeError, json.JSONDecodeError):
+                            stage = {}
+
+                        # 2) ai_evaluation -> 기존 테이블 마이그레이션 직후에는
+                        #    llm_role가 stages=[]인 draft placeholder일 수 있습니다.
+                        #    이 경우 기본 scenario JSON까지 fallback해서 평가축을 복구합니다.
+                        if not stage and role_row.episode_id:
+                            episode = load_episode(role_row.episode_id)
+                            if episode is not None:
+                                for candidate in episode.get("stages", []):
+                                    if candidate.get("stage_id") == chat_row.stage_id:
+                                        stage = candidate
+                                        break
+
+                        role_stage_cache[cache_key] = stage
+
+                    axis = stage.get("evaluation_axis")
+                    if axis not in axis_values or score_row.category != axis:
+                        continue
+
+                    value = int(score_row.score)
+                    axis_values[axis].append(value)
+                    evaluated_chat_ids.add(int(chat_row.chat_id))
+
+                    key = (role_row.episode_id, chat_row.stage_id)
                     bucket = stage_buckets.setdefault(
                         key,
                         {
-                            "episode_id": item.episode_id,
-                            "stage_id": item.stage_id,
-                            "title": stage.get("title", item.stage_id),
+                            "episode_id": role_row.episode_id,
+                            "stage_id": chat_row.stage_id,
+                            "title": stage.get("title", chat_row.stage_id),
                             "axis": axis,
                             "values": [],
                         },
@@ -166,21 +207,20 @@ async def admin_index(
                     values = axis_values[key]
                     return sum(values) / len(values) if values else 0.0
 
-                dashboard["ai_evaluation"] = {
+                dashboard["score_stats"] = {
                     "available": True,
-                    "count": len(evaluations),
+                    "count": len(evaluated_chat_ids),
                     "avg_risk_awareness": axis_avg("risk_awareness"),
                     "avg_refusal": axis_avg("refusal"),
                     "avg_help_request": axis_avg("help_request"),
                     "axis_counts": {key: len(values) for key, values in axis_values.items()},
                     "stage_stats": stage_stats,
-                    "recent": evaluations[:10],
                 }
             except Exception as exc:
                 session.rollback()
-                dashboard["ai_evaluation"]["available"] = False
+                dashboard["score_stats"]["available"] = False
                 logger.warning(
-                    "ADMIN DASHBOARD AI evaluation statistics unavailable: %s",
+                    "ADMIN DASHBOARD score statistics unavailable: %s",
                     type(exc).__name__,
                 )
 
@@ -400,7 +440,7 @@ async def admin_episode_list(
 ):
     """관리자용 Episode 목록 화면. /api/episodes와 역할을 분리합니다."""
     db_rows = session.exec(
-        select(EpisodeScenario).order_by(EpisodeScenario.episode_id)
+        select(LlmRole).where(LlmRole.episode_id.is_not(None)).order_by(LlmRole.episode_id)
     ).all()
     db_by_id = {row.episode_id.upper(): row for row in db_rows}
 
@@ -437,7 +477,7 @@ async def admin_episode_list(
         if mine and row.admin_id != current_user:
             continue
         try:
-            payload = json.loads(row.scenario_json)
+            payload = json.loads(row.content)
         except (TypeError, json.JSONDecodeError):
             payload = {}
         stages = payload.get("stages") if isinstance(payload.get("stages"), list) else []
@@ -475,11 +515,11 @@ async def admin_episode_detail(
     """관리자가 저장된 Episode JSON을 읽기 전용으로 확인합니다."""
     normalized = episode_id.strip().upper()
     row = session.exec(
-        select(EpisodeScenario).where(EpisodeScenario.episode_id == normalized)
+        select(LlmRole).where(LlmRole.episode_id == normalized)
     ).first()
 
     if row is not None:
-        raw_json = row.scenario_json
+        raw_json = row.content
         status_value = row.status
         source = "DB"
         owner = row.admin_id or "-"
@@ -517,10 +557,10 @@ async def admin_episode_detail(
 
 
 
-def _owned_episode_or_404(session, episode_id: str, current_user: str) -> EpisodeScenario:
+def _owned_episode_or_404(session, episode_id: str, current_user: str) -> LlmRole:
     normalized = episode_id.strip().upper()
     row = session.exec(
-        select(EpisodeScenario).where(EpisodeScenario.episode_id == normalized)
+        select(LlmRole).where(LlmRole.episode_id == normalized)
     ).first()
     if row is None:
         raise HTTPException(status_code=404, detail="DB Episode not found")
@@ -538,7 +578,7 @@ async def publish_episode(
     """초안 Episode를 학생용 게임 목록/API에 공개합니다."""
     row = _owned_episode_or_404(session, episode_id, current_user)
     try:
-        payload = json.loads(row.scenario_json)
+        payload = json.loads(row.content)
     except json.JSONDecodeError as exc:
         raise HTTPException(status_code=400, detail="저장된 Episode JSON이 손상되었습니다.") from exc
     errors = _validate_episode_payload(payload)
@@ -590,9 +630,9 @@ async def edit_episode_form(
 ):
     row = _owned_episode_or_404(session, episode_id, current_user)
     try:
-        pretty_json = json.dumps(json.loads(row.scenario_json), ensure_ascii=False, indent=2)
+        pretty_json = json.dumps(json.loads(row.content), ensure_ascii=False, indent=2)
     except json.JSONDecodeError:
-        pretty_json = row.scenario_json
+        pretty_json = row.content
     return template.TemplateResponse(
         request,
         "/llm_role/write_form.html",
@@ -652,15 +692,15 @@ async def write(
     status_value = "published" if publish == "published" else "draft"
 
     existing = session.exec(
-        select(EpisodeScenario).where(EpisodeScenario.episode_id == episode_id)
+        select(LlmRole).where(LlmRole.episode_id == episode_id)
     ).first()
 
     if existing is None:
-        row = EpisodeScenario(
+        row = LlmRole(
             episode_id=episode_id,
             title=str(payload["title"]).strip(),
             category=category.strip(),
-            scenario_json=json.dumps(payload, ensure_ascii=False, indent=2),
+            content=json.dumps(payload, ensure_ascii=False, indent=2),
             status=status_value,
             admin_id=current_user,
         )
@@ -670,7 +710,7 @@ async def write(
             raise HTTPException(status_code=403, detail="다른 관리자가 작성한 Episode입니다.")
         existing.title = str(payload["title"]).strip()
         existing.category = category.strip()
-        existing.scenario_json = json.dumps(payload, ensure_ascii=False, indent=2)
+        existing.content = json.dumps(payload, ensure_ascii=False, indent=2)
         existing.status = status_value
         session.add(existing)
 

@@ -264,14 +264,21 @@
   height: 36px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FFB199 0%, #8567C9 55%, #4F7CFF 100%);
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 700;
+  overflow: hidden;
+  background: #eef2f7;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   animation: bubblePopIn 0.2s ease-out;
+}
+
+.npc-avatar-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .npc-message-content {
@@ -612,7 +619,7 @@
 }
 
 /* =====================================================================
-   Instagram DM 연출 (EP03: DM 단계에서만 적용, location이 "인스타그램 DM"인 stage)
+   SNS DM 연출 (sceneType="dm" 또는 SNS 개인 메시지 단계)
    ===================================================================== */
 .ig-dm-header {
   flex-shrink: 0;
@@ -1220,47 +1227,51 @@
   color: #3D7C71;
 }
 
-/* "총 N개 단계 완료" 한 줄 요약 (completed_stages.length) */
-.result-stats-subtitle {
-  margin: -8px 0 4px;
-  font-size: 0.78rem;
-  color: #9C978C;
-}
-
-.result-stat {
+/* 결과 상단은 점수/퍼센트가 아니라 학습 완료 기록만 표시합니다.
+   실제 AI 평가 점수는 아래 .result-stage-scores에서만 보여줍니다. */
+.result-completion {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
+  padding: 16px 18px;
+  background: #FFFFFF;
+  border: 1px solid #E8E3D8;
+  border-radius: 16px;
 }
 
-.result-stat-label {
+.result-completion-badge {
   flex-shrink: 0;
-  width: 76px;
-  font-size: 0.9rem;
-  color: #5A5F5E;
-}
-
-.result-stat-track {
-  flex: 1;
-  height: 10px;
-  background: #E5E1D8;
+  padding: 7px 12px;
   border-radius: 999px;
-  overflow: hidden;
-}
-
-.result-stat-fill {
-  height: 100%;
-  background: #3D7C71;
-  border-radius: 999px;
-}
-
-.result-stat-value {
-  flex-shrink: 0;
-  width: 42px;
-  text-align: right;
-  font-size: 0.9rem;
+  background: #E4F1ED;
+  color: #2F7167;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #3D7C71;
+}
+
+.result-completion-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.result-completion-text strong {
+  font-size: 0.96rem;
+  color: #303634;
+}
+
+.result-completion-text span {
+  font-size: 0.76rem;
+  color: #8C877D;
+  line-height: 1.45;
+}
+
+.result-score-guide {
+  margin: -4px 0 0;
+  padding-left: 2px;
+  font-size: 0.76rem;
+  color: #77736B;
+  line-height: 1.5;
 }
 
 /* result.stage_results (Stage별 feedback 문자열 배열)를 보여주는
@@ -1297,10 +1308,9 @@
   line-height: 1.5;
 }
 
-/* stage.scores (이 Stage 하나에서 받은 0~3점 원점수 3개)를 작은
-   칩 형태로 나열합니다. 위쪽 result-stat-*(전체 누적 %) 와는 다른
-   숫자라는 걸 시각적으로 구분하기 위해 진행바 없이 텍스트 칩으로만
-   표시합니다. */
+/* stage.scores (이 Stage 하나에서 받은 0~3점 AI 평가 원점수)를 작은
+   칩 형태로 나열합니다. 점수는 이 영역에서만 노출해 상단 학습 완료
+   정보와 평가 결과를 명확하게 분리합니다. */
 .result-stage-scores {
   display: flex;
   flex-wrap: wrap;
@@ -1327,6 +1337,14 @@
   .result-hero {
     flex-direction: column;
     text-align: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .result-completion {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
   }
 }
 
@@ -2445,4 +2463,1387 @@
   .pill-dot--d { top: 47px; right: 20px; }
   .pill-dot--e { bottom: 24px; left: 20px; }
   .pill-dot--f { bottom: 22px; right: 19px; }
+}
+
+/* =====================================================================
+   Episode support visuals (EP02 / EP03)
+   - 읽어야 이해되는 구조를 보자마자 이해되는 구조로 보강
+   ===================================================================== */
+.stage-support-panel {
+  flex: 0 0 auto;
+  margin: 0 0 8px;
+  padding: 13px 14px;
+  border: 1px solid #e6ebe7;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fbfcfb 0%, #f6faf8 100%);
+  box-shadow: 0 10px 28px rgba(30, 38, 41, 0.05);
+}
+
+.stage-support-panel__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.95fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.stage-support-panel__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+
+.stage-support-panel__kicker {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eaf4f0;
+  color: #397265;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.stage-support-panel__title {
+  color: #1f282b;
+  font-size: 0.98rem;
+  line-height: 1.35;
+}
+
+.stage-support-panel__subtitle {
+  margin: 0;
+  color: #59615f;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.stage-support-panel__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.stage-support-panel__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid #dde8e3;
+  border-radius: 999px;
+  background: #fff;
+  color: #4d5754;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.stage-support-panel__hint-box {
+  padding: 11px 12px;
+  border: 1px solid #deebe6;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.stage-support-panel__hint-title {
+  display: block;
+  margin-bottom: 7px;
+  color: #32695e;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.stage-support-panel__hint-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #4d5553;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.stage-support-panel__preview {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid #e4e8e4;
+  background: #ffffff;
+}
+
+.stage-support-panel__preview--feed,
+.stage-support-panel__preview--dm {
+  background: linear-gradient(180deg, #ffffff 0%, #f9fbfa 100%);
+}
+
+.stage-support-panel__preview--pressure {
+  background: linear-gradient(180deg, #ffffff 0%, #fbf8fd 100%);
+}
+
+.stage-support-panel__social-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.stage-support-panel__social-head strong,
+.stage-support-panel__drink-copy strong {
+  display: block;
+  color: #202729;
+  font-size: 0.86rem;
+}
+
+.stage-support-panel__social-head p,
+.stage-support-panel__drink-copy p {
+  margin: 2px 0 0;
+  color: #6d7472;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.stage-support-panel__avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-weight: 900;
+  color: #fff;
+}
+
+.stage-support-panel__avatar--ghost {
+  background: linear-gradient(135deg, #8393ad 0%, #697589 100%);
+}
+
+.stage-support-panel__avatar--warning {
+  background: linear-gradient(135deg, #d86d71 0%, #c24e58 100%);
+}
+
+.stage-support-panel__message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stage-support-panel__message {
+  padding: 9px 10px;
+  border-radius: 14px;
+  background: #f2f5f4;
+}
+
+.stage-support-panel__message--warning {
+  background: #fff3e9;
+  border: 1px solid #f6dfc8;
+}
+
+.stage-support-panel__message--pressure {
+  background: #f5effd;
+  border: 1px solid #e5dafa;
+}
+
+.stage-support-panel__sender {
+  display: block;
+  margin-bottom: 4px;
+  color: #52605b;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.stage-support-panel__message p {
+  margin: 0;
+  color: #283032;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.stage-support-panel__drink-card {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.stage-support-panel__giveaway {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #fff0d7;
+  color: #9a6423;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+}
+
+.stage-support-panel__cup {
+  position: relative;
+  width: 118px;
+  padding-top: 4px;
+}
+
+.stage-support-panel__cup-lid {
+  width: 100px;
+  height: 12px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: #e4ddd2;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+}
+
+.stage-support-panel__cup-body {
+  position: relative;
+  width: 84px;
+  height: 118px;
+  margin: -2px auto 0;
+  border-radius: 12px 12px 22px 22px;
+  background: linear-gradient(180deg, #f5e6c8 0%, #e9d6b1 50%, #dbc59d 100%);
+  box-shadow: inset 0 0 0 1px rgba(109, 84, 36, 0.08);
+}
+
+.stage-support-panel__cup-body::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  right: -4px;
+  width: 4px;
+  height: 72px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.35);
+}
+
+.stage-support-panel__cup-label {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%) rotate(-6deg);
+  width: 62px;
+  padding: 7px 5px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.72);
+  color: #716756;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: center;
+  filter: blur(0.3px);
+}
+
+.stage-support-panel__drink-copy {
+  text-align: center;
+}
+
+.stage-support-panel__note {
+  margin: 10px 0 0;
+  color: #6c7472;
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.play-page--immersive .stage-support-panel {
+  margin-bottom: 7px;
+  padding: 10px 11px;
+  border-radius: 15px;
+}
+
+.play-page--immersive .stage-support-panel__main {
+  grid-template-columns: minmax(0, 1.08fr) minmax(230px, 0.92fr);
+  gap: 10px;
+}
+
+.play-page--immersive .stage-support-panel__copy {
+  gap: 7px;
+}
+
+.play-page--immersive .stage-support-panel__title {
+  font-size: 0.9rem;
+}
+
+.play-page--immersive .stage-support-panel__subtitle,
+.play-page--immersive .stage-support-panel__message p,
+.play-page--immersive .stage-support-panel__hint-list {
+  font-size: 0.77rem;
+}
+
+.play-page--immersive .stage-support-panel__preview {
+  padding: 10px;
+}
+
+.play-page--immersive .stage-support-panel__cup {
+  width: 100px;
+}
+
+.play-page--immersive .stage-support-panel__cup-body {
+  width: 72px;
+  height: 102px;
+}
+
+.play-page--immersive .stage-support-panel__note {
+  margin-top: 8px;
+  font-size: 0.71rem;
+}
+
+@media (max-width: 760px) {
+  .stage-support-panel__main,
+  .play-page--immersive .stage-support-panel__main {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-support-panel__preview {
+    order: -1;
+  }
+}
+
+/* =====================================================================
+   Home live intro patch
+   - 첫 화면을 정적인 출력문 대신 게임 대화처럼 순차적으로 보여줍니다.
+   ===================================================================== */
+.home-page {
+  position: relative;
+}
+
+.home-skip-intro {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  z-index: 3;
+  padding: 7px 11px;
+  border: 1px solid #d8e5e1;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #54706a;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.home-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+  transition: opacity 0.42s ease, transform 0.42s ease;
+}
+
+.home-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.home-character-box--pop {
+  animation: homeCharacterPop 0.58s cubic-bezier(0.2, 0.85, 0.25, 1.2) both;
+}
+
+@keyframes homeCharacterPop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.home-bubble--live {
+  min-height: 140px;
+}
+
+.home-typing-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 4px;
+  vertical-align: -0.12em;
+  border-radius: 99px;
+  background: #3d7c71;
+  animation: homeCaretBlink 0.72s steps(1, end) infinite;
+}
+
+@keyframes homeCaretBlink {
+  0%, 48% { opacity: 1; }
+  49%, 100% { opacity: 0; }
+}
+
+.home-start-button {
+  transform: translateY(4px);
+}
+
+.home-start-button--ready {
+  animation: homeStartReady 0.32s ease-out both;
+}
+
+@keyframes homeStartReady {
+  from {
+    opacity: 0.45;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-reveal,
+  .home-character-box--pop,
+  .home-start-button--ready,
+  .home-typing-caret {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* 2026-09 관리자/게임 피드백 가독성 보강 */
+.stage-support-panel__scene-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 13px;
+  border: 1px solid #e2e4df;
+  background: #f5f3ed;
+}
+
+.play-page--immersive .coach-dock {
+  max-height: none;
+  overflow: visible;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #eef8f5 0%, #ffffff 100%);
+  border-color: #badbd1;
+}
+
+.play-page--immersive .coach-dock .manyang-coach {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.play-page--immersive .coach-dock .manyang-character {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+}
+
+.play-page--immersive .coach-dock .manyang-coach strong {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 0.92rem;
+}
+
+.play-page--immersive .coach-dock .manyang-coach p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #313b38;
+  overflow: visible;
+}
+
+.play-page--immersive .coach-dock-note {
+  margin: 8px 0 0 66px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+/* =====================================================================
+   2026-09 Mobile play scroll fix
+   - EP02/EP03 support panels are taller than a phone viewport.
+   - On phones the document itself must scroll; only desktop keeps the
+     single-viewport immersive layout.
+   ===================================================================== */
+@media (max-width: 700px) {
+  .play-page,
+  .play-page.play-page--immersive {
+    height: auto !important;
+    min-height: calc(100dvh - var(--header-h));
+    overflow: visible !important;
+    display: block;
+    padding: 10px 12px 24px;
+  }
+
+  .play-page--immersive .play-topbar--game,
+  .play-page--immersive .stage-header--focus,
+  .play-page--immersive .scene-brief,
+  .play-page--immersive .stage-support-panel,
+  .play-page--immersive .question-banner,
+  .play-page--immersive .coach-dock,
+  .play-page--immersive .next-button--game {
+    flex: none;
+  }
+
+  .play-page--immersive .play-layout--focused,
+  .play-page--immersive .play-chat--focused {
+    display: block;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .play-page--immersive .chat-window--focused {
+    height: auto;
+    min-height: 380px;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .play-page--immersive .conversation--focused {
+    min-height: 260px;
+    max-height: 54dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: auto;
+  }
+
+  .play-page--immersive .dm-composer {
+    position: sticky;
+    bottom: 0;
+    z-index: 8;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+  }
+
+  .play-page--immersive .stage-support-panel {
+    margin-bottom: 10px;
+    padding: 10px;
+  }
+
+  .play-page--immersive .stage-support-panel__main,
+  .stage-support-panel__main {
+    grid-template-columns: 1fr;
+  }
+
+  .play-page--immersive .stage-support-panel__preview,
+  .stage-support-panel__preview {
+    order: -1;
+  }
+
+  .stage-support-panel__scene-image {
+    max-height: none;
+    aspect-ratio: 16 / 9;
+  }
+
+  .play-page--immersive .coach-dock {
+    margin-top: 12px;
+    overflow: visible;
+  }
+
+  .play-page--immersive .next-button--game {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 700px) {
+  @supports selector(body:has(.play-page--immersive)) {
+    body:has(.play-page--immersive) {
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      touch-action: pan-y;
+    }
+  }
+}
+
+/* DB/관리자 공개 Episode 목록 로딩 상태 */
+.episode-list-status {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid #dfe9e5;
+  border-radius: 12px;
+  background: #f6faf8;
+  color: #66716e;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+/* =====================================================================
+   Response focus mode
+   - 상황/대사는 먼저 보여주고, 마지막 대사가 끝난 뒤 "이제 네 차례야"가
+     행동 카드로 등장합니다.
+   - 학습 힌트는 기본 접힘: 사용자가 먼저 판단한 뒤 필요할 때 열어봅니다.
+   ===================================================================== */
+.stage-support-panel--decision-first {
+  padding: 12px;
+  border-color: #e1ebe7;
+  background: linear-gradient(135deg, #fbfdfc 0%, #f5faf8 100%);
+}
+
+.stage-support-panel__decision-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.stage-support-panel__decision-head > div {
+  min-width: 0;
+}
+
+.stage-support-panel__scene-label {
+  display: block;
+  margin-bottom: 4px;
+  color: #3d7c71;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.stage-support-panel__decision-head strong {
+  display: block;
+  color: #26302e;
+  font-size: 0.9rem;
+}
+
+.stage-support-panel__decision-head p {
+  margin: 3px 0 0;
+  color: #77807d;
+  font-size: 0.74rem;
+}
+
+.stage-support-panel__hint-toggle {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #bfd8d1;
+  border-radius: 999px;
+  background: #fff;
+  color: #356f64;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.stage-support-panel__hint-toggle:hover {
+  background: #eff8f5;
+}
+
+.stage-support-panel__visual-first > .stage-support-panel__preview {
+  width: 100%;
+}
+
+.stage-support-panel--decision-first .stage-support-panel__preview--feed,
+.stage-support-panel--decision-first .stage-support-panel__preview--dm,
+.stage-support-panel--decision-first .stage-support-panel__preview--pressure {
+  max-width: none;
+}
+
+.stage-support-panel__hint-content {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px dashed #c9dcd6;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.76);
+  animation: responseHintOpen 0.22s ease-out both;
+}
+
+@keyframes responseHintOpen {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.response-focus-card {
+  flex: 0 0 auto;
+  margin: 0 10px 10px;
+  padding: 14px;
+  border: 2px solid #4b8f81;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(141, 119, 217, 0.11), transparent 35%),
+    linear-gradient(135deg, #f1faf7 0%, #ffffff 68%);
+  box-shadow: 0 12px 34px rgba(61, 124, 113, 0.16);
+  animation: responseFocusEnter 0.38s cubic-bezier(0.18, 0.86, 0.31, 1.12) both;
+}
+
+.response-focus-card--retry {
+  border-color: #d4aa62;
+  background: linear-gradient(135deg, #fff9ee 0%, #ffffff 72%);
+}
+
+@keyframes responseFocusEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.response-focus-card__lead {
+  margin-bottom: 10px;
+}
+
+.response-focus-card__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #dff2ec;
+  color: #276a5d;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.response-focus-card--retry .response-focus-card__eyebrow {
+  background: #fff0d3;
+  color: #8b6425;
+}
+
+.response-focus-card__lead strong {
+  display: block;
+  color: #202a28;
+  font-size: 1.02rem;
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+}
+
+.response-focus-card__lead p {
+  margin: 5px 0 0;
+  color: #68716f;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.response-focus-card .dm-composer-wrapper,
+.response-focus-card .dm-composer {
+  background: transparent !important;
+}
+
+.response-focus-card .dm-composer {
+  padding: 0 !important;
+  border-top: 0;
+}
+
+.response-focus-card .dm-composer-input {
+  min-height: 48px !important;
+  border: 1px solid #bad4cd !important;
+  border-radius: 15px !important;
+  background: #fff !important;
+  font-size: 0.9rem !important;
+}
+
+.response-focus-card .dm-composer-input:focus {
+  border-color: #4b8f81 !important;
+  box-shadow: 0 0 0 4px rgba(61, 124, 113, 0.11) !important;
+}
+
+.response-focus-card .dm-composer-send {
+  width: 46px !important;
+  height: 46px !important;
+  background: #3d7c71 !important;
+  box-shadow: 0 7px 18px rgba(61, 124, 113, 0.28) !important;
+}
+
+.response-focus-wait {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 46px;
+  margin: 0 10px 10px;
+  border: 1px dashed #d8dfdc;
+  border-radius: 14px;
+  color: #7c8582;
+  background: #fafbf9;
+  font-size: 0.78rem;
+}
+
+/* 튜토리얼도 "설명서"보다 실제 행동 루프가 먼저 보이도록 재구성 */
+.tutorial-page--response-first {
+  justify-content: flex-start;
+  max-width: 980px;
+  padding-top: 34px;
+}
+
+.tutorial-hero {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+}
+
+.tutorial-hero__character {
+  width: 210px;
+  height: 210px;
+}
+
+.tutorial-hero__bubble {
+  width: 100%;
+  max-width: none;
+}
+
+.tutorial-hero__eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #3d7c71;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.tutorial-hero__bubble h1 {
+  margin: 0 0 10px;
+  color: #222b29;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1.25;
+}
+
+.tutorial-hero__bubble p {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.tutorial-flow {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  margin-top: 28px;
+}
+
+.tutorial-flow__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 92px;
+  padding: 12px 8px;
+  border: 1px solid #e6e2d8;
+  border-radius: 15px;
+  background: #faf8f2;
+  text-align: center;
+}
+
+.tutorial-flow__icon {
+  margin-bottom: 6px;
+  font-size: 1.25rem;
+}
+
+.tutorial-flow__item strong {
+  font-size: 0.82rem;
+  color: #313735;
+}
+
+.tutorial-flow__arrow {
+  position: absolute;
+  right: -9px;
+  top: 50%;
+  z-index: 2;
+  transform: translateY(-50%);
+  color: #8a9c96;
+  font-weight: 900;
+}
+
+.tutorial-action-demo {
+  width: 100%;
+  margin-top: 18px;
+  padding: 18px;
+  border: 2px solid #4b8f81;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #edf8f5 0%, #fff 74%);
+  box-shadow: 0 12px 34px rgba(61, 124, 113, 0.12);
+}
+
+.tutorial-action-demo__eyebrow {
+  display: inline-block;
+  margin-bottom: 7px;
+  color: #2f786a;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.tutorial-action-demo > strong {
+  display: block;
+  color: #202a28;
+  font-size: 1.08rem;
+  line-height: 1.5;
+}
+
+.tutorial-action-demo__input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 13px;
+  padding: 12px 14px;
+  border: 1px solid #cbdcd7;
+  border-radius: 15px;
+  background: #fff;
+  color: #7a8380;
+  font-size: 0.82rem;
+}
+
+.tutorial-guide-row--compact {
+  width: 100%;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.tutorial-guide--compact {
+  max-width: none;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.tutorial-decor--compact {
+  width: 130px;
+}
+
+.tutorial-start-button {
+  margin-top: 22px;
+  min-width: 260px;
+}
+
+@media (max-width: 700px) {
+  .stage-support-panel__decision-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stage-support-panel__hint-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .response-focus-card {
+    position: sticky;
+    bottom: 6px;
+    z-index: 9;
+    margin: 8px 6px 8px;
+    padding: 13px;
+    box-shadow: 0 14px 34px rgba(44, 87, 78, 0.24);
+  }
+
+  .response-focus-card__lead strong {
+    font-size: 0.98rem;
+  }
+
+  .play-page--immersive .chat-window--focused {
+    min-height: 360px;
+  }
+
+  .tutorial-page--response-first {
+    padding: 22px 14px 36px;
+  }
+
+  .tutorial-hero {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .tutorial-hero__character {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+  }
+
+  .tutorial-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .tutorial-flow__item {
+    min-height: 60px;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .tutorial-flow__icon {
+    margin: 0;
+  }
+
+  .tutorial-flow__arrow {
+    right: 50%;
+    top: auto;
+    bottom: -14px;
+    transform: translateX(50%) rotate(90deg);
+  }
+
+  .tutorial-guide--compact {
+    grid-template-columns: 1fr;
+  }
+
+  .tutorial-action-demo {
+    padding: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .response-focus-card,
+  .stage-support-panel__hint-content {
+    animation: none !important;
+  }
+}
+
+/* =====================================================================
+   Scene → Chat transition patch (EP02 / EP03)
+   - 큰 장면이 있는 Stage는 장면을 먼저 확인하고, 확인 후 장면을 한 줄 요약으로
+     접어 채팅과 "이제 네 차례야"에 화면 높이를 돌려줍니다.
+   ===================================================================== */
+
+/* 플레이 중 사이트 헤더는 홈보다 작게: 게임 공간을 약 20px 더 확보 */
+@supports selector(body:has(.play-page--immersive)) {
+  body:has(.play-page--immersive) {
+    --header-h: 56px;
+  }
+
+  body:has(.play-page--immersive) .site-header {
+    height: var(--header-h);
+    padding: 0 14px;
+  }
+
+  body:has(.play-page--immersive) .site-header-logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  body:has(.play-page--immersive) .site-header-name {
+    font-size: 1rem;
+  }
+
+  /* 장면을 보고 있는 동안에는 문서 스크롤을 허용합니다. */
+  body:has(.play-page--scene-view) {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
+/* 1단계: 큰 장면을 관찰하는 화면 */
+.play-page.play-page--scene-view {
+  height: auto;
+  min-height: calc(100dvh - var(--header-h));
+  overflow: visible;
+  padding-bottom: 28px;
+}
+
+.play-page--scene-view .stage-support-panel--decision-first {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+}
+
+.stage-support-panel__confirm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 14px;
+  background: #3d7c71;
+  color: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(61, 124, 113, 0.22);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.stage-support-panel__confirm:hover {
+  background: #326b61;
+  box-shadow: 0 10px 26px rgba(61, 124, 113, 0.28);
+  transform: translateY(-1px);
+}
+
+.stage-support-panel__confirm:active {
+  transform: translateY(0);
+}
+
+/* 2단계: 장면 확인 후 한 줄 요약으로 접힘 */
+.stage-support-panel--compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 58px;
+  margin: 0 0 7px;
+  padding: 8px 10px;
+  border: 1px solid #dce8e4;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f5faf8 0%, #ffffff 100%);
+  box-shadow: none;
+  animation: sceneCompactIn 0.25s ease-out both;
+}
+
+@keyframes sceneCompactIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stage-support-panel__compact-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stage-support-panel__compact-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: #e9f4f0;
+  font-size: 1rem;
+}
+
+.stage-support-panel__compact-copy {
+  min-width: 0;
+}
+
+.stage-support-panel__compact-copy > span {
+  display: block;
+  color: #438073;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.stage-support-panel__compact-copy strong {
+  display: block;
+  margin-top: 1px;
+  color: #26302e;
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.stage-support-panel__compact-copy p {
+  margin: 1px 0 0;
+  color: #7b8582;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stage-support-panel__reopen {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid #c9ddd7;
+  border-radius: 999px;
+  background: #fff;
+  color: #386f65;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.stage-support-panel__reopen:hover {
+  background: #eef7f4;
+}
+
+/* 접힌 이후에는 이미 본 설명도 한 줄로 압축해서 대화 공간을 확보 */
+.play-page--scene-collapsed .scene-brief {
+  margin-bottom: 5px;
+  padding: 6px 9px;
+}
+
+.play-page--scene-collapsed .scene-brief-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.play-page--scene-collapsed .scene-brief p {
+  -webkit-line-clamp: 1;
+  font-size: 0.77rem;
+}
+
+.play-page--scene-collapsed .stage-header--focus {
+  margin-top: 6px;
+  margin-bottom: 5px;
+}
+
+/* 채팅 스크롤은 기능은 유지하되 시각적으로 덜 튀게 */
+.play-page--scene-collapsed .conversation--focused {
+  scrollbar-width: thin;
+  scrollbar-color: #b8c5c1 transparent;
+}
+
+.play-page--scene-collapsed .conversation--focused::-webkit-scrollbar {
+  width: 5px;
+}
+
+.play-page--scene-collapsed .conversation--focused::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.play-page--scene-collapsed .conversation--focused::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background: #b8c5c1;
+}
+
+/* 넓은 PC에서는 장면 자체도 과도하게 커지지 않도록 제한 */
+@media (min-width: 901px) {
+  .play-page--scene-view .stage-support-panel__scene-image {
+    max-height: 400px;
+    object-fit: contain;
+  }
+
+  .play-page--scene-view .stage-support-panel__visual-first > .stage-support-panel__preview {
+    max-height: 470px;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 700px) {
+  @supports selector(body:has(.play-page--immersive)) {
+    body:has(.play-page--immersive) {
+      --header-h: 52px;
+    }
+  }
+
+  .stage-support-panel__confirm {
+    position: sticky;
+    bottom: 8px;
+    z-index: 8;
+    min-height: 50px;
+  }
+
+  .stage-support-panel--compact {
+    min-height: 54px;
+    padding: 7px 8px;
+  }
+
+  .stage-support-panel__compact-copy p {
+    display: none;
+  }
+
+  .stage-support-panel__reopen {
+    padding: 6px 9px;
+  }
+
+  .play-page--scene-collapsed .chat-window--focused {
+    min-height: 390px;
+  }
+}
+
+/* =====================================================================
+   EP02 SNS 피드 장면
+   ===================================================================== */
+.sns-feed-card {
+  width: min(100%, 620px);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid #e7e4dc;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(44, 51, 48, 0.06);
+}
+
+.sns-feed-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+
+.sns-feed-card__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: linear-gradient(135deg, #f0b4c9, #d78cac);
+  color: #fff;
+  font-weight: 800;
+}
+
+.sns-feed-card__header > div:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sns-feed-card__header strong {
+  font-size: 0.88rem;
+  color: #252925;
+}
+
+.sns-feed-card__header span:not(.sns-feed-card__more) {
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: #8d918c;
+}
+
+.sns-feed-card__more {
+  margin-left: auto;
+  color: #777c77;
+}
+
+.sns-feed-card__media {
+  background: #f7f1ef;
+}
+
+.sns-feed-card__media .ig-product-photo {
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+.sns-feed-card__body {
+  padding: 13px 14px 15px;
+}
+
+.sns-feed-card__caption,
+.sns-feed-card__comments p {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: #323632;
+}
+
+.sns-feed-card__review-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 9px;
+  border: 1px solid #eee9e2;
+  border-radius: 13px;
+  background: #faf8f4;
+}
+
+.sns-feed-card__review-preview .ig-review-photo {
+  width: 92px;
+  height: 110px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+}
+
+.sns-feed-card__review-preview span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6e746e;
+}
+
+.sns-feed-card__comments {
+  display: grid;
+  gap: 7px;
+  padding-top: 10px;
+  border-top: 1px solid #f0ece6;
+}
+
+.sns-feed-card__comments strong,
+.sns-feed-card__caption strong {
+  margin-right: 5px;
+  color: #3f766d;
+}
+
+@media (max-width: 640px) {
+  .sns-feed-card {
+    border-radius: 14px;
+  }
+
+  .sns-feed-card__review-preview .ig-review-photo {
+    width: 76px;
+    height: 94px;
+  }
 }

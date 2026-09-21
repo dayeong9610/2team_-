@@ -13,9 +13,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from collections.abc import Mapping, Sequence
 from typing import Any
+
+
+logger = logging.getLogger("manyang.flow")
 
 
 TRACE_ENABLED = os.getenv("DB_FLOW_TRACE", "1").lower() not in {
@@ -99,9 +103,12 @@ def trace_flow(
         default=str,
     )
 
-    print(
-        f"[FLOW][{event}] "
-        f"{file_path}::{function_name} | {encoded}"
+    logger.info(
+        "[FLOW][%s] %s::%s | %s",
+        event,
+        file_path,
+        function_name,
+        encoded,
     )
 
 
@@ -122,9 +129,12 @@ def trace_db_candidate(
         default=str,
     )
 
-    print(
-        f"[DB-CANDIDATE][{action}] "
-        f"{file_path}::{function_name} | {encoded}"
+    logger.info(
+        "[DB-CANDIDATE][%s] %s::%s | %s",
+        action,
+        file_path,
+        function_name,
+        encoded,
     )
 
 
@@ -140,7 +150,7 @@ def print_route_map(app: Any) -> None:
 
     seen: set[tuple[str, str]] = set()
 
-    print("\n========== MANYANG API ROUTE MAP ==========")
+    logger.info("========== MANYANG API ROUTE MAP ==========")
 
     for route in getattr(app, "routes", []):
         path = getattr(route, "path", "")
@@ -163,9 +173,13 @@ def print_route_map(app: Any) -> None:
             duplicate = "  <-- DUPLICATE" if key in seen else ""
             seen.add(key)
 
-            print(
-                f"[ROUTE] {method:7} {path:35} "
-                f"-> {module_name}.{endpoint_name}{duplicate}"
+            logger.info(
+                "[ROUTE] %-7s %-35s -> %s.%s%s",
+                method,
+                path,
+                module_name,
+                endpoint_name,
+                duplicate,
             )
 
-    print("===========================================\n")
+    logger.info("===========================================")

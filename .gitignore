@@ -2,6 +2,7 @@
 node_modules/
 .next/
 dist/
+*.tsbuildinfo
 
 # Python
 __pycache__/
@@ -30,13 +31,4 @@ htmlcov/
 
 # Logs
 *.log
-
-# Local database connection
-2team/backend/src/database/connection.py
-
-# Test files
-2team/backend/tests/manual_test_episode01_ai.py
-
-# Backend environment example
-2team/backend/.env.example
 2team/backend/.env.example

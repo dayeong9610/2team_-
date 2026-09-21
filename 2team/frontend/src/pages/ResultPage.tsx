@@ -5,7 +5,6 @@ import manyangResult from "../assets/마냥_홈 소개.png";
 
 import { deleteSession, getSessionResult } from "../services/api";
 import type { SessionResultResponse } from "../types/session";
-import { scoreLimits } from "../data/scoreLimits";
 
 // =====================================================================
 // ResultPage (에피소드 결과 화면) — 라우트: "/result"
@@ -36,12 +35,11 @@ import { scoreLimits } from "../data/scoreLimits";
 //      이동합니다. 그래야 PlayPage가 재진입 시 이전 세션을 복구하지
 //      않고 완전히 새 세션을 생성합니다. (아래 handleRetry 참고)
 //
-// [점수 % 계산 관련]
-// scores는 원점수(정수)로 내려오는데, 화면에는 %로 보여줍니다.
-// 항목별 만점은 Backend가 내려주는 게 아니라 프론트 `data/scoreLimits.ts`에
-// 하드코딩되어 있어요 (현재 EP01~03 전부 위험 인지/거절 대응/도움 요청
-// 각 3점 만점). Backend의 실제 채점 만점이 바뀌면 이 파일도 같이
-// 맞춰줘야 퍼센트가 정확합니다.
+// [결과 화면 표시 원칙]
+// 상단 요약은 "점수"가 아니라 학습 완료 여부와 완료 Stage 수만 보여줍니다.
+// 위험 인지/거절 대응/도움 요청 점수는 아래 "단계별 마냥이 피드백"에서만
+// 각 Stage의 AI 평가 원점수(0~3점)로 표시합니다. 이렇게 분리하면 상단의
+// 진행 정보가 종합 점수나 성취도 %로 오해되는 것을 막을 수 있습니다.
 // =====================================================================
 
 function ResultPage() {
@@ -172,39 +170,7 @@ function ResultPage() {
     window.location.assign("/episodes");
   };
 
-  const limits =
-    scoreLimits[result?.episode_id ?? episodeId] ??
-    scoreLimits.EP01;
-
   const analysisAvailable = result?.analysis_available !== false;
-
-  const toPercent = (value: number, limit: number) => {
-    if (limit <= 0) {
-      return 0;
-    }
-
-    return Math.min(100, Math.round((value / limit) * 100));
-  };
-
-  const statItems = result && analysisAvailable
-    ? [
-        {
-          key: "riskAwareness",
-          label: "위험 인지",
-          value: toPercent(result.scores.risk_awareness, limits.risk_awareness),
-        },
-        {
-          key: "refusal",
-          label: "거절 대응",
-          value: toPercent(result.scores.refusal, limits.refusal),
-        },
-        {
-          key: "helpRequest",
-          label: "도움 요청",
-          value: toPercent(result.scores.help_request, limits.help_request),
-        },
-      ]
-    : [];
 
   return (
     <main className="result-page">
@@ -275,52 +241,45 @@ function ResultPage() {
             </section>
           )}
 
-          {analysisAvailable && (
-          <section className="result-stats">
-            <p className="result-stats-title">오늘의 기록</p>
+          <section className="result-stats" aria-label="학습 완료 요약">
+            <p className="result-stats-title">오늘의 학습 결과</p>
 
-            {/* completed_stages: Backend가 실제로 완료 처리한 Stage id
-                목록입니다. 몇 단계나 진행했는지 요약해서 보여줍니다. */}
-            <p className="result-stats-subtitle">
-              총 {result.completed_stages.length}개 단계 완료
-            </p>
-
-            {statItems.map((item) => (
-              <div className="result-stat" key={item.key}>
-                <span className="result-stat-label">{item.label}</span>
-
-                <div className="result-stat-track">
-                  <div
-                    className="result-stat-fill"
-                    style={{ width: `${item.value}%` }}
-                  />
-                </div>
-
-                <span className="result-stat-value">{item.value}%</span>
+            <div className="result-completion">
+              <span className="result-completion-badge">
+                {result.is_complete ? "Episode 완료" : "학습 진행 중"}
+              </span>
+              <div className="result-completion-text">
+                <strong>{result.completed_stages.length}개 단계 완료</strong>
+                <span>이 영역은 학습 진행 기록이며 평가 점수가 아니에요.</span>
               </div>
-            ))}
+            </div>
+
+            {analysisAvailable && result.stage_results.length > 0 && (
+              <p className="result-score-guide">
+                위험 인지·거절 대응·도움 요청 점수는 아래 단계별 피드백에서
+                확인할 수 있어요.
+              </p>
+            )}
           </section>
-          )}
 
           {result.stage_results.length > 0 && (
             <section className="result-stage-feedback">
-              <p className="result-stats-title">단계별 마냥이 피드백</p>
+              <p className="result-stats-title">단계별 마냥이 피드백 · AI 평가 점수</p>
 
               {result.stage_results.map((stage) => (
                 <div className="result-stage-item" key={stage.stage_id}>
                   <strong>{stage.stage_id}</strong>
                   <p>{stage.feedback}</p>
 
-                  {/* stage.scores: 이 Stage 하나에서 받은 원점수(각
-                      0~3점, Backend StageScores 기준)입니다. 위쪽
-                      "오늘의 기록"이 전체 Stage 누적 총점이라면, 이건
-                      "이 한 Stage에서 어느 항목을 얼마나 잘했는지"를
-                      보여줍니다. */}
+                  {/* stage.scores: 이 Stage 하나에서 받은 AI 평가 원점수
+                      (각 0~3점, Backend StageScores 기준)입니다. 상단은
+                      학습 완료 기록만 표시하고, 실제 평가 수치는 이 영역에서만
+                      보여줘 진행률과 점수를 혼동하지 않도록 합니다. */}
                   {analysisAvailable && stage.analysis_available !== false && (
                     <div className="result-stage-scores">
-                      <span>위험 인지 {stage.scores.risk_awareness}</span>
-                      <span>거절 대응 {stage.scores.refusal}</span>
-                      <span>도움 요청 {stage.scores.help_request}</span>
+                      <span>위험 인지 {stage.scores.risk_awareness}점</span>
+                      <span>거절 대응 {stage.scores.refusal}점</span>
+                      <span>도움 요청 {stage.scores.help_request}점</span>
                     </div>
                   )}
                 </div>
@@ -356,8 +315,9 @@ function ResultPage() {
 
       <footer className="home-footer">
         <p>
-          청소년 상담전화 <strong>1388</strong> · 마약류 중독관리센터{" "}
-          <strong>1899-0893</strong>
+         청소년 사이버상담센터 <strong>1388</strong> · 24시 마약류 상담센터{" "}
+          <strong>1899-0893</strong> · 한국마약퇴치운동본부{" "}
+          <strong>1342-1342</strong>
         </p>
       </footer>
     </main>

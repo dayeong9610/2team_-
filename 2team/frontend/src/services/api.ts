@@ -9,6 +9,11 @@ import type {
   SessionResultResponse,
 } from "../types/session";
 
+import type {
+  EpisodeDetailResponse,
+  EpisodeSummaryResponse,
+} from "../types/episode";
+
 import {
   applyRemoteChatResult,
   createFallbackChat,
@@ -137,6 +142,37 @@ async function apiFetch(
   } finally {
     window.clearTimeout(timeout);
   }
+}
+
+export async function getEpisodes(): Promise<EpisodeSummaryResponse[]> {
+  traceApi("getEpisodes", "IN");
+  const response = await apiFetch("/episodes", undefined, 5000);
+
+  if (!response.ok) {
+    throw new Error("EPISODE_LIST_UNAVAILABLE");
+  }
+
+  const result = (await response.json()) as EpisodeSummaryResponse[];
+  traceApi("getEpisodes", "OUT", { count: result.length });
+  return result;
+}
+
+export async function getEpisodeDetail(
+  episodeId: string
+): Promise<EpisodeDetailResponse> {
+  traceApi("getEpisodeDetail", "IN", { episode_id: episodeId });
+  const response = await apiFetch(`/episodes/${episodeId}`, undefined, 5000);
+
+  if (!response.ok) {
+    throw new Error("EPISODE_DETAIL_UNAVAILABLE");
+  }
+
+  const result = (await response.json()) as EpisodeDetailResponse;
+  traceApi("getEpisodeDetail", "OUT", {
+    episode_id: result.episode_id,
+    total_stages: result.total_stages,
+  });
+  return result;
 }
 
 export async function sendChat(

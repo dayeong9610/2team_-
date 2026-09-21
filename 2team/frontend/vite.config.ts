@@ -5,6 +5,9 @@ export default defineConfig({
   plugins: [react()],
 
   server: {
+    // LAN / Cloudflare Quick Tunnel을 통한 휴대폰 QA 허용
+    host: true,
+    allowedHosts: ['.trycloudflare.com'],
     proxy: {
       // 학생용 API
       '/api': {

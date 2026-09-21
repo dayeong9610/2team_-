@@ -1,0 +1,81 @@
+.class-join-page {
+  min-height: calc(100vh - 64px);
+  display: grid;
+  place-items: center;
+  padding: 28px 16px;
+  background: #f5f7f6;
+}
+
+.class-join-card {
+  width: min(100%, 520px);
+  padding: 30px;
+  border: 1px solid #d8e3df;
+  border-radius: 18px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 12px 30px rgba(38, 72, 64, 0.08);
+}
+
+.class-join-eyebrow {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #2f8075;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.class-join-card h1 {
+  margin: 0 0 10px;
+  font-size: clamp(1.35rem, 4vw, 1.8rem);
+}
+
+.class-join-card p {
+  margin: 0 0 20px;
+  color: #68736f;
+  line-height: 1.6;
+}
+
+.class-code-form {
+  display: flex;
+  gap: 10px;
+}
+
+.class-code-form input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #bfd4ce;
+  border-radius: 12px;
+  font: inherit;
+  text-transform: uppercase;
+}
+
+.class-code-form button,
+.class-join-card > button {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: #2f8075;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.class-code-chip {
+  display: inline-flex;
+  margin-bottom: 14px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #edf7f4;
+  color: #286d64;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 520px) {
+  .class-code-form { flex-direction: column; }
+  .class-join-card { padding: 24px 18px; }
+}

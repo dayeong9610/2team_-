@@ -13,6 +13,9 @@ class DialogueMessage(BaseModel):
 
     text: str
 
+    # 프론트에서 선택적으로 사용하는 장면 이미지 종류입니다.
+    image: Optional[str] = None
+
 
 class StageResponse(BaseModel):
     # 하나의 Stage에 필요한 장면 정보와 평가 기준입니다.
@@ -27,6 +30,11 @@ class StageResponse(BaseModel):
     location: str
 
     description: str
+
+    # 장면 표현 방식. 기존 JSON과 호환되도록 모두 선택 값입니다.
+    scene_type: Optional[str] = None
+    scene_title: Optional[str] = None
+    scene_subtitle: Optional[str] = None
 
     messages: list[
         DialogueMessage

@@ -2,9 +2,9 @@ from pathlib import Path
 from pydantic.v1 import BaseSettings
 from sqlmodel import SQLModel, Session, create_engine
 from sqlalchemy import text
-from model import Admin, AiEvaluation, ChatRoom, Chatting, LlmRole, Score
+from model import Admin, ChatRoom, Chatting, LlmRole, Score
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
@@ -21,8 +21,9 @@ engine_url = create_engine(settings.DATABASE_URL, echo=True, pool_pre_ping=True)
 
 
 def conn():
-    # 기존 테이블은 유지하고, 없는 테이블만 생성합니다.
-    # 이번 패치의 ai_evaluation 테이블도 여기서 최초 1회 자동 생성됩니다.
+    # 모델 메타데이터 기준으로 없는 테이블만 생성합니다.
+    # 기존 테이블의 컬럼 변경은 create_all()이 처리하지 않으므로
+    # docs/db_refactor_migration.sql을 DB 담당자가 1회 적용해야 합니다.
     SQLModel.metadata.create_all(bind=engine_url)
 
 

@@ -1,12 +1,12 @@
-import dietSupplementImg from "../../assets/다이어트 보조제.png";
+import dietSupplementImg from "../../assets/ep02/diet-supplement.png";
 
-// EP03 "슬림스토어" DM 연출용 - 실제로 판매될 법한 다이어트 보조제 사진
+// EP02 SNS 홍보 계정 DM 연출용 - 출처 불명 다이어트 보조제 예시 이미지
 export default function DietPillPhoto() {
   return (
     <img
       className="ig-product-photo"
       src={dietSupplementImg}
-      alt="슬림스토어가 보낸 다이어트 보조제 사진"
+      alt="홍보 계정이 보낸 다이어트 보조제 예시 사진"
     />
   );
 }

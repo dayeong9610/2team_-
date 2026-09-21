@@ -7,6 +7,7 @@ import SceneDialogue from "../components/game/SceneDialogue";
 import KaraokeBackdrop from "../components/game/KaraokeBackdrop";
 import InstagramDMHeader from "../components/game/InstagramDMHeader";
 import InstagramBubble from "../components/game/InstagramBubble";
+import SNSFeedView from "../components/game/SNSFeedView";
 import UserInput from "../components/game/UserInput";
 import ManyangCoach from "../components/game/ManyangCoach";
 import SoundToggle from "../components/game/SoundToggle";
@@ -64,10 +65,14 @@ function backendStageToGameStage(stage: EpisodeStageResponse): GameStage {
     messages: stage.messages.map((message) => ({
       sender: message.speaker,
       text: message.text,
+      image: message.image,
     })),
     question: stage.question,
     evaluation: stage.evaluation_criteria,
     scoreType: isAdvanced ? `${baseLabel} 심화` : baseLabel,
+    sceneType: stage.scene_type,
+    sceneTitle: stage.scene_title,
+    sceneSubtitle: stage.scene_subtitle,
   };
 }
 
@@ -264,7 +269,11 @@ export default function PlayPage() {
     );
   }
 
-  const isCurrentStageDM = currentStage.location === "인스타그램 DM";
+  const isCurrentStageDM =
+    currentStage.sceneType === "dm" ||
+    currentStage.location === "인스타그램 DM" ||
+    currentStage.location.includes("개인 메시지");
+  const isCurrentStageFeed = currentStage.sceneType === "feed";
   const sceneMessages = currentStage.messages;
   const sceneNpcDone = sceneLineIndex >= sceneMessages.length;
   const sceneCurrentMessage = sceneMessages[sceneLineIndex];
@@ -484,7 +493,13 @@ export default function PlayPage() {
                 </>
               ) : (
                 <>
-                  {isCurrentStageDM ? (
+                  {isCurrentStageFeed ? (
+                    <SNSFeedView
+                      key={`intro-${currentStage.stageid}`}
+                      messages={currentStage.messages}
+                      onRevealComplete={handleNpcIntroComplete}
+                    />
+                  ) : isCurrentStageDM ? (
                     <InstagramBubble
                       key={`intro-${currentStage.stageid}`}
                       messages={currentStage.messages}

@@ -31,6 +31,7 @@ export interface EpisodeSummaryResponse {
 export interface EpisodeStageMessageResponse {
   speaker: string;
   text: string;
+  image?: "product" | "review" | "pill";
 }
 
 export interface EpisodeStageResponse {
@@ -40,6 +41,9 @@ export interface EpisodeStageResponse {
   type: string;
   location: string;
   description: string;
+  scene_type?: "feed" | "dm" | "dialog";
+  scene_title?: string;
+  scene_subtitle?: string;
   messages: EpisodeStageMessageResponse[];
   question: string;
   evaluation_axis: "risk_awareness" | "refusal" | "help_request";

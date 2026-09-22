@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수업코드 · QR 발급 | 마냥이</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 36px 20px 56px;
+            background: #F5F5F5;
+            color: #222;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+        }
+        .wrap { max-width: 860px; margin: 0 auto; }
+        .top { display:flex; justify-content:space-between; gap:16px; align-items:flex-end; margin-bottom:20px; }
+        h1 { margin:0 0 6px; font-size:1.55rem; }
+        .sub { margin:0; color:#666; font-size:.9rem; line-height:1.55; }
+        .back { color:#2f756c; text-decoration:none; font-weight:700; }
+        .card { background:#fff; border:1px solid #ddd; border-radius:12px; padding:24px; }
+        .grid { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:24px; }
+        label { display:block; margin-bottom:8px; font-size:.85rem; font-weight:700; }
+        select, input {
+            width:100%; min-height:46px; padding:10px 12px; border:1px solid #ccc; border-radius:8px;
+            background:#fff; font:inherit;
+        }
+        .field { margin-bottom:18px; }
+        .note { margin:8px 0 0; color:#777; font-size:.8rem; line-height:1.5; }
+        .code-box { padding:16px; background:#F6FAF9; border:1px solid #D3E5E0; border-radius:9px; }
+        .code-box span { display:block; color:#64736f; font-size:.78rem; margin-bottom:5px; }
+        .code-box strong { font-size:1.45rem; letter-spacing:.05em; }
+        .link-row { display:flex; gap:8px; margin-top:14px; }
+        .link-row input { min-width:0; }
+        button {
+            min-height:46px; border:0; border-radius:8px; padding:0 16px; background:#2f8075; color:#fff;
+            font:inherit; font-weight:700; cursor:pointer; white-space:nowrap;
+        }
+        button.secondary { background:#333; }
+        .qr-area { text-align:center; border-left:1px solid #eee; padding-left:24px; }
+        .qr-area img { width:230px; height:230px; object-fit:contain; background:#fff; border:1px solid #ddd; border-radius:10px; padding:8px; }
+        .qr-title { margin:0 0 10px; font-weight:800; }
+        .qr-help { margin:10px 0 0; color:#777; font-size:.78rem; line-height:1.5; }
+        .safe { margin-top:18px; padding:12px 14px; background:#FAFAFA; border:1px solid #E5E5E5; border-radius:8px; font-size:.82rem; color:#666; line-height:1.55; }
+        @media (max-width:720px) {
+            body { padding:20px 12px 40px; }
+            .top { align-items:flex-start; flex-direction:column; }
+            .grid { grid-template-columns:1fr; }
+            .qr-area { border-left:0; border-top:1px solid #eee; padding:22px 0 0; }
+            .link-row { flex-direction:column; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <div>
+            <h1>수업코드 · QR 발급</h1>
+            <p class="sub">Episode를 선택하면 즉시 접속 코드와 QR을 만듭니다.</p>
+        </div>
+        <a class="back" href="/admins/">← 대시보드</a>
+    </div>
+
+    <section class="card">
+        {% if episodes %}
+        <div class="grid">
+            <div>
+                <div class="field">
+                    <label for="episodeSelect">수업 Episode</label>
+                    <select id="episodeSelect">
+                        {% for episode in episodes %}
+                            <option value="{{ episode.episode_id }}">{{ episode.episode_id }} · {{ episode.title }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="note">발표용 간편 방식이라 수업코드는 Episode ID와 동일합니다.</p>
+                </div>
+
+                <div class="code-box">
+                    <span>수업 코드</span>
+                    <strong id="classCode">-</strong>
+                </div>
+
+                <div class="field" style="margin-top:18px;">
+                    <label for="joinUrl">학생 접속 링크</label>
+                    <div class="link-row">
+                        <input id="joinUrl" type="text" readonly>
+                        <button id="copyButton" type="button" class="secondary">링크 복사</button>
+                    </div>
+                </div>
+
+                <div class="safe">
+                    QR/수업코드는 저장되지 않습니다. 학생은 <code>/class/EP02</code>처럼 접속한 뒤 기존 Episode 화면으로 자동 이동합니다.
+                </div>
+            </div>
+
+            <div class="qr-area">
+                <p class="qr-title">학생용 QR</p>
+                <img id="qrImage" alt="학생 접속 QR 코드">
+                <p class="qr-help">휴대폰 테스트 시 Cloudflare 주소로 이 관리자 페이지를 연 뒤 QR을 생성하세요.</p>
+            </div>
+        </div>
+        {% else %}
+            <p>현재 접속 가능한 Episode가 없습니다.</p>
+        {% endif %}
+    </section>
+</div>
+
+{% if episodes %}
+<script>
+(function () {
+    const select = document.getElementById('episodeSelect');
+    const classCode = document.getElementById('classCode');
+    const joinUrl = document.getElementById('joinUrl');
+    const qrImage = document.getElementById('qrImage');
+    const copyButton = document.getElementById('copyButton');
+
+    function refresh() {
+        const episodeId = select.value.toUpperCase();
+        const baseUrl = window.location.origin;
+        const url = `${baseUrl}/class/${encodeURIComponent(episodeId)}`;
+        classCode.textContent = episodeId;
+        joinUrl.value = url;
+        qrImage.src = `/admins/class-qr/image?episode_id=${encodeURIComponent(episodeId)}&base_url=${encodeURIComponent(baseUrl)}&v=${Date.now()}`;
+    }
+
+    select.addEventListener('change', refresh);
+    copyButton.addEventListener('click', async function () {
+        try {
+            await navigator.clipboard.writeText(joinUrl.value);
+            copyButton.textContent = '복사 완료';
+            window.setTimeout(() => { copyButton.textContent = '링크 복사'; }, 1200);
+        } catch (error) {
+            joinUrl.select();
+            document.execCommand('copy');
+        }
+    });
+
+    refresh();
+})();
+</script>
+{% endif %}
+</body>
+</html>

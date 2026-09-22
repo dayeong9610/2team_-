@@ -2,7 +2,8 @@ from uuid import uuid4
 import logging
 from fastapi import (
     APIRouter,
-    HTTPException
+    HTTPException,
+    Request,
 )
 
 from schemas.session import (
@@ -25,6 +26,7 @@ from core.flow_trace import (
     trace_flow,
     trace_db_candidate,
 )
+from services.evaluation_log_service import persist_chat_room
 
 
 router = APIRouter(
@@ -60,7 +62,8 @@ FILE = "backend/src/routes/sessions.py"
     response_model=SessionCreateResponse
 )
 def start_session(
-    request: SessionCreateRequest
+    request: SessionCreateRequest,
+    http_request: Request,
 ):
     logger.info("Session create requested episode_id=%s", request.episode_id)
     trace_flow(
@@ -132,6 +135,16 @@ def start_session(
             "is_complete": session["is_complete"],
         },
     )
+
+    # DB가 사용 가능한 경우 기존 DB 구조에 학습방을 기록합니다.
+    # llm_role = Episode 원본, chat_room = 이번 학습 Session.
+    # 저장 실패는 메모리 기반 학생 학습 흐름에 영향을 주지 않습니다.
+    if bool(getattr(http_request.app.state, "db_available", False)):
+        persist_chat_room(
+            session_id=session_id,
+            episode=episode,
+            total_stages=len(stages),
+        )
 
     response = {
         "session_id": session_id,

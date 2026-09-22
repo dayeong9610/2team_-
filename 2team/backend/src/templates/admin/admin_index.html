@@ -504,23 +504,23 @@
 
                 <section class="panel ai-panel">
                     <h2>실제 AI 평가 저장 현황</h2>
-                    {% if dashboard.ai_evaluation.available %}
+                    {% if dashboard.score_stats.available %}
                         <div class="ai-summary">
                             <div class="ai-item">
                                 <span class="label">저장된 AI 평가</span>
-                                <strong>{{ dashboard.ai_evaluation.count }}건</strong>
+                                <strong>{{ dashboard.score_stats.count }}건</strong>
                             </div>
                             <div class="ai-item">
                                 <span class="label">위험 인지 평균</span>
-                                <strong>{{ '%.2f'|format(dashboard.ai_evaluation.avg_risk_awareness) }} / 3</strong>
+                                <strong>{{ '%.2f'|format(dashboard.score_stats.avg_risk_awareness) }} / 3</strong>
                             </div>
                             <div class="ai-item">
                                 <span class="label">거절 평균</span>
-                                <strong>{{ '%.2f'|format(dashboard.ai_evaluation.avg_refusal) }} / 3</strong>
+                                <strong>{{ '%.2f'|format(dashboard.score_stats.avg_refusal) }} / 3</strong>
                             </div>
                             <div class="ai-item">
                                 <span class="label">도움 요청 평균</span>
-                                <strong>{{ '%.2f'|format(dashboard.ai_evaluation.avg_help_request) }} / 3</strong>
+                                <strong>{{ '%.2f'|format(dashboard.score_stats.avg_help_request) }} / 3</strong>
                             </div>
                         </div>
                         <p class="ai-note">
@@ -531,14 +531,14 @@
                         <div class="analytics-grid">
                             <div>
                                 <p class="mini-title">Episode / Stage별 개발자 피드백용 점수</p>
-                                {% if dashboard.ai_evaluation.stage_stats %}
+                                {% if dashboard.score_stats.stage_stats %}
                                     <div class="recent-table-wrap">
                                         <table>
                                             <thead>
                                                 <tr><th>Episode</th><th>Stage</th><th>평가축</th><th>평균</th><th>건수</th></tr>
                                             </thead>
                                             <tbody>
-                                                {% for stat in dashboard.ai_evaluation.stage_stats %}
+                                                {% for stat in dashboard.score_stats.stage_stats %}
                                                     <tr>
                                                         <td data-label="Episode">{{ stat.episode_id }}</td>
                                                         <td data-label="Stage">{{ stat.title }}</td>
@@ -557,14 +557,14 @@
                             <div>
                                 <p class="mini-title">평가축별 유효 표본</p>
                                 <div class="category-list">
-                                    <div class="category-row"><span>위험 인지</span><strong>{{ dashboard.ai_evaluation.axis_counts.risk_awareness if dashboard.ai_evaluation.axis_counts else 0 }}건</strong></div>
-                                    <div class="category-row"><span>거절</span><strong>{{ dashboard.ai_evaluation.axis_counts.refusal if dashboard.ai_evaluation.axis_counts else 0 }}건</strong></div>
-                                    <div class="category-row"><span>도움 요청</span><strong>{{ dashboard.ai_evaluation.axis_counts.help_request if dashboard.ai_evaluation.axis_counts else 0 }}건</strong></div>
+                                    <div class="category-row"><span>위험 인지</span><strong>{{ dashboard.score_stats.axis_counts.risk_awareness if dashboard.score_stats.axis_counts else 0 }}건</strong></div>
+                                    <div class="category-row"><span>거절</span><strong>{{ dashboard.score_stats.axis_counts.refusal if dashboard.score_stats.axis_counts else 0 }}건</strong></div>
+                                    <div class="category-row"><span>도움 요청</span><strong>{{ dashboard.score_stats.axis_counts.help_request if dashboard.score_stats.axis_counts else 0 }}건</strong></div>
                                 </div>
                             </div>
                         </div>
                     {% else %}
-                        <p class="empty-text">AI 평가 로그 테이블을 아직 조회할 수 없습니다. 백엔드 재시작 후 DB 연결 상태를 확인해주세요.</p>
+                        <p class="empty-text">score/chatting/chat_room 데이터를 아직 조회할 수 없습니다. 백엔드 재시작 후 DB 연결 상태를 확인해주세요.</p>
                     {% endif %}
                 </section>
             {% endif %}
@@ -574,6 +574,7 @@
                 <div class="admin-actions">
                     <a class="primary" href="/admins/writeform">새 Episode JSON 작성</a>
                     <a href="/admins/episodes">전체 에피소드 목록</a>
+                    <a href="/admins/class-qr">수업코드 · QR 발급</a>
                     <a href="/admins/episodes?mine=1">내가 작성한 에피소드 목록</a>
                     <a href="/admins/update">회원정보 수정</a>
                 </div>

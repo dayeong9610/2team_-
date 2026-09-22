@@ -26,7 +26,7 @@ from services.fallback_service import (
     build_fallback_result
 )
 from services.evaluation_log_service import (
-    persist_ai_evaluation
+    persist_stage_evaluation
 )
 from ai.safety import (
     is_fallback_response_meaningful
@@ -231,6 +231,7 @@ async def chat(
         )
 
     # 11. 실제 AI 평가 결과 DB 저장
+    # chat_room -> chatting(USER/AI) -> score 구조로 저장합니다.
     # fallback 점수(0점)나 재입력 결과는 AI 평가 데이터가 아니므로 저장하지 않습니다.
     # DB가 내려가 있어도 학생 서비스는 계속 동작하도록 저장 실패는 응답 오류로 전파하지 않습니다.
     if (
@@ -239,10 +240,13 @@ async def chat(
         and bool(getattr(http_request.app.state, "db_available", False))
     ):
         await asyncio.to_thread(
-            persist_ai_evaluation,
+            persist_stage_evaluation,
             session_id=request.session_id,
             episode_id=request.episode_id,
             stage_id=request.stage_id,
+            user_message=request.message,
+            npc_response=ai_result["npc_response"],
+            feedback=ai_result["feedback"],
             scores=scores,
         )
 

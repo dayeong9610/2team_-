@@ -619,7 +619,7 @@
 }
 
 /* =====================================================================
-   Instagram DM 연출 (EP03: DM 단계에서만 적용, location이 "인스타그램 DM"인 stage)
+   SNS DM 연출 (sceneType="dm" 또는 SNS 개인 메시지 단계)
    ===================================================================== */
 .ig-dm-header {
   flex-shrink: 0;
@@ -1227,47 +1227,51 @@
   color: #3D7C71;
 }
 
-/* "총 N개 단계 완료" 한 줄 요약 (completed_stages.length) */
-.result-stats-subtitle {
-  margin: -8px 0 4px;
-  font-size: 0.78rem;
-  color: #9C978C;
-}
-
-.result-stat {
+/* 결과 상단은 점수/퍼센트가 아니라 학습 완료 기록만 표시합니다.
+   실제 AI 평가 점수는 아래 .result-stage-scores에서만 보여줍니다. */
+.result-completion {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
+  padding: 16px 18px;
+  background: #FFFFFF;
+  border: 1px solid #E8E3D8;
+  border-radius: 16px;
 }
 
-.result-stat-label {
+.result-completion-badge {
   flex-shrink: 0;
-  width: 76px;
-  font-size: 0.9rem;
-  color: #5A5F5E;
-}
-
-.result-stat-track {
-  flex: 1;
-  height: 10px;
-  background: #E5E1D8;
+  padding: 7px 12px;
   border-radius: 999px;
-  overflow: hidden;
-}
-
-.result-stat-fill {
-  height: 100%;
-  background: #3D7C71;
-  border-radius: 999px;
-}
-
-.result-stat-value {
-  flex-shrink: 0;
-  width: 42px;
-  text-align: right;
-  font-size: 0.9rem;
+  background: #E4F1ED;
+  color: #2F7167;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #3D7C71;
+}
+
+.result-completion-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.result-completion-text strong {
+  font-size: 0.96rem;
+  color: #303634;
+}
+
+.result-completion-text span {
+  font-size: 0.76rem;
+  color: #8C877D;
+  line-height: 1.45;
+}
+
+.result-score-guide {
+  margin: -4px 0 0;
+  padding-left: 2px;
+  font-size: 0.76rem;
+  color: #77736B;
+  line-height: 1.5;
 }
 
 /* result.stage_results (Stage별 feedback 문자열 배열)를 보여주는
@@ -1304,10 +1308,9 @@
   line-height: 1.5;
 }
 
-/* stage.scores (이 Stage 하나에서 받은 0~3점 원점수 3개)를 작은
-   칩 형태로 나열합니다. 위쪽 result-stat-*(전체 누적 %) 와는 다른
-   숫자라는 걸 시각적으로 구분하기 위해 진행바 없이 텍스트 칩으로만
-   표시합니다. */
+/* stage.scores (이 Stage 하나에서 받은 0~3점 AI 평가 원점수)를 작은
+   칩 형태로 나열합니다. 점수는 이 영역에서만 노출해 상단 학습 완료
+   정보와 평가 결과를 명확하게 분리합니다. */
 .result-stage-scores {
   display: flex;
   flex-wrap: wrap;
@@ -1334,6 +1337,14 @@
   .result-hero {
     flex-direction: column;
     text-align: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .result-completion {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
   }
 }
 
@@ -3708,5 +3719,131 @@
 
   .play-page--scene-collapsed .chat-window--focused {
     min-height: 390px;
+  }
+}
+
+/* =====================================================================
+   EP02 SNS 피드 장면
+   ===================================================================== */
+.sns-feed-card {
+  width: min(100%, 620px);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid #e7e4dc;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(44, 51, 48, 0.06);
+}
+
+.sns-feed-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+
+.sns-feed-card__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: linear-gradient(135deg, #f0b4c9, #d78cac);
+  color: #fff;
+  font-weight: 800;
+}
+
+.sns-feed-card__header > div:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sns-feed-card__header strong {
+  font-size: 0.88rem;
+  color: #252925;
+}
+
+.sns-feed-card__header span:not(.sns-feed-card__more) {
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: #8d918c;
+}
+
+.sns-feed-card__more {
+  margin-left: auto;
+  color: #777c77;
+}
+
+.sns-feed-card__media {
+  background: #f7f1ef;
+}
+
+.sns-feed-card__media .ig-product-photo {
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+.sns-feed-card__body {
+  padding: 13px 14px 15px;
+}
+
+.sns-feed-card__caption,
+.sns-feed-card__comments p {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: #323632;
+}
+
+.sns-feed-card__review-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 9px;
+  border: 1px solid #eee9e2;
+  border-radius: 13px;
+  background: #faf8f4;
+}
+
+.sns-feed-card__review-preview .ig-review-photo {
+  width: 92px;
+  height: 110px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+}
+
+.sns-feed-card__review-preview span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6e746e;
+}
+
+.sns-feed-card__comments {
+  display: grid;
+  gap: 7px;
+  padding-top: 10px;
+  border-top: 1px solid #f0ece6;
+}
+
+.sns-feed-card__comments strong,
+.sns-feed-card__caption strong {
+  margin-right: 5px;
+  color: #3f766d;
+}
+
+@media (max-width: 640px) {
+  .sns-feed-card {
+    border-radius: 14px;
+  }
+
+  .sns-feed-card__review-preview .ig-review-photo {
+    width: 76px;
+    height: 94px;
   }
 }

@@ -1,8 +1,10 @@
-from sqlalchemy import BigInteger, CheckConstraint, UniqueConstraint
-from sqlmodel import Column, Field, SQLModel
+from sqlalchemy import BigInteger, CheckConstraint, Column, UniqueConstraint
+from sqlmodel import Field, SQLModel
 
 
 class Score(SQLModel, table=True):
+    """USER 채팅 한 건에 대한 실제 LLM 평가 점수."""
+
     __tablename__ = "score"
     __table_args__ = (
         CheckConstraint(
@@ -20,6 +22,10 @@ class Score(SQLModel, table=True):
         default=None,
         sa_column=Column(BigInteger, primary_key=True, autoincrement=True),
     )
-    chat_id: int = Field(foreign_key="chatting.chat_id", nullable=False)
+    chat_id: int = Field(
+        foreign_key="chatting.chat_id",
+        nullable=False,
+        index=True,
+    )
     category: str = Field(max_length=50, nullable=False)
     score: int = Field(nullable=False)

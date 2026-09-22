@@ -36,6 +36,10 @@ export interface GameStage {
   question: string;
   evaluation: string[];
   scoreType: string;
+  // 장면 표현 방식. 지정하지 않으면 기존 채팅 UI를 사용합니다.
+  sceneType?: "feed" | "dm" | "dialog";
+  sceneTitle?: string;
+  sceneSubtitle?: string;
   // 답변 제출 후 NPC가 되받아치는 한 줄 반응 (백엔드 연동 전 임시 목업 —
   // 나중에는 이 자리에 /chat 응답의 npc_response가 들어갈 예정)
   reaction?: string;

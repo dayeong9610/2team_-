@@ -5,10 +5,10 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from auth.jwt_handler import verify_acess_token
 
-#
+# 로그인 경로 설정
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/admins/signin", auto_error=False)
 
-#
+# 
 async def authenticate(
     request: Request,
     token: str | None = Depends(oauth2_scheme),

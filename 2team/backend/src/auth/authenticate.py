@@ -21,7 +21,7 @@ async def authenticate(
             detail = "Sign in for access"
         )
 
-    decoded_token = verify_acess_token(token.removeprefix("Bearer ").strip())
+    decoded_token = verify_acess_token(token.removeprefix("Bearer").strip())
     return decoded_token["user"]
 
 
